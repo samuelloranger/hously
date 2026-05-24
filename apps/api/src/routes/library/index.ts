@@ -17,7 +17,7 @@ export { mapLibraryMedia, libraryMediaInclude } from "./libraryHelpers";
  *   libraryMetaRoutes  — PATCH /:id/status, monitored, quality-profile, seasons/*, episodes/*
  *   libraryGrabRoutes  — POST /:id/grab, search, episodes search, seasons search, upgrade
  *   libraryFilesRoutes — GET/:id/files, rescan, DELETE files/:fileId, episodes/:epId
- *   libraryJobRoutes   — stats, attention, language-tags, reindex, events SSE, migrate, remux, rss-status
+ *   libraryJobRoutes   — composes attention, stats, and worker job routes
  */
 export const libraryRoutes = new Elysia({ prefix: "/api/library" })
   .use(auth)

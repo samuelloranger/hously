@@ -3,7 +3,8 @@ import { Elysia, t } from "elysia";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
-import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
+import { grabRelease } from "@hously/api/services/mediaGrabberGrab";
+import { searchAndGrab } from "@hously/api/services/mediaGrabberSearch";
 import {
   addJob,
   QUEUE_NAMES,

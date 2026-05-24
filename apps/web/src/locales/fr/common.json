@@ -274,13 +274,6 @@
       "downloadsTitle": "Téléchargements",
       "liveBadge": "● En direct",
       "transfer": "Transfert",
-      "countDownloading": "{{count}} en téléchargement",
-      "countSeeding": "{{count}} en partage",
-      "countStalled": "{{count}} bloqués",
-      "countPaused": "{{count}} en pause",
-      "pinnedKicker": "Épinglé",
-      "unpinTorrent": "Désépingler",
-      "openTorrentsLink": "Ouvrir les torrents →",
       "qbittorrentNotConfigured": "qBittorrent non configuré",
       "choresPending": "{{count}} en attente",
       "choresAllCaughtUp": "Tout est à jour !",
@@ -1399,8 +1392,12 @@
         "username": "Nom d'utilisateur qBittorrent",
         "password": "Mot de passe qBittorrent",
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel",
-        "setupNote": "Pour activer le post-traitement automatique à la fin d'un téléchargement, qBittorrent doit être configuré avec une commande autorun webhook.",
-        "setupLink": "Voir le guide de configuration"
+        "setupNote": "Configurez les webhooks pour que Hously post-traite les téléchargements terminés et suive les torrents Hously dès leur ajout.",
+        "setupLink": "Guide de configuration manuelle",
+        "configureWebhooks": "Configurer les webhooks",
+        "configureWebhooksPending": "Configuration…",
+        "configureWebhooksSuccess": "Webhooks qBittorrent configurés (URL Hously : {{url}})",
+        "configureWebhooksError": "Échec de la configuration des webhooks qBittorrent. Vérifiez que qBittorrent est accessible depuis Hously."
       },
       "scrutiny": {
         "help": "Connectez Scrutiny pour afficher la santé des disques et les températures SMART sur l'accueil.",

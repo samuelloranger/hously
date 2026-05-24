@@ -121,7 +121,7 @@ export async function processScheduledJob(job: Job) {
       }
       case SCHEDULED_JOB_NAMES.CHECK_LIBRARY_INTEGRITY: {
         const { runLibraryIntegrityCheck } =
-          await import("../libraryIntegrity");
+          await import("../libraryIntegrityRun");
         const { trigger } = job.data as { trigger?: string };
         await runLibraryIntegrityCheck({ trigger: trigger ?? "cron" });
         break;

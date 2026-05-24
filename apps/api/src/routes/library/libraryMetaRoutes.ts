@@ -3,7 +3,7 @@ import { Elysia, t } from "elysia";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
-import { profileToScoreInput } from "@hously/api/services/mediaGrabber";
+import { profileToScoreInput } from "@hously/api/services/mediaGrabberHelpers";
 import { filesFailProfile } from "@hously/api/services/upgradeDetection";
 
 import { mapLibraryMedia, libraryMediaInclude } from "./libraryHelpers";

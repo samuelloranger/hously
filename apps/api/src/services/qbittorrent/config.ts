@@ -5,8 +5,8 @@ import {
   deleteCache,
 } from "@hously/api/services/cache";
 import { decrypt } from "@hously/api/services/crypto";
-import { toRecord, toStringOrNull } from "./client";
-import type { QbittorrentIntegrationConfig } from "./client";
+import { toRecord, toStringOrNull } from "./clientNormalizers";
+import type { QbittorrentIntegrationConfig } from "./clientTypes";
 
 export const normalizeQbittorrentConfig = (
   config: unknown,

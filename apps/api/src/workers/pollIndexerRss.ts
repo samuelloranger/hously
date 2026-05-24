@@ -2,7 +2,7 @@ import { prisma } from "@hously/api/db";
 import { getActiveIndexerManager } from "@hously/api/services/indexerManager/factory";
 import type { NormalizedRelease } from "@hously/api/services/indexerManager/types";
 import type { RssRunStats } from "@hously/api/services/rssRunStatus";
-import { grabRelease } from "@hously/api/services/mediaGrabber";
+import { grabRelease } from "@hously/api/services/mediaGrabberGrab";
 import {
   normalizeTitleForMatch,
   parseReleaseSeasonEpisode,

@@ -3,7 +3,9 @@ import { describe, it, expect } from "bun:test";
 describe("grabRelease isUpgrade flag", () => {
   it("accepts isUpgrade in opts without TypeScript error", () => {
     // Structural/type test — verifies the opts shape compiles
-    type GrabOpts = Parameters<typeof import("./mediaGrabber").grabRelease>[0];
+    type GrabOpts = Parameters<
+      typeof import("./mediaGrabberGrab").grabRelease
+    >[0];
     const opts: GrabOpts = {
       mediaId: 1,
       downloadUrl: "magnet:?xt=urn:btih:abc",

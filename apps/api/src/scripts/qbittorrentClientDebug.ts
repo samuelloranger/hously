@@ -6,8 +6,8 @@ import {
 import {
   fetchMaindata,
   qbFetchJson,
-  resetMaindataState,
-} from "@hously/api/services/qbittorrent/client";
+} from "@hously/api/services/qbittorrent/clientFetch";
+import { resetMaindataState } from "@hously/api/services/qbittorrent/clientSession";
 
 type Options = {
   iterations: number;

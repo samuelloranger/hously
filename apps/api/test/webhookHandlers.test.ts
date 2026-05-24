@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { webhookHandlers } from "../src/services/webhookHandlers";
+import { webhookHandlers } from "../src/services/webhookHandlers/registry";
 
 describe("webhookHandlers.jellyfin", () => {
   it("normalizes the official flat webhook payload shape", () => {

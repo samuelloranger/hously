@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { prisma } from "@hously/api/db";
-import { webhookHandlers } from "@hously/api/services/webhookHandlers";
+import { webhookHandlers } from "@hously/api/services/webhookHandlers/registry";
 import { sendExternalNotification } from "@hously/api/services/externalNotificationService";
 import { enqueueJellyfinEpisode } from "@hously/api/services/jellyfinEpisodeBatcher";
 import { deleteCache } from "@hously/api/services/cache";
@@ -12,8 +12,8 @@ import {
 } from "@hously/api/errors";
 import { timingSafeEqual } from "node:crypto";
 import { completeDownloadByHash } from "@hously/api/workers/checkDownloadCompletion";
-import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
-import { qbFetchJson } from "@hously/api/services/qbittorrent/client";
+import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessorQueue";
+import { qbFetchJson } from "@hously/api/services/qbittorrent/clientFetch";
 import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import {
   parseReleaseSeasonEpisode,

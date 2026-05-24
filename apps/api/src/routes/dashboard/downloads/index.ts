@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
-import { qbFetchJson } from "@hously/api/services/qbittorrent/client";
+import { qbFetchJson } from "@hously/api/services/qbittorrent/clientFetch";
 
 interface QbTransferInfo {
   dl_info_speed: number;

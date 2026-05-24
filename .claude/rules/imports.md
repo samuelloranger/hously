@@ -27,7 +27,7 @@ Use the `@hously/api/` alias for internal imports within `apps/api`. This alias 
 ```typescript
 // Correct
 import { prisma } from "@hously/api/db";
-import { searchAndGrab } from "@hously/api/services/mediaGrabber";
+import { searchAndGrab } from "@hously/api/services/mediaGrabberSearch";
 import { badRequest } from "@hously/api/utils/errors";
 
 // Wrong — do not use relative paths

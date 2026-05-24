@@ -1,5 +1,5 @@
 import { prisma } from "@hously/api/db";
-import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
+import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetcherTypes";
 import {
   getLibraryTmdbApiKey,
   pickDigitalRelease,

@@ -53,6 +53,8 @@ export interface QbittorrentIntegration {
   website_url: string;
   username: string;
   password_set: boolean;
+  hously_base_url?: string;
+  webhook_secret_configured?: boolean;
 }
 
 export interface ScrutinyIntegration {

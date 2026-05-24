@@ -1,4 +1,4 @@
-import { syncLibraryAttentionAlerts } from "@hously/api/services/libraryAttention";
+import { syncLibraryAttentionAlerts } from "@hously/api/services/libraryAttentionSync";
 
 export async function runSyncLibraryAttentionAlerts(): Promise<void> {
   const r = await syncLibraryAttentionAlerts();

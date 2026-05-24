@@ -5,10 +5,10 @@ import { prisma } from "@hously/api/db";
 import { serverError } from "@hously/api/errors";
 import {
   loadTmdbConfig,
-  fetchMediaDetails,
-  fetchCollectionDetails,
   toTmdbLanguage,
-} from "@hously/api/utils/medias/tmdbFetchers";
+} from "@hously/api/utils/medias/tmdbFetcherCore";
+import { fetchMediaDetails } from "@hously/api/utils/medias/tmdbFetcherDetails";
+import { fetchCollectionDetails } from "@hously/api/utils/medias/tmdbFetcherEndpoints";
 
 export const mediasCollectionsRoutes = new Elysia()
   .use(auth)
