@@ -18,7 +18,7 @@ import { logActivity } from "@hously/api/utils/activityLogs";
 import { requireAdmin } from "@hously/api/middleware/auth";
 import { badRequest, serverError } from "@hously/api/errors";
 import { getBaseUrl, loadConfig } from "@hously/api/config";
-import { qbFetchText } from "@hously/api/services/qbittorrent/client";
+import { qbFetchText } from "@hously/api/services/qbittorrent/clientFetch";
 import { lookup as dnsLookup } from "node:dns/promises";
 
 /**

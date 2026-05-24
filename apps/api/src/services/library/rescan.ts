@@ -10,9 +10,9 @@ import {
   remapPath,
 } from "@hously/api/utils/medias/mediainfoScanner";
 import { parseFilenameMetadata } from "@hously/api/utils/medias/filenameParser";
-import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
+import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessorQueue";
 import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
-import { fetchMaindata } from "@hously/api/services/qbittorrent/client";
+import { fetchMaindata } from "@hously/api/services/qbittorrent/clientFetch";
 import {
   isCompletedDownloadState,
   reconcilePendingDownloads,

@@ -22,7 +22,7 @@ mock.module("@hously/api/db", () => ({
 // --- searchAndGrab mock ---
 const searchAndGrabMock = mock(async () => ({ grabbed: true }));
 
-mock.module("@hously/api/services/mediaGrabber", () => ({
+mock.module("@hously/api/services/mediaGrabberSearch", () => ({
   searchAndGrab: searchAndGrabMock,
 }));
 

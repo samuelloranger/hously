@@ -7,7 +7,7 @@
  *   cd apps/api && bun --env-file=../../.env src/scripts/checkLibraryIntegrity.ts --json
  */
 
-import { runLibraryIntegrityCheck } from "@hously/api/services/libraryIntegrity";
+import { runLibraryIntegrityCheck } from "@hously/api/services/libraryIntegrityRun";
 import { prisma } from "@hously/api/db";
 
 async function main() {

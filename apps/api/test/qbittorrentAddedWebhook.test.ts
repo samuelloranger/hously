@@ -115,8 +115,9 @@ mock.module("@hously/api/services/qbittorrent/config", () => ({
     }),
 }));
 
-const realQbClient = await import("@hously/api/services/qbittorrent/client");
-mock.module("@hously/api/services/qbittorrent/client", () => ({
+const realQbClient =
+  await import("@hously/api/services/qbittorrent/clientFetch");
+mock.module("@hously/api/services/qbittorrent/clientFetch", () => ({
   ...realQbClient,
   qbFetchJson: (_cfg: unknown, url: string): Promise<unknown> => {
     // Expect /api/v2/torrents/info?hashes=<hash>

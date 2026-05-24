@@ -82,10 +82,16 @@ mock.module("@hously/api/services/qbittorrent/config", () => ({
 // Spread the real module so unrelated consumers (postProcessor, dashboard
 // routes, …) still see every export under Bun's process-global mock.module.
 // Override only the functions this test exercises directly.
-const realTorrents = await import("@hously/api/services/qbittorrent/torrents");
-mock.module("@hously/api/services/qbittorrent/torrents", () => ({
-  ...realTorrents,
+const realTorrentQueries =
+  await import("@hously/api/services/qbittorrent/torrentQueries");
+const realTorrentMutations =
+  await import("@hously/api/services/qbittorrent/torrentMutations");
+mock.module("@hously/api/services/qbittorrent/torrentQueries", () => ({
+  ...realTorrentQueries,
   fetchQbittorrentTorrent: () => Promise.resolve({ torrent: state.torrent }),
+}));
+mock.module("@hously/api/services/qbittorrent/torrentMutations", () => ({
+  ...realTorrentMutations,
   setQbittorrentTorrentCategory: (
     _cfg: unknown,
     _enabled: boolean,
@@ -117,7 +123,7 @@ mock.module("@hously/api/utils/activityLogs", () => ({
   logActivity: () => Promise.resolve(undefined),
 }));
 
-mock.module("@hously/api/services/postProcessor", () => ({
+mock.module("@hously/api/services/postProcessorQueue", () => ({
   enqueueLibraryPostProcess: (id: number) => {
     enqueuedDhIds.push(id);
   },
@@ -132,7 +138,7 @@ mock.module("@hously/api/services/postProcessor", () => ({
 // (e.g. safeTorrentFetchUrl.test.ts) that depend on the real implementations.
 
 const { tryAdoptQbDuplicate } =
-  await import("@hously/api/services/mediaGrabber");
+  await import("@hously/api/services/mediaGrabberAdopt");
 
 const baseCtx = {
   dhRowId: 1,

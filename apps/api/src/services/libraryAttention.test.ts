@@ -3,18 +3,22 @@ import { prismaMock, clearPrismaMocks } from "../../test/mocks/prisma";
 
 mock.module("@hously/api/db", () => ({ prisma: prismaMock }));
 
-const importLib = async () =>
-  await import("@hously/api/services/libraryAttention");
+const importTypes = async () =>
+  await import("@hously/api/services/libraryAttentionTypes");
+const importCandidatesSeason = async () =>
+  await import("@hously/api/services/libraryAttentionCandidatesSeason");
+const importSync = async () =>
+  await import("@hously/api/services/libraryAttentionSync");
 
 describe("attentionKindPriority", () => {
   it("ranks download_failed above auto_grab_stalled", async () => {
-    const { attentionKindPriority } = await importLib();
+    const { attentionKindPriority } = await importTypes();
     expect(attentionKindPriority("download_failed")).toBeLessThan(
       attentionKindPriority("auto_grab_stalled"),
     );
   });
   it("ranks post_process_error above grab_skipped", async () => {
-    const { attentionKindPriority } = await importLib();
+    const { attentionKindPriority } = await importTypes();
     expect(attentionKindPriority("post_process_error")).toBeLessThan(
       attentionKindPriority("grab_skipped"),
     );
@@ -23,15 +27,15 @@ describe("attentionKindPriority", () => {
 
 describe("inferSeasonFromReleaseTitle", () => {
   it("parses S02 from dotted release name", async () => {
-    const { inferSeasonFromReleaseTitle } = await importLib();
+    const { inferSeasonFromReleaseTitle } = await importCandidatesSeason();
     expect(inferSeasonFromReleaseTitle("Some.Show.S02E05.1080p")).toBe(2);
   });
   it("parses season word form", async () => {
-    const { inferSeasonFromReleaseTitle } = await importLib();
+    const { inferSeasonFromReleaseTitle } = await importCandidatesSeason();
     expect(inferSeasonFromReleaseTitle("Some Show Season 3 WEB")).toBe(3);
   });
   it("returns null when absent", async () => {
-    const { inferSeasonFromReleaseTitle } = await importLib();
+    const { inferSeasonFromReleaseTitle } = await importCandidatesSeason();
     expect(inferSeasonFromReleaseTitle("Movie.Name.2024.1080p")).toBeNull();
   });
 });
@@ -52,7 +56,7 @@ describe("syncLibraryAttentionAlerts state machine", () => {
       },
     ]);
 
-    const { syncLibraryAttentionAlerts } = await importLib();
+    const { syncLibraryAttentionAlerts } = await importSync();
     const r = await syncLibraryAttentionAlerts();
 
     expect(prismaMock.libraryAttentionAlert.create).toHaveBeenCalledTimes(1);
@@ -101,7 +105,7 @@ describe("syncLibraryAttentionAlerts state machine", () => {
       },
     ]);
 
-    const { syncLibraryAttentionAlerts } = await importLib();
+    const { syncLibraryAttentionAlerts } = await importSync();
     const r = await syncLibraryAttentionAlerts();
 
     expect(prismaMock.libraryAttentionAlert.create).not.toHaveBeenCalled();
@@ -131,7 +135,7 @@ describe("syncLibraryAttentionAlerts state machine", () => {
     );
     // buildValidationContext: media status is now "wanted" — not "skipped" → alert invalid
 
-    const { syncLibraryAttentionAlerts } = await importLib();
+    const { syncLibraryAttentionAlerts } = await importSync();
     const r = await syncLibraryAttentionAlerts();
 
     expect(prismaMock.libraryAttentionAlert.updateMany).toHaveBeenCalledWith(
@@ -160,7 +164,7 @@ describe("syncLibraryAttentionAlerts state machine", () => {
       },
     ]);
 
-    const { syncLibraryAttentionAlerts } = await importLib();
+    const { syncLibraryAttentionAlerts } = await importSync();
     const r = await syncLibraryAttentionAlerts();
 
     expect(prismaMock.libraryAttentionAlert.create).not.toHaveBeenCalled();
@@ -187,7 +191,7 @@ describe("syncLibraryAttentionAlerts state machine", () => {
         ].filter((m) => m.searchAttempts >= gte);
       });
 
-    const { syncLibraryAttentionAlerts } = await importLib();
+    const { syncLibraryAttentionAlerts } = await importSync();
     const r = await syncLibraryAttentionAlerts();
 
     expect(prismaMock.libraryAttentionAlert.create).toHaveBeenCalledTimes(1);

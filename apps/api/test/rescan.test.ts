@@ -202,7 +202,7 @@ mock.module("@hously/api/utils/medias/filenameParser", () => ({
   }),
 }));
 
-mock.module("@hously/api/services/postProcessor", () => ({
+mock.module("@hously/api/services/postProcessorQueue", () => ({
   enqueueLibraryPostProcess: (dhId: number) => {
     state.enqueuedDhIds.push(dhId);
   },
@@ -216,7 +216,7 @@ mock.module("@hously/api/services/qbittorrent/config", () => ({
     }),
 }));
 
-mock.module("@hously/api/services/qbittorrent/client", () => ({
+mock.module("@hously/api/services/qbittorrent/clientFetch", () => ({
   fetchMaindata: () => {
     const torrents = new Map<string, Record<string, unknown>>();
     for (const hash of qbCompleteHashes) {

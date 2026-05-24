@@ -1,11 +1,9 @@
 import { prisma } from "@hously/api/db";
 import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import { emitLibraryUpdate } from "@hously/api/services/libraryEvents";
-import {
-  fetchMaindata,
-  resetMaindataState,
-} from "@hously/api/services/qbittorrent/client";
-import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
+import { fetchMaindata } from "@hously/api/services/qbittorrent/clientFetch";
+import { resetMaindataState } from "@hously/api/services/qbittorrent/clientSession";
+import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessorQueue";
 import { resolveDownloadedStatus } from "@hously/api/utils/medias/libraryHelpers";
 
 /** qBittorrent states that indicate the torrent finished downloading */

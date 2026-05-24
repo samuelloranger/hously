@@ -5,10 +5,8 @@
 
 import { buildNotificationUrl } from "@hously/shared/utils";
 import { prisma } from "@hously/api/db";
-import {
-  fetchMediaDetails,
-  loadTmdbConfig,
-} from "@hously/api/utils/medias/tmdbFetchers";
+import { loadTmdbConfig } from "@hously/api/utils/medias/tmdbFetcherCore";
+import { fetchMediaDetails } from "@hously/api/utils/medias/tmdbFetcherDetails";
 import {
   addDaysInTz,
   formatDateInTimezone,

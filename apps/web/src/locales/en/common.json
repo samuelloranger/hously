@@ -274,13 +274,6 @@
       "downloadsTitle": "Downloads",
       "liveBadge": "● Live",
       "transfer": "Transfer",
-      "countDownloading": "{{count}} downloading",
-      "countSeeding": "{{count}} seeding",
-      "countStalled": "{{count}} stalled",
-      "countPaused": "{{count}} paused",
-      "pinnedKicker": "Pinned",
-      "unpinTorrent": "Unpin",
-      "openTorrentsLink": "Open torrents →",
       "qbittorrentNotConfigured": "qBittorrent not configured",
       "choresPending": "{{count}} pending",
       "choresAllCaughtUp": "All caught up!",
@@ -1399,8 +1392,11 @@
         "username": "qBittorrent Username",
         "password": "qBittorrent Password",
         "passwordPlaceholder": "Leave empty to keep existing password",
-        "setupNote": "To enable automatic post-processing when a torrent completes, qBittorrent must be configured with a webhook autorun command.",
-        "setupLink": "View setup guide"
+        "setupNote": "Configure webhooks so Hously can post-process completed grabs and track Hously-category torrents as soon as they are added.",
+        "configureWebhooks": "Configure webhooks",
+        "configureWebhooksPending": "Configuring…",
+        "configureWebhooksSuccess": "qBittorrent webhooks configured (Hously URL: {{url}})",
+        "configureWebhooksError": "Failed to configure qBittorrent webhooks. Check that qBittorrent is reachable from Hously."
       },
       "scrutiny": {
         "help": "Connect Scrutiny to show disk health and SMART temperatures on the dashboard.",

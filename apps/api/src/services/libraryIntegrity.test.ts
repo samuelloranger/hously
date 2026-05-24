@@ -3,7 +3,7 @@ import type { LibraryHealthIssue } from "@hously/shared";
 import {
   libraryHealthEmptySummary,
   summarizeLibraryHealthIssues,
-} from "./libraryIntegrity";
+} from "./libraryIntegritySummary";
 
 describe("summarizeLibraryHealthIssues", () => {
   it("returns zeros for an empty issue list", () => {

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQbittorrentIntegration } from "@/pages/settings/useQbittorrentIntegration";
 import { useUpdateQbittorrentIntegration } from "@/pages/settings/useUpdateQbittorrentIntegration";
+import { useSetupQbittorrentAutorun } from "@/pages/settings/useSetupQbittorrentAutorun";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";
@@ -26,6 +27,7 @@ function QbittorrentIntegrationSectionImpl({
 }) {
   const { t } = useTranslation("common");
   const saveMutation = useUpdateQbittorrentIntegration();
+  const autorunMutation = useSetupQbittorrentAutorun();
 
   const [websiteUrl, setWebsiteUrl] = useState(
     data?.integration?.website_url || "",
@@ -64,6 +66,30 @@ function QbittorrentIntegrationSectionImpl({
         toast.success(t("settings.integrations.saveSuccess"));
       })
       .catch(() => toast.error(t("settings.integrations.saveError")));
+  };
+
+  const canConfigureWebhooks =
+    Boolean(data?.integration?.enabled) &&
+    Boolean(data?.integration?.webhook_secret_configured) &&
+    !isDirty;
+
+  const handleConfigureWebhooks = () => {
+    autorunMutation
+      .mutateAsync({})
+      .then((result) => {
+        toast.success(
+          t("settings.integrations.qbittorrent.configureWebhooksSuccess", {
+            url: result.hously_url,
+          }),
+        );
+      })
+      .catch((err: unknown) => {
+        const message =
+          err instanceof Error && err.message
+            ? err.message
+            : t("settings.integrations.qbittorrent.configureWebhooksError");
+        toast.error(message);
+      });
   };
 
   return (
@@ -114,16 +140,20 @@ function QbittorrentIntegrationSectionImpl({
         />
       </div>
 
-      <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">
-        {t("settings.integrations.qbittorrent.setupNote")}{" "}
-        <a
-          href="https://github.com/samuelloranger/hously/blob/main/docs/QBITTORRENT_SETUP.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary-600 dark:text-primary-400 hover:underline font-medium"
-        >
-          {t("settings.integrations.qbittorrent.setupLink")} →
-        </a>
+      <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400 space-y-3">
+        <p>{t("settings.integrations.qbittorrent.setupNote")}</p>
+        {canConfigureWebhooks && (
+          <button
+            type="button"
+            onClick={handleConfigureWebhooks}
+            disabled={autorunMutation.isPending}
+            className="inline-flex items-center rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50"
+          >
+            {autorunMutation.isPending
+              ? t("settings.integrations.qbittorrent.configureWebhooksPending")
+              : t("settings.integrations.qbittorrent.configureWebhooks")}
+          </button>
+        )}
       </div>
     </IntegrationSectionCard>
   );

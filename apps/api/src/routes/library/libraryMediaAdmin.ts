@@ -5,7 +5,7 @@ import { Elysia, t } from "elysia";
 import { requireAdmin } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, serverError } from "@hously/api/errors";
-import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
+import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetcherTypes";
 import { listVideoFilesUnder } from "@hously/api/utils/medias/fileIdentifier";
 import {
   getLibraryTmdbApiKey,

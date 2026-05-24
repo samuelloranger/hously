@@ -1,5 +1,5 @@
 import { prisma } from "@hously/api/db";
-import { searchAndGrab } from "@hously/api/services/mediaGrabber";
+import { searchAndGrab } from "@hously/api/services/mediaGrabberSearch";
 
 export async function upgradeMediaSearch({
   mediaId,

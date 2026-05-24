@@ -216,7 +216,7 @@ export const libraryFilesRoutes = new Elysia()
       if (!dh.completedAt) return badRequest(set, "Download not yet completed");
 
       const { enqueueLibraryPostProcess } =
-        await import("@hously/api/services/postProcessor");
+        await import("@hously/api/services/postProcessorQueue");
       enqueueLibraryPostProcess(dhId);
       return { queued: true, download_history_id: dhId };
     } catch {
