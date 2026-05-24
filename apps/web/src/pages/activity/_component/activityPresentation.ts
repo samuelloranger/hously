@@ -38,8 +38,6 @@ const SERVICE_LABEL_KEYS: Record<string, string> = {
   beszel: "dashboard.activityPage.services.beszel",
   adguard: "dashboard.activityPage.services.adguard",
   prowlarr: "dashboard.activityPage.services.prowlarr",
-  radarr: "dashboard.activityPage.services.radarr",
-  sonarr: "dashboard.activityPage.services.sonarr",
   c411: "dashboard.activityPage.services.c411",
   torr9: "dashboard.activityPage.services.torr9",
   "la-cale": "dashboard.activityPage.services.laCale",

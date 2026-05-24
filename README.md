@@ -2,14 +2,17 @@
 
 A self-hosted command center for homelab enthusiasts. Hously provides a unified dashboard for managing media pipelines, monitoring infrastructure, tracking torrents, and organizing daily life — all from a single web app.
 
+Hously includes a **native media library that replaces Radarr and Sonarr** — movies and TV in one app, with TMDB discovery, release search, quality profiles, and download workflows built in. Already running \*arr? **Settings → Library import** migrates your existing Radarr and/or Sonarr library into Hously so you can switch without starting over.
+
 > **Early-stage project.** Breaking changes may occur between releases.
 
 ## Features
 
 **Media & Entertainment**
 
-- **Media Library** — Radarr/Sonarr integration with TMDB discovery, release search, and quality profiles
-- **Watchlist** — Track what you want to watch with one-click add to Radarr/Sonarr
+- **Media Library** — Native Radarr/Sonarr replacement: TMDB discovery, release search, quality profiles, and grab workflows for movies and TV
+- **\*arr Migration** — One-time import from Radarr and/or Sonarr (library metadata, files, MediaInfo) to ease switching from an existing \*arr stack
+- **Watchlist** — Track what you want to watch with one-click add to your library
 - **Torrents** — qBittorrent management with real-time activity streaming (SSE)
 - **Tracker Stats** — Private tracker statistics (C411, Torr9, La Cale)
 - **Jellyfin/Plex** — Latest additions and webhook notifications
@@ -19,7 +22,7 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 
 - **Dashboard** — Server health (Netdata), disk diagnostics (Scrutiny), torrent activity, upcoming releases
 - **Plugins** — Configurable integrations with external services
-- **External Notifications** — Inbound webhooks from Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma
+- **External Notifications** — Inbound webhooks from Jellyfin, Plex, Prowlarr, Kopia, UptimeKuma, Beszel, and more
 
 **Life Management**
 

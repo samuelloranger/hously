@@ -3,8 +3,6 @@ import type { ExternalNotificationService } from "@hously/shared/types";
 import { ChevronDown } from "lucide-react";
 
 const SERVICE_ICON_SLUGS: Record<string, string> = {
-  radarr: "radarr",
-  sonarr: "sonarr",
   jellyfin: "jellyfin",
   plex: "plex",
   kopia: "kopia",
@@ -12,6 +10,8 @@ const SERVICE_ICON_SLUGS: Record<string, string> = {
   beszel: "beszel",
   prowlarr: "prowlarr",
   "cross-seed": "qbittorrent",
+  hously: "hously",
+  generic: "hously",
 };
 
 function getServiceIconUrl(serviceName: string): string | null {

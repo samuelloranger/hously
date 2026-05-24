@@ -99,7 +99,7 @@ docker compose down
 ### Homelab
 
 - Dashboard, qBittorrent/SSE, TMDB, trackers, Jellyfin/Plex, webhooks.
-- **Hously replaces Radarr/Sonarr** — it does not integrate with them. Media search and management is built directly into Hously.
+- **Hously replaces Radarr/Sonarr** — movies and TV in one built-in library, not a sidecar integration. Media search, quality profiles, and grab workflows live in Hously. **Settings → Library import** provides a one-time Radarr/Sonarr importer for users switching from an existing \*arr stack.
 
 ### Life
 
