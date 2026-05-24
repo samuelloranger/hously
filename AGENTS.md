@@ -198,7 +198,7 @@ Singleton `AppSettings` table (row id=1):
 
 ```bash
 make test              # Root script: web + api + shared tests
-make lint              # ESLint on apps/web only (matches CI)
+make lint              # ESLint on apps/web and apps/api (matches CI)
 make typecheck         # Each workspace that defines `typecheck`
 make build             # Production web build
 docker build -t hously:latest .   # Unified image

@@ -11,7 +11,6 @@ import {
 } from "@hously/api/utils/calendar/recurrence";
 import { fetchRecurringChoresForCalendar } from "@hously/api/utils/calendar/choreCalendarQueries";
 import { requireUser } from "@hously/api/middleware/auth";
-import { unauthorized } from "@hously/api/errors";
 
 const generateCalendarToken = (): string => {
   const tokenBytes = new Uint8Array(32);
@@ -222,7 +221,7 @@ export const icalFeedRoutes = new Elysia()
   // Authenticated endpoints for token management
   .use(auth)
   .use(requireUser)
-  .get("/ical-token", async ({ user, set }) => {
+  .get("/ical-token", async ({ user, set: _set }) => {
     const dbUser = await prisma.user.findFirst({
       where: { id: user!.id },
       select: { calendarToken: true },
@@ -238,7 +237,7 @@ export const icalFeedRoutes = new Elysia()
       webcalUrl: buildWebcalUrl(dbUser.calendarToken),
     };
   })
-  .post("/ical-token", async ({ user, set }) => {
+  .post("/ical-token", async ({ user, set: _set }) => {
     const token = generateCalendarToken();
 
     await prisma.user.update({
@@ -251,7 +250,7 @@ export const icalFeedRoutes = new Elysia()
       webcalUrl: buildWebcalUrl(token),
     };
   })
-  .delete("/ical-token", async ({ user, set }) => {
+  .delete("/ical-token", async ({ user, set: _set }) => {
     await prisma.user.update({
       where: { id: user!.id },
       data: { calendarToken: null },

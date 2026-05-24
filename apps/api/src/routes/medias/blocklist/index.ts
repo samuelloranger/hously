@@ -36,7 +36,7 @@ export const mediasBlocklistRoutes = new Elysia()
         orderBy: { blockedAt: "desc" },
       });
       return { entries: entries.map(formatEntry) };
-    } catch (error) {
+    } catch {
       return serverError(set, "Failed to fetch blocklist");
     }
   })
@@ -55,7 +55,7 @@ export const mediasBlocklistRoutes = new Elysia()
           },
         });
         return { entry: formatEntry(entry) };
-      } catch (error) {
+      } catch {
         return serverError(set, "Failed to add blocklist entry");
       }
     },
@@ -81,7 +81,7 @@ export const mediasBlocklistRoutes = new Elysia()
 
         await prisma.grabBlocklist.delete({ where: { id: params.id } });
         return { success: true };
-      } catch (error) {
+      } catch {
         return serverError(set, "Failed to delete blocklist entry");
       }
     },

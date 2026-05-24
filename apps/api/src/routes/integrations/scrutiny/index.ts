@@ -14,7 +14,7 @@ import { badRequest, serverError } from "@hously/api/errors";
 export const scrutinyIntegrationRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/scrutiny", async ({ user, set }) => {
+  .get("/scrutiny", async ({ user: _user, set }) => {
     try {
       const integration = await prisma.integration.findFirst({
         where: { type: "scrutiny" },

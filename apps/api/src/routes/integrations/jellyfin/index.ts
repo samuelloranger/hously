@@ -15,7 +15,7 @@ import { badRequest, serverError } from "@hously/api/errors";
 export const jellyfinIntegrationRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/jellyfin", async ({ user, set }) => {
+  .get("/jellyfin", async ({ user: _user, set }) => {
     try {
       const integration = await prisma.integration.findFirst({
         where: { type: "jellyfin" },

@@ -40,6 +40,7 @@ export const loginToG3mini = async (
       loginFormStillVisible
         ? "G3mini login failed: login form still visible after submit"
         : "G3mini login failed: ratio bar not found after submit",
+      { cause: e },
     );
   }
 };

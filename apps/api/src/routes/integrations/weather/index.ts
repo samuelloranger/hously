@@ -10,7 +10,7 @@ import { badRequest, serverError } from "@hously/api/errors";
 export const weatherIntegrationRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/weather", async ({ user, set }) => {
+  .get("/weather", async ({ user: _user, set }) => {
     try {
       const integration = await prisma.integration.findFirst({
         where: { type: "weather" },

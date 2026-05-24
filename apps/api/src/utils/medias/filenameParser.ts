@@ -187,7 +187,7 @@ export function parseEdition(filename: string): string | null {
 export function parseReleaseGroup(filename: string): string | null {
   const withoutExt = filename.replace(VIDEO_EXT, "").trim();
   // Remove trailing brackets e.g. "[GROUP]"
-  const withoutBrackets = withoutExt.replace(/\s*[\[(][^\]]*[\])]$/, "");
+  const withoutBrackets = withoutExt.replace(/\s*[([][^)\]]*[)\]]$/, "");
   const match = withoutBrackets.match(/-([A-Za-z0-9_]+)$/);
   if (!match) return null;
   // Skip if it's a technical token

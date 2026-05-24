@@ -4,12 +4,10 @@ import { requireUser, resolveUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, serverError } from "@hously/api/errors";
 import {
-  addJob,
   libraryMigrateQueue,
   libraryReindexLanguagesQueue,
   libraryRemuxQueue,
   scheduledTasksQueue,
-  QUEUE_NAMES,
   SCHEDULED_JOB_NAMES,
 } from "@hously/api/services/queueService";
 import { createJsonSseResponse } from "@hously/api/utils/sse";

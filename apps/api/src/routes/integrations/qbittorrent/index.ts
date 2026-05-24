@@ -58,7 +58,7 @@ async function resolveHouslyInternalUrl(override?: string): Promise<string> {
 export const qbittorrentIntegrationRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/qbittorrent", async ({ user, set }) => {
+  .get("/qbittorrent", async ({ user: _user, set }) => {
     try {
       const integration = await prisma.integration.findFirst({
         where: { type: "qbittorrent" },

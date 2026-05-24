@@ -335,7 +335,6 @@ export const calculateRecurringCustomEventDates = (
     let currentYear = startDate.getFullYear();
     let currentMonth = startDate.getMonth();
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
         const occurrenceDate = new Date(currentYear, currentMonth, dayOfMonth);
@@ -395,7 +394,6 @@ export const calculateRecurringCustomEventDates = (
     const originalDay = originalStartLocal.getDate();
     let currentYear = startDate.getFullYear();
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
         const occurrenceDate = new Date(

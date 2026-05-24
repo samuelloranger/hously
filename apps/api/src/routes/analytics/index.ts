@@ -9,7 +9,7 @@ import {
   utcToTimezone,
   calculatePeriodDates,
 } from "@hously/api/utils";
-import { badRequest, serverError, unauthorized } from "@hously/api/errors";
+import { badRequest, serverError } from "@hously/api/errors";
 
 // Day names in different locales
 const dayNames: Record<string, Record<string, string>> = {

@@ -1,5 +1,3 @@
-import { parse } from "node-html-parser";
-
 export type FlareSolverrCookie = {
   name: string;
   value: string;
@@ -149,71 +147,4 @@ export async function httpFetch(
 
   const html = await response.text();
   return { html, finalUrl: url, status: response.status };
-}
-
-/**
- * GET the login page, extract the form (including any hidden CSRF fields),
- * then POST credentials. Returns the HTML of the post-login destination page.
- *
- * Automatically detects common CSRF cookie patterns (__csrf, XSRF-TOKEN, etc.)
- * and sends them as the corresponding header on the POST (double-submit pattern).
- *
- * `credentials` is a map of form field names to values, e.g.:
- *   { username: 'foo', password: 'bar' }
- */
-async function httpLogin(options: {
-  loginPageUrl: string;
-  formSelector: string;
-  credentials: Record<string, string>;
-  jar: CookieJar;
-  userAgent: string;
-}): Promise<{ html: string; finalUrl: string }> {
-  const { loginPageUrl, formSelector, credentials, jar, userAgent } = options;
-
-  // Step 1: GET the login page — FlareSolverr already cleared CF, jar has clearance cookies.
-  const { html: loginHtml, finalUrl: loginFinalUrl } = await httpFetch(
-    loginPageUrl,
-    { jar, userAgent },
-  );
-
-  const root = parse(loginHtml);
-  const form = root.querySelector(formSelector);
-  if (!form)
-    throw new Error(
-      `Login form not found (${formSelector}) on ${loginPageUrl}`,
-    );
-
-  // Step 2: Collect hidden fields (CSRF tokens etc.) then add credentials.
-  const body = new URLSearchParams();
-  for (const input of form.querySelectorAll('input[type="hidden"]')) {
-    const name = input.getAttribute("name");
-    const value = input.getAttribute("value") ?? "";
-    if (name) body.set(name, value);
-  }
-  for (const [field, value] of Object.entries(credentials)) {
-    body.set(field, value);
-  }
-
-  // Step 3: Resolve form action against the final URL (after redirects), not the original.
-  const action = form.getAttribute("action") || "";
-  const formActionUrl = new URL(action, loginFinalUrl).href;
-
-  // Step 4: Auto-detect CSRF cookies and include as headers (double-submit pattern).
-  const csrfHeaders = jar.csrfHeaders();
-  console.log(
-    `[http-login] POST ${formActionUrl} (fields: ${[...body.keys()].join(", ")})`,
-  );
-
-  const result = await httpFetch(formActionUrl, {
-    method: "POST",
-    body: body.toString(),
-    contentType: "application/x-www-form-urlencoded",
-    extraHeaders: csrfHeaders,
-    jar,
-    userAgent,
-  });
-  console.log(
-    `[http-login] POST → ${result.status} (final: ${result.finalUrl}, ${result.html.length} bytes)`,
-  );
-  return result;
 }

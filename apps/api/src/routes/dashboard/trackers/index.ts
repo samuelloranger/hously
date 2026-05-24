@@ -100,7 +100,7 @@ async function getAllTrackerStatsHandler() {
 export const dashboardTrackersRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
-  .get("/trackers/stats", async ({ user, set }) => {
+  .get("/trackers/stats", async ({ user: _user, set }) => {
     try {
       return await getAllTrackerStatsHandler();
     } catch (error) {
@@ -108,7 +108,7 @@ export const dashboardTrackersRoutes = new Elysia()
       return serverError(set, "Failed to get trackers stats");
     }
   })
-  .get("/c411/stats", async ({ user, set }) => {
+  .get("/c411/stats", async ({ user: _user, set }) => {
     try {
       return await getTrackerStatsHandler("c411");
     } catch (error) {
@@ -116,7 +116,7 @@ export const dashboardTrackersRoutes = new Elysia()
       return serverError(set, "Failed to get C411 stats");
     }
   })
-  .get("/torr9/stats", async ({ user, set }) => {
+  .get("/torr9/stats", async ({ user: _user, set }) => {
     try {
       return await getTrackerStatsHandler("torr9");
     } catch (error) {
@@ -124,7 +124,7 @@ export const dashboardTrackersRoutes = new Elysia()
       return serverError(set, "Failed to get Torr9 stats");
     }
   })
-  .get("/la-cale/stats", async ({ user, set }) => {
+  .get("/la-cale/stats", async ({ user: _user, set }) => {
     try {
       return await getTrackerStatsHandler("la-cale");
     } catch (error) {
@@ -132,7 +132,7 @@ export const dashboardTrackersRoutes = new Elysia()
       return serverError(set, "Failed to get La Cale stats");
     }
   })
-  .get("/ygg-reborn/stats", async ({ user, set }) => {
+  .get("/ygg-reborn/stats", async ({ user: _user, set }) => {
     try {
       return await getTrackerStatsHandler("ygg-reborn");
     } catch (error) {

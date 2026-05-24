@@ -45,7 +45,7 @@ async function getAdguardApiConfig(set: {
 export const adguardIntegrationRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/adguard", async ({ user, set }) => {
+  .get("/adguard", async ({ user: _user, set }) => {
     try {
       const integration = await getIntegrationConfigRecord("adguard");
 
@@ -165,7 +165,7 @@ export const adguardIntegrationRoutes = new Elysia()
   )
   .post(
     "/adguard/protection",
-    async ({ user, body, set }) => {
+    async ({ user: _user, body, set }) => {
       try {
         const { config, error } = await getAdguardApiConfig(set);
         if (!config) {

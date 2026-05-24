@@ -1,7 +1,6 @@
 import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared";
 import {
   type QbittorrentIntegrationConfig,
-  type QbittorrentDashboardTorrent,
   type QbittorrentTorrentListItem,
   type QbittorrentTorrentProperties,
   type QbittorrentTorrentFile,
@@ -15,7 +14,6 @@ import {
   toRecord,
   toStringOrNull,
   toNumberOr,
-  toTorrent,
   toTorrentListItem,
   toTorrentProperties,
   toTorrentFile,
@@ -109,35 +107,6 @@ const applySorting = (
   });
   if (reverse) sorted.reverse();
   return sorted;
-};
-
-const computeSummary = (torrents: QbittorrentDashboardTorrent[]) => {
-  let downloadingCount = 0;
-  let stalledCount = 0;
-  let seedingCount = 0;
-  let pausedCount = 0;
-  let completedCount = 0;
-
-  for (const torrent of torrents) {
-    if (DOWNLOAD_STATES.has(torrent.state)) downloadingCount += 1;
-    if (STALLED_STATES.has(torrent.state)) stalledCount += 1;
-    if (SEEDING_STATES.has(torrent.state)) seedingCount += 1;
-    if (
-      torrent.state.startsWith("paused") ||
-      torrent.state.startsWith("stopped")
-    )
-      pausedCount += 1;
-    if (torrent.progress >= 0.999) completedCount += 1;
-  }
-
-  return {
-    downloading_count: downloadingCount,
-    stalled_count: stalledCount,
-    seeding_count: seedingCount,
-    paused_count: pausedCount,
-    completed_count: completedCount,
-    total_count: torrents.length,
-  };
 };
 
 // --- Torrent list operations ---

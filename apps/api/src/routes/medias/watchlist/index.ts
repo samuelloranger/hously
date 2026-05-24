@@ -39,7 +39,7 @@ export const mediasWatchlistRoutes = new Elysia({
             : null,
         })),
       };
-    } catch (error) {
+    } catch {
       return serverError(set, "Failed to fetch watchlist");
     }
   })
@@ -80,7 +80,7 @@ export const mediasWatchlistRoutes = new Elysia({
           },
         });
         return { id: item.id, added: true };
-      } catch (error) {
+      } catch {
         return serverError(set, "Failed to add to watchlist");
       }
     },
@@ -110,7 +110,7 @@ export const mediasWatchlistRoutes = new Elysia({
       });
 
       return { success: true };
-    } catch (error) {
+    } catch {
       return serverError(set, "Failed to remove from watchlist");
     }
   });

@@ -43,7 +43,10 @@ async function seasonSearch(
   const results = await Promise.all([
     tmdbId != null
       ? adapter.search({ type: "tvsearch", tmdbId, season, mediaType: mt })
-      : Promise.resolve({ releases: [], indexerWarnings: [] } satisfies SearchResult),
+      : Promise.resolve({
+          releases: [],
+          indexerWarnings: [],
+        } satisfies SearchResult),
     adapter.search({ type: "tvsearch", query, season, mediaType: mt }),
     adapter.search({
       type: "freetext",
@@ -76,7 +79,10 @@ async function completeSeriesSearch(
   const results = await Promise.all([
     tmdbId != null
       ? adapter.search({ type: "tvsearch", tmdbId, mediaType: mt })
-      : Promise.resolve({ releases: [], indexerWarnings: [] } satisfies SearchResult),
+      : Promise.resolve({
+          releases: [],
+          indexerWarnings: [],
+        } satisfies SearchResult),
     adapter.search({ type: "tvsearch", query, mediaType: mt }),
     adapter.search({
       type: "freetext",

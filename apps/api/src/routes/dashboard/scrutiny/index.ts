@@ -7,7 +7,7 @@ import { serverError } from "@hously/api/errors";
 export const dashboardScrutinyRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
-  .get("/scrutiny/summary", async ({ user, set }) => {
+  .get("/scrutiny/summary", async ({ user: _user, set }) => {
     try {
       return await fetchScrutinySummary();
     } catch (error) {

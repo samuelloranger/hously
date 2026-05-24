@@ -15,7 +15,7 @@ import { badRequest, serverError } from "@hously/api/errors";
 export const tmdbIntegrationRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/tmdb", async ({ user, set }) => {
+  .get("/tmdb", async ({ user: _user, set }) => {
     try {
       const integration = await getIntegrationConfigRecord("tmdb");
       const config = normalizeTmdbConfig(integration?.config);

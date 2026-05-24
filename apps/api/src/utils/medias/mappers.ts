@@ -99,9 +99,10 @@ const toUniqueStringArray = (value: unknown): string[] => {
   const seen = new Set<string>();
 
   for (const entry of value) {
-    let candidate: string | null = null;
-    if (typeof entry === "string") candidate = toStringOrNull(entry);
-    else {
+    let candidate: string | null;
+    if (typeof entry === "string") {
+      candidate = toStringOrNull(entry);
+    } else {
       const record = toRecord(entry);
       candidate =
         toStringOrNull(record?.name) ||

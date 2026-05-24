@@ -534,7 +534,7 @@ export async function fetchMediaDetails(
     let release_date: string | null = null;
     let first_air_date: string | null = null;
     let last_air_date: string | null = null;
-    let status: string | null =
+    const status: string | null =
       typeof data.status === "string" && data.status.trim()
         ? data.status.trim()
         : null;
@@ -545,7 +545,7 @@ export async function fetchMediaDetails(
     let episode_run_times: number[] = [];
     let next_episode_to_air: TmdbNextEpisode | null = null;
     let last_episode_to_air: TmdbNextEpisode | null = null;
-    let seasons: TmdbSeasonSummary[] = [];
+    const seasons: TmdbSeasonSummary[] = [];
 
     if (mediaType === "movie") {
       const rd =

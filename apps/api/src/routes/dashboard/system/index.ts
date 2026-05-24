@@ -11,7 +11,7 @@ import { serverError } from "@hously/api/errors";
 export const dashboardSystemRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
-  .get("/system/summary", async ({ user, set }) => {
+  .get("/system/summary", async ({ user: _user, set }) => {
     try {
       return await fetchSystemSummary();
     } catch (error) {
@@ -19,7 +19,7 @@ export const dashboardSystemRoutes = new Elysia()
       return serverError(set, "Failed to get system summary");
     }
   })
-  .get("/system/stream", async ({ user, set, request }) => {
+  .get("/system/stream", async ({ user: _user, set: _set, request }) => {
     return createJsonSseResponse({
       request,
       poll: fetchSystemSummary,

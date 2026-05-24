@@ -84,7 +84,7 @@ make test                          # Equivalent to root `bun run test`
 cd apps/web && bun run test        # Web tests only
 cd apps/api && bun test            # API tests only
 
-make lint                          # Web ESLint — matches CI (`bun run --filter @hously/web lint`)
+make lint                          # Web + API ESLint — matches CI (`bun run lint`)
 make typecheck                     # Every workspace with a `typecheck` script
 
 make migrate-dev                   # Makefile wraps Prisma

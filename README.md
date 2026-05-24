@@ -141,7 +141,7 @@ make dev-api           # Start API with hot reload
 make dev-web           # Start frontend with live reload
 make build             # Build frontend for production
 make test              # Run all tests
-make lint              # ESLint — web app only (same scope as CI)
+make lint              # ESLint — web + API (same scope as CI)
 make typecheck         # Type-check all workspaces that expose `typecheck`
 
 # Database

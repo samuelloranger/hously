@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
-import { prisma } from "@hously/api/db";
 import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { toPositiveInt } from "@hously/shared/utils";
 import { mapJellyfinApiItem } from "@hously/api/utils/dashboard/jellyfin";
@@ -13,7 +12,7 @@ export const dashboardJellyfinRoutes = new Elysia()
   .use(requireUser)
   .get(
     "/jellyfin/image",
-    async ({ user, query, set }) => {
+    async ({ user: _user, query, set }) => {
       try {
         const jellyfinIntegration =
           await getIntegrationConfigRecord("jellyfin");
@@ -119,7 +118,7 @@ export const dashboardJellyfinRoutes = new Elysia()
   )
   .get(
     "/jellyfin/latest",
-    async ({ user, query, set }) => {
+    async ({ user: _user, query, set }) => {
       try {
         const requestedPage = toPositiveInt(query.page, 1);
         const page = Math.max(1, Math.min(100, requestedPage));

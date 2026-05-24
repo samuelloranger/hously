@@ -9,9 +9,7 @@ import { badGateway, badRequest, serverError } from "@hously/api/errors";
 import {
   type TmdbSearchItem,
   mapTmdbSearchItem,
-  toRecord,
   toStringOrNull,
-  toNumberOrNull,
 } from "@hously/api/utils/medias/mappers";
 import {
   loadTmdbConfig,
@@ -30,7 +28,7 @@ export const mediasTmdbRoutes = new Elysia()
   .use(requireUser)
   .get(
     "/tmdb-search",
-    async ({ user, set, query }) => {
+    async ({ user: _user, set, query }) => {
       const q = query.q.trim();
       if (q.length < 2) {
         return {
@@ -130,7 +128,7 @@ export const mediasTmdbRoutes = new Elysia()
       }),
     },
   )
-  .get("/explore", async ({ user, set, query }) => {
+  .get("/explore", async ({ user: _user, set, query }) => {
     try {
       const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
 
@@ -304,7 +302,7 @@ export const mediasTmdbRoutes = new Elysia()
       return serverError(set, "Failed to fetch TMDB explore");
     }
   })
-  .get("/explore/:category", async ({ user, set, params, query }) => {
+  .get("/explore/:category", async ({ user: _user, set, params, query }) => {
     const categoryPaths: Record<
       string,
       { path: string; type?: "movie" | "tv" }
@@ -403,7 +401,7 @@ export const mediasTmdbRoutes = new Elysia()
   })
   .get(
     "/similar/:tmdbId",
-    async ({ user, set, params, query: queryParams }) => {
+    async ({ user: _user, set, params, query: queryParams }) => {
       const tmdbId = parseInt(params.tmdbId, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
         return badRequest(set, "Invalid TMDB ID");
@@ -489,7 +487,7 @@ export const mediasTmdbRoutes = new Elysia()
       params: t.Object({ tmdbId: t.String() }),
     },
   )
-  .get("/streaming-providers", async ({ user, set, query }) => {
+  .get("/streaming-providers", async ({ user: _user, set: _set, query }) => {
     const q = query as Record<string, string | undefined>;
     const region = await getGlobalTmdbRegion();
     const type = q.type === "tv" ? "tv" : "movie";
@@ -546,7 +544,7 @@ export const mediasTmdbRoutes = new Elysia()
       return { providers: [], region };
     }
   })
-  .get("/genres", async ({ user, set, query }) => {
+  .get("/genres", async ({ user: _user, set, query }) => {
     const q = query as Record<string, string | undefined>;
     const type = q.type;
     if (type !== "movie" && type !== "tv") {
@@ -591,7 +589,7 @@ export const mediasTmdbRoutes = new Elysia()
       return serverError(set, "Failed to fetch genres");
     }
   })
-  .get("/discover", async ({ user, set, query }) => {
+  .get("/discover", async ({ user: _user, set, query }) => {
     const q = query as Record<string, string | undefined>;
     const type = q.type;
     if (type !== "movie" && type !== "tv") {
@@ -895,7 +893,7 @@ export const mediasTmdbRoutes = new Elysia()
   )
   .get(
     "/providers/:mediaType/:tmdbId",
-    async ({ user, set, params, query: queryParams }) => {
+    async ({ user: _user, set, params, query: queryParams }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
       if (mediaType !== "movie" && mediaType !== "tv")
         return badRequest(set, "Invalid media type");

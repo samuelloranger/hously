@@ -15,7 +15,7 @@ import { badRequest, serverError } from "@hously/api/errors";
 export const beszelIntegrationRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/beszel", async ({ user, set }) => {
+  .get("/beszel", async ({ user: _user, set }) => {
     try {
       const integration = await prisma.integration.findFirst({
         where: { type: "beszel" },

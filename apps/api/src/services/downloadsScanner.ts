@@ -191,8 +191,8 @@ function buildParsed(fileNameWithExt: string): DownloadParsed {
   const rel = parseReleaseTitle(stem);
   const seEp = parseReleaseSeasonEpisode(stem);
 
-  let season = seEp?.season ?? null;
-  let episodeNum = seEp?.episode ?? null;
+  const season = seEp?.season ?? null;
+  const episodeNum = seEp?.episode ?? null;
 
   let kind: "movie" | "tv";
   let title: string | null;

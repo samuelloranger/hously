@@ -11,7 +11,7 @@ import {
 } from "@hously/api/utils/dashboard/weather";
 import type { DashboardWeatherResponse } from "@hously/api/types/dashboardWeather";
 import type { WeatherForecastData } from "@hously/shared/types";
-import { badGateway, notFound, serverError } from "@hously/api/errors";
+import { badGateway, notFound } from "@hously/api/errors";
 
 interface WeatherIntegrationConfig {
   address?: string;
@@ -21,7 +21,7 @@ interface WeatherIntegrationConfig {
 export const dashboardWeatherRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
-  .get("/weather", async ({ user, set }) => {
+  .get("/weather", async ({ user: _user, set }) => {
     try {
       const weatherIntegration = await prisma.integration.findFirst({
         where: { type: "weather" },

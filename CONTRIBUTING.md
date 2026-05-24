@@ -40,7 +40,7 @@ apps/
 3. Run checks before pushing:
    ```bash
    make typecheck    # All workspaces exposing `typecheck`
-   make lint         # ESLint on web app (matches CI)
+   make lint         # ESLint on web + API (matches CI)
    make test         # Root test runner
    ```
 4. Open a pull request against `main`
