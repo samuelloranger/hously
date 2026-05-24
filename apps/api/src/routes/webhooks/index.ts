@@ -1,7 +1,6 @@
 import { Elysia } from "elysia";
 import { prisma } from "@hously/api/db";
 import { webhookHandlers } from "@hously/api/services/webhookHandlers";
-import { enrichArrWebhookNotification } from "@hously/api/services/webhookEnrichment";
 import { sendExternalNotification } from "@hously/api/services/externalNotificationService";
 import { enqueueJellyfinEpisode } from "@hously/api/services/jellyfinEpisodeBatcher";
 import { deleteCache } from "@hously/api/services/cache";
@@ -368,12 +367,7 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
           await deleteCache("integration:uptimekuma:monitors");
         }
 
-        const enrichment = await enrichArrWebhookNotification(
-          serviceName.toLowerCase(),
-          parsed,
-        );
-        const templateVariables =
-          enrichment.template_variables ?? parsed.template_variables;
+        const templateVariables = parsed.template_variables;
 
         console.log(
           `Processing ${serviceName} webhook: event_type=${eventType}`,
@@ -398,11 +392,9 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
         const notificationPayload = {
           template_variables: templateVariables,
           original_payload: parsed.original_payload,
-          notification_url:
-            enrichment.notification_url ?? parsed.notification_url,
+          notification_url: parsed.notification_url,
           notification_metadata: {
             ...(parsed.notification_metadata ?? {}),
-            ...(enrichment.notification_metadata ?? {}),
           },
         };
 

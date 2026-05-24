@@ -18,6 +18,12 @@ Hously is a self-hosted command center for homelab enthusiasts — unified dashb
 
 In production, the frontend is built into `apps/api/public/` and served by the API (`SERVE_STATIC=true`). A single `Dockerfile` builds both.
 
+### Media library
+
+Hously **replaces Radarr and Sonarr** with a built-in library — not a runtime integration with those apps. Movies and TV share one stack: TMDB discovery, indexers, quality profiles, grab/post-process workflows.
+
+For users migrating from \*arr stacks, **Settings → Library import** runs a one-time Radarr/Sonarr importer (metadata, files, MediaInfo). Code references to Radarr/Sonarr are for migration and filename conventions, not day-to-day operation.
+
 ---
 
 ## Development Setup
