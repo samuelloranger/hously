@@ -1,9 +1,11 @@
 import { Elysia } from "elysia";
 import { prisma } from "@hously/api/db";
+import { requireAdmin } from "@hously/api/middleware/auth";
 import { formatIso } from "@hously/api/utils";
 import { serverError } from "@hously/api/errors";
 
 export const adminLibraryHealthRoutes = new Elysia()
+  .use(requireAdmin)
   // GET /api/admin/library-health - Latest persisted library integrity checks
   .get("/library-health", async ({ query, set }) => {
     try {

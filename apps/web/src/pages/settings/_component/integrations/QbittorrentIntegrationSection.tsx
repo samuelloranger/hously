@@ -83,11 +83,13 @@ function QbittorrentIntegrationSectionImpl({
           }),
         );
       })
-      .catch(() =>
-        toast.error(
-          t("settings.integrations.qbittorrent.configureWebhooksError"),
-        ),
-      );
+      .catch((err: unknown) => {
+        const message =
+          err instanceof Error && err.message
+            ? err.message
+            : t("settings.integrations.qbittorrent.configureWebhooksError");
+        toast.error(message);
+      });
   };
 
   return (

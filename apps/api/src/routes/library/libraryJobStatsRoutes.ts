@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 
 import { prisma } from "@hously/api/db";
+import { requireUser } from "@hously/api/middleware/auth";
 import { serverError } from "@hously/api/errors";
 import { buildLibraryStatsResponse } from "./libraryStats";
 
@@ -11,6 +12,7 @@ import { buildLibraryStatsResponse } from "./libraryStats";
  * GET /api/library/download-history/stats
  */
 export const libraryJobStatsRoutes = new Elysia()
+  .use(requireUser)
   .get("/stats", async ({ set }) => {
     try {
       const [typeStatusRows, tmdbStatusRows, files] = await Promise.all([

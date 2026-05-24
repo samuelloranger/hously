@@ -65,7 +65,8 @@ export async function listOpenLibraryAttentionForApi(): Promise<{
     })
     .sort(
       (a, b) =>
-        attentionKindPriority(a.kind) - attentionKindPriority(b.kind) ||
+        (attentionKindPriority(a.kind) ?? 99) -
+          (attentionKindPriority(b.kind) ?? 99) ||
         b.updated_at.localeCompare(a.updated_at),
     )
     .slice(0, LIBRARY_ATTENTION_MAX_ITEMS);

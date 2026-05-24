@@ -1,10 +1,12 @@
 import { Elysia, t } from "elysia";
 import { UAParser } from "ua-parser-js";
 import { prisma } from "@hously/api/db";
+import { requireAdmin } from "@hously/api/middleware/auth";
 import { formatIso } from "@hously/api/utils";
 import { badRequest, serverError } from "@hously/api/errors";
 
 export const adminMiscRoutes = new Elysia()
+  .use(requireAdmin)
   // GET /api/admin/sessions - List all active Better Auth sessions
   .get("/sessions", async ({ set }) => {
     try {
