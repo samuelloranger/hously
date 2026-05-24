@@ -48,12 +48,8 @@ export function LibraryPage() {
   const searchMovie = useSearchLibraryMovie();
 
   // ─── Filter / sort / pagination state (URL-persisted) ──────────────────────
-  // The hook returns `safePage` clamped to `totalPages`; we pass an initial
-  // `totalPages` of 1 here and recompute below once we know the sorted length.
-  // Reading state first lets us pass server-side filters into `useLibrary`.
   const { state, setState, activeFilterCount } = useLibraryPageState(
     searchParams as LibraryPageSearchParams,
-    1,
   );
   const {
     type: typeFilter,

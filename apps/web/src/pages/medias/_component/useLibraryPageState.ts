@@ -20,17 +20,12 @@ export const LIBRARY_DEFAULTS = {
 
 export type LibraryPageSearchParams = Partial<typeof LIBRARY_DEFAULTS>;
 
-export function useLibraryPageState(
-  searchParams: LibraryPageSearchParams,
-  totalPages: number,
-) {
+export function useLibraryPageState(searchParams: LibraryPageSearchParams) {
   const { state, setState } = useUrlState(
     "/library/",
     searchParams,
     LIBRARY_DEFAULTS,
   );
-
-  const safePage = Math.min(state.page, totalPages);
 
   const activeFilterCount = [
     state.type !== "all",
@@ -38,5 +33,5 @@ export function useLibraryPageState(
     state.language !== "all",
   ].filter(Boolean).length;
 
-  return { state, setState, safePage, activeFilterCount };
+  return { state, setState, activeFilterCount };
 }
