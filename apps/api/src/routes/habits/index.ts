@@ -14,7 +14,7 @@ import {
   todayLocal,
 } from "@hously/api/utils/date";
 import { requireUser } from "@hously/api/middleware/auth";
-import { notFound, unauthorized, unprocessable } from "@hously/api/errors";
+import { notFound, unprocessable } from "@hously/api/errors";
 
 const DONE_STATUS = "done";
 const SKIPPED_STATUS = "skipped";

@@ -196,7 +196,7 @@ export const dashboardActivitiesRoutes = new Elysia()
   .use(requireUser)
   .get(
     "/activities",
-    async ({ user, query, set }) => {
+    async ({ user: _user, query, set }) => {
       try {
         const limit = query.limit ? parseInt(query.limit, 10) : 10;
         const safeLimit =

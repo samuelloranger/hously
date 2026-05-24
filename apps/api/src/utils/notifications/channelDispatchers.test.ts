@@ -37,7 +37,7 @@ const mockFetch = mock(() =>
   Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 })),
 );
 
-// @ts-ignore
+// @ts-expect-error test assigns global fetch mock
 global.fetch = mockFetch;
 
 beforeEach(() => mockFetch.mockClear());

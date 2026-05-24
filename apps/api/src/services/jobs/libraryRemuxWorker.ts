@@ -117,7 +117,9 @@ export async function processLibraryRemuxFileJob(
         const rm = Bun.spawn(["rm", "-f", tmpPath], { stderr: "ignore" });
         await rm.exited;
       }
-    } catch {}
+    } catch {
+      // Best-effort temp file cleanup.
+    }
     return {
       status: "error",
       message: `mkvmerge exited with code ${remuxExit}`,

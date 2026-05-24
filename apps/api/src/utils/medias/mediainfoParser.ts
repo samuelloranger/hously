@@ -191,7 +191,7 @@ export function parseMediaInfoJson(
     video?.HDR_Format_Commercial,
   );
 
-  let resolution: number | null = null;
+  let resolution: number | null;
   if (width) {
     if (width >= 3600) resolution = 2160;
     else if (width >= 1800) resolution = 1080;

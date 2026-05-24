@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
-import { requireUser, requireAdmin } from "@hously/api/middleware/auth";
+import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, serverError } from "@hously/api/errors";
 import type { QuickLink } from "@hously/shared/types";

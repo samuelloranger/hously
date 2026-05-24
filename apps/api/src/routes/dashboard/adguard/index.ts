@@ -7,7 +7,7 @@ import { serverError } from "@hously/api/errors";
 export const dashboardAdguardRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
-  .get("/adguard/summary", async ({ user, set }) => {
+  .get("/adguard/summary", async ({ user: _user, set }) => {
     try {
       return await fetchAdguardSummary();
     } catch (error) {

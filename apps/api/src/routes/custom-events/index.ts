@@ -15,12 +15,7 @@ import {
   isValidColor,
 } from "@hously/api/utils";
 import { logActivity } from "@hously/api/utils/activityLogs";
-import {
-  badRequest,
-  notFound,
-  serverError,
-  unauthorized,
-} from "@hously/api/errors";
+import { badRequest, notFound, serverError } from "@hously/api/errors";
 import type { Prisma, CustomEvent } from "@prisma/client";
 import { hasUpdates } from "@hously/api/utils/updates";
 

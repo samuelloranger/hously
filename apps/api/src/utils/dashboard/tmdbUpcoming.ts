@@ -5,11 +5,7 @@ import type {
   DashboardUpcomingItem,
   DashboardUpcomingProvider,
 } from "@hously/api/types/dashboardUpcoming";
-import {
-  normalizeJellyfinConfig,
-  normalizeSonarrConfig,
-} from "@hously/api/utils/integrations/normalizers";
-import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
+import { normalizeSonarrConfig } from "@hously/api/utils/integrations/normalizers";
 
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
 const TMDB_BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/w780";
@@ -18,8 +14,6 @@ const TMDB_WEB_BASE_URL = "https://www.themoviedb.org";
 
 export const TMDB_UPCOMING_CACHE_TTL_SECONDS = 24 * 60 * 60;
 export const TMDB_UPCOMING_CACHE_KEY = "dashboard:tmdb:upcoming:v8";
-const JELLYFIN_TMDB_IDS_CACHE_TTL_SECONDS = 60 * 60;
-const JELLYFIN_TMDB_IDS_CACHE_KEY = "dashboard:jellyfin:tmdb-ids:v1";
 
 export const getArrIntegrationStatus =
   async (): Promise<ArrIntegrationStatus> => {
@@ -222,78 +216,6 @@ export const collectTmdbUpcoming = async (
   }
 
   return { items, hasMore: page <= totalPages };
-};
-
-const fetchJellyfinTmdbIds = async (): Promise<Set<number>> => {
-  const jellyfinIntegration = await getIntegrationConfigRecord("jellyfin");
-
-  if (!jellyfinIntegration?.enabled) return new Set<number>();
-
-  const config = normalizeJellyfinConfig(jellyfinIntegration.config);
-  if (!config) return new Set<number>();
-
-  const cached = await getJsonCache<{ ids: number[] }>(
-    JELLYFIN_TMDB_IDS_CACHE_KEY,
-  );
-  if (cached && Array.isArray(cached.ids)) {
-    return new Set(
-      cached.ids
-        .filter((id) => Number.isFinite(id) && id > 0)
-        .map((id) => Math.trunc(id)),
-    );
-  }
-
-  const tmdbIds = new Set<number>();
-  const PAGE_SIZE = 300;
-  const MAX_PAGES = 20;
-
-  for (let page = 0; page < MAX_PAGES; page += 1) {
-    const startIndex = page * PAGE_SIZE;
-    const jellyfinUrl = new URL("/Items", config.website_url);
-    jellyfinUrl.searchParams.set("Recursive", "true");
-    jellyfinUrl.searchParams.set("IncludeItemTypes", "Movie,Series");
-    jellyfinUrl.searchParams.set("Fields", "ProviderIds");
-    jellyfinUrl.searchParams.set("Limit", String(PAGE_SIZE));
-    jellyfinUrl.searchParams.set("StartIndex", String(startIndex));
-
-    const response = await fetch(jellyfinUrl.toString(), {
-      headers: {
-        "X-Emby-Token": config.api_key,
-        Accept: "application/json",
-      },
-    });
-
-    if (!response.ok) break;
-
-    const data = (await response.json()) as Record<string, unknown>;
-    const rawItems = Array.isArray(data.Items) ? data.Items : [];
-    if (rawItems.length === 0) break;
-
-    for (const rawItem of rawItems) {
-      const item = toRecord(rawItem);
-      const providerIds = toRecord(item?.ProviderIds);
-      const tmdbRaw =
-        toStringOrNull(providerIds?.Tmdb) || toStringOrNull(providerIds?.tmdb);
-      if (!tmdbRaw) continue;
-
-      const tmdbId = parseInt(tmdbRaw, 10);
-      if (Number.isFinite(tmdbId) && tmdbId > 0) {
-        tmdbIds.add(tmdbId);
-      }
-    }
-
-    if (rawItems.length < PAGE_SIZE) break;
-  }
-
-  await setJsonCache(
-    JELLYFIN_TMDB_IDS_CACHE_KEY,
-    {
-      ids: [...tmdbIds],
-    },
-    JELLYFIN_TMDB_IDS_CACHE_TTL_SECONDS,
-  );
-
-  return tmdbIds;
 };
 
 export const fetchTmdbProviders = async (

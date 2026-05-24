@@ -91,7 +91,7 @@ export async function saveImageAndCreateThumbnail(file: File): Promise<string> {
     return uniqueFilename;
   } catch (error) {
     console.error("Error saving image:", error);
-    throw new Error(`Error saving image: ${error}`);
+    throw new Error(`Error saving image: ${error}`, { cause: error });
   }
 }
 

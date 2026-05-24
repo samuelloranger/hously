@@ -3,12 +3,7 @@ import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { formatIso, nowUtc, parseDateTime } from "@hously/api/utils";
-import {
-  badRequest,
-  unauthorized,
-  notFound,
-  serverError,
-} from "@hously/api/errors";
+import { badRequest, notFound, serverError } from "@hously/api/errors";
 
 export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
   .use(auth)
@@ -77,7 +72,7 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
   // GET /api/reminders/chore/:choreId - Get all reminders for a chore
   .get(
     "/chore/:choreId",
-    async ({ user, params, set }) => {
+    async ({ user: _user, params, set }) => {
       const choreId = parseInt(params.choreId, 10);
       if (isNaN(choreId)) {
         return badRequest(set, "Invalid chore ID");

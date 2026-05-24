@@ -123,7 +123,7 @@ export const mediasSearchRoutes = new Elysia()
 
         // TMDb ID validation: when tmdbId is provided, filter out results
         // where the indexer reports a different tmdbId (keep results with no tmdbId)
-        let rawReleases =
+        const rawReleases =
           tmdbId != null
             ? searchedReleases.filter(
                 (r) => r.tmdbId == null || r.tmdbId === tmdbId,

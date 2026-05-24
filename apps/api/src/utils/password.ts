@@ -30,7 +30,7 @@ export async function verifyPassword(
     if (isBunSupported) {
       return await Bun.password.verify(password, hash);
     }
-  } catch (e) {
+  } catch {
     // ignore and fall through to legacy
   }
 
@@ -54,7 +54,7 @@ function verifyPbkdf2(password: string, hashStr: string): boolean {
   if (parts.length !== 3) return false;
 
   const [methodPart, salt, originalHash] = parts;
-  const [_, __, iterStr] = methodPart.split(":");
+  const [, , iterStr] = methodPart.split(":");
   const iterations = parseInt(iterStr || "260000", 10); // default if missing, though typically present
 
   const derivedKey = pbkdf2Sync(password, salt, iterations, 32, "sha256");

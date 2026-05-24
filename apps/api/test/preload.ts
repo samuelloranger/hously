@@ -72,7 +72,7 @@ mock.module("../src/db", () => ({
     {
       get(_target, _prop) {
         return new Proxy(() => {}, {
-          get(_t, p) {
+          get(_t, _prop) {
             return () => Promise.resolve(null);
           },
           apply() {

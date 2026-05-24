@@ -37,6 +37,7 @@ export const loginToTorr9 = async (
       loginFormStillVisible
         ? "Torr9 login failed: login form still visible after submit"
         : "Torr9 login failed: stats top bar not found after submit",
+      { cause: e },
     );
   }
 };

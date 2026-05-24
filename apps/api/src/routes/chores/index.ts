@@ -26,7 +26,6 @@ import {
   forbidden,
   notFound,
   serverError,
-  unauthorized,
 } from "@hously/api/errors";
 import { hasUpdates } from "@hously/api/utils/updates";
 import { logActivity } from "@hously/api/utils/activityLogs";
@@ -83,7 +82,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
   // GET /api/chores - Get all chores with users
   .get(
     "/",
-    async ({ user, query, set }) => {
+    async ({ user: _user, query, set }) => {
       try {
         const page = query.page
           ? Math.max(1, parseInt(query.page, 10) || 1)
@@ -818,7 +817,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
   // GET /api/chores/image/:filename - Serve chore image from S3
   .get(
     "/image/:filename",
-    async ({ user, params, set }) => {
+    async ({ user: _user, params, set }) => {
       const { filename } = params;
 
       // Security: ensure filename doesn't contain path traversal
@@ -863,7 +862,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
   // GET /api/chores/thumbnail/:filename - Serve chore thumbnail from S3
   .get(
     "/thumbnail/:filename",
-    async ({ user, params, set }) => {
+    async ({ user: _user, params, set }) => {
       const { filename } = params;
 
       // Security: ensure filename doesn't contain path traversal

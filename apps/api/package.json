@@ -26,6 +26,7 @@
     "format": "prettier --write \"{src,prisma}/**/*.{ts,js,json,md}\" \"*.{ts,js,json,md}\"",
     "typecheck": "tsc --noEmit",
     "typecheck:native": "tsgo --noEmit",
+    "lint": "eslint .",
     "emails:render": "bun run scripts/render-emails.ts"
   },
   "dependencies": {

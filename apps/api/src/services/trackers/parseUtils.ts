@@ -12,7 +12,7 @@ export function parseSizeToGo(
   { binary = false }: { binary?: boolean } = {},
 ): number | null {
   const normalized = text
-    .replace(/ /g, " ")
+    .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .replace(",", ".");
@@ -55,7 +55,7 @@ export function parseSizeToGo(
  */
 export function parseRatio(text: string): number | null {
   const t = text
-    .replace(/ /g, " ")
+    .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .replace(",", ".");

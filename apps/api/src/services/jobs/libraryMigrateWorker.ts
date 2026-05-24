@@ -233,7 +233,7 @@ function buildAudioTracksFromArr(
       /^(fre|fra|fr|french)$/i.test(isoLang) || /french/i.test(lang);
 
     let finalLang = isoLang;
-    let finalName = lang;
+    let finalName: string;
     if (isFrench) {
       const refined = refineFrenchAudioLabel(
         lang,

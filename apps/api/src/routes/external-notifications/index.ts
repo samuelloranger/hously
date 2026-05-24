@@ -3,13 +3,7 @@ import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { generateServiceToken } from "@hously/api/services/externalNotificationService";
 import { requireAdmin } from "@hously/api/middleware/auth";
-import {
-  badRequest,
-  forbidden,
-  notFound,
-  serverError,
-  unauthorized,
-} from "@hously/api/errors";
+import { badRequest, notFound, serverError } from "@hously/api/errors";
 import { getBaseUrl } from "@hously/api/config";
 
 export const externalNotificationsRoutes = new Elysia({
@@ -18,7 +12,7 @@ export const externalNotificationsRoutes = new Elysia({
   .use(auth)
   .use(requireAdmin)
   // GET /api/external-notifications/services - Get all services with templates
-  .get("/services", async ({ user, set }) => {
+  .get("/services", async ({ user: _user, set }) => {
     try {
       const services = await prisma.externalNotificationService.findMany({
         orderBy: { serviceName: "asc" },
@@ -69,7 +63,7 @@ export const externalNotificationsRoutes = new Elysia({
     }
   })
   // POST /api/external-notifications/services/:id/enable - Enable service
-  .post("/services/:id/enable", async ({ user, params, set }) => {
+  .post("/services/:id/enable", async ({ user: _user, params, set }) => {
     const serviceId = parseInt(params.id, 10);
 
     try {
@@ -114,7 +108,7 @@ export const externalNotificationsRoutes = new Elysia({
     }
   })
   // POST /api/external-notifications/services/:id/disable - Disable service
-  .post("/services/:id/disable", async ({ user, params, set }) => {
+  .post("/services/:id/disable", async ({ user: _user, params, set }) => {
     const serviceId = parseInt(params.id, 10);
 
     try {
@@ -152,51 +146,54 @@ export const externalNotificationsRoutes = new Elysia({
     }
   })
   // POST /api/external-notifications/services/:id/regenerate-token
-  .post("/services/:id/regenerate-token", async ({ user, params, set }) => {
-    const serviceId = parseInt(params.id, 10);
+  .post(
+    "/services/:id/regenerate-token",
+    async ({ user: _user, params, set }) => {
+      const serviceId = parseInt(params.id, 10);
 
-    try {
-      const service = await prisma.externalNotificationService.findFirst({
-        where: { id: serviceId },
-      });
+      try {
+        const service = await prisma.externalNotificationService.findFirst({
+          where: { id: serviceId },
+        });
 
-      if (!service) {
-        return notFound(set, "Service not found");
+        if (!service) {
+          return notFound(set, "Service not found");
+        }
+
+        const newToken = generateServiceToken();
+
+        await prisma.externalNotificationService.update({
+          where: { id: serviceId },
+          data: {
+            token: newToken,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+
+        const baseUrl = getBaseUrl();
+        const webhookUrl = `${baseUrl}/api/webhooks/${service.serviceName}?token=${newToken}`;
+
+        console.log(`Token regenerated for service ${service.serviceName}`);
+
+        return {
+          success: true,
+          service: {
+            id: service.id,
+            service_name: service.serviceName,
+            token: newToken,
+            webhook_url: webhookUrl,
+          },
+        };
+      } catch (error) {
+        console.error("Error regenerating token:", error);
+        return serverError(set, "Failed to regenerate token");
       }
-
-      const newToken = generateServiceToken();
-
-      await prisma.externalNotificationService.update({
-        where: { id: serviceId },
-        data: {
-          token: newToken,
-          updatedAt: new Date().toISOString(),
-        },
-      });
-
-      const baseUrl = getBaseUrl();
-      const webhookUrl = `${baseUrl}/api/webhooks/${service.serviceName}?token=${newToken}`;
-
-      console.log(`Token regenerated for service ${service.serviceName}`);
-
-      return {
-        success: true,
-        service: {
-          id: service.id,
-          service_name: service.serviceName,
-          token: newToken,
-          webhook_url: webhookUrl,
-        },
-      };
-    } catch (error) {
-      console.error("Error regenerating token:", error);
-      return serverError(set, "Failed to regenerate token");
-    }
-  })
+    },
+  )
   // POST /api/external-notifications/services/:id/notify-admins-only
   .post(
     "/services/:id/notify-admins-only",
-    async ({ user, params, body, set }) => {
+    async ({ user: _user, params, body, set }) => {
       const serviceId = parseInt(params.id, 10);
       const { notify_admins_only } = body;
 
@@ -245,7 +242,7 @@ export const externalNotificationsRoutes = new Elysia({
     },
   )
   // GET /api/external-notifications/services/logs - Get service logs
-  .get("/services/logs", async ({ user, set }) => {
+  .get("/services/logs", async ({ user: _user, set }) => {
     try {
       const logs = await prisma.externalNotificationServiceLog.findMany({
         include: {
@@ -278,7 +275,7 @@ export const externalNotificationsRoutes = new Elysia({
   // POST /api/external-notifications/templates/toggle - Toggle all templates for a service + event type
   .post(
     "/templates/toggle",
-    async ({ user, body, set }) => {
+    async ({ user: _user, body, set }) => {
       const { service_id, event_type, enabled } = body;
 
       try {
@@ -312,7 +309,7 @@ export const externalNotificationsRoutes = new Elysia({
     },
   )
   // GET /api/external-notifications/templates - Get all templates
-  .get("/templates", async ({ user, set }) => {
+  .get("/templates", async ({ user: _user, set }) => {
     try {
       const templates = await prisma.notificationTemplate.findMany({
         include: {
@@ -351,7 +348,7 @@ export const externalNotificationsRoutes = new Elysia({
   // PUT /api/external-notifications/templates/:id - Update a template
   .put(
     "/templates/:id",
-    async ({ user, params, body, set }) => {
+    async ({ user: _user, params, body, set }) => {
       const templateId = parseInt(params.id, 10);
       const { title_template, body_template } = body;
 

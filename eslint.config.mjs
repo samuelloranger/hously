@@ -105,8 +105,18 @@ export default [
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
-        { argsIgnorePattern: "^_" },
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
+    },
+  },
+  {
+    files: [
+      "apps/api/**/*.test.ts",
+      "apps/api/test/**/*.ts",
+      "apps/api/src/**/__tests__/**/*.ts",
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 ];

@@ -48,8 +48,8 @@ export async function fetchHttpWithSafeRedirects(
   initialUrl: string,
   init: Omit<RequestInit, "redirect"> & { maxRedirects?: number },
 ): Promise<Response> {
-  const max = init.maxRedirects ?? 5;
-  const { maxRedirects: _m, ...reqInit } = init;
+  const { maxRedirects = 5, ...reqInit } = init;
+  const max = maxRedirects;
   let url = initialUrl;
 
   for (let i = 0; i <= max; i++) {

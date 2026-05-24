@@ -153,7 +153,7 @@ async function persistMediaAndStatuses(opts: {
   const destMapped = remapPath(opts.destinationPathHost);
   const destBase = basename(opts.destinationPathHost);
   const fnData = parseFilenameMetadata(destBase);
-  let mi = await scanMediaInfo(destMapped).catch(() => null);
+  const mi = await scanMediaInfo(destMapped).catch(() => null);
 
   const fileDataMi = mi
     ? {

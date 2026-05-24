@@ -1,6 +1,5 @@
 import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
-import { prisma } from "@hously/api/db";
 import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { requireUser } from "@hously/api/middleware/auth";
 import { normalizeHomeAssistantConfig } from "@hously/api/utils/integrations/normalizers";
