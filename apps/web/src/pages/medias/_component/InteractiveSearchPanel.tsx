@@ -157,52 +157,56 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
         }
       />
 
-      <InteractiveSearchStatusStrip
-        indexerWarnings={state.indexerWarnings}
-        dismissed={state.indexerWarningsDismissed}
-        onDismiss={() => state.setIndexerWarningsDismissed(true)}
-        hiddenCount={state.hiddenCount}
-        hasViewOverrides={state.hasViewOverrides}
-        onResetView={state.resetView}
-        visibleCount={state.visibleCount}
-        totalReleases={state.totalReleases}
-        isSearchMode={state.isSearchMode}
-        searchApiQuery={state.searchApiQuery}
-        canToggleSearchTitle={state.canToggleSearchTitle}
-        isOriginalTitleQuery={state.isOriginalTitleQuery}
-        onToggleSearchTitleVariant={state.toggleSearchTitleVariant}
-      />
-
-      {!aiDismissed && aiEnabled && (
-        <AiPickBanner
-          isLoading={aiPick.isLoading}
-          isError={aiPick.isError}
-          release={pickedRelease}
-          reasoning={aiPick.data?.reasoning ?? null}
-          grabBusy={state.grabBusy}
-          onGrab={state.downloadRelease}
-          onRetry={() => void aiPick.refetch()}
-          onDismiss={() => setAiDismissed(true)}
+      <div className="pt-3">
+        <InteractiveSearchStatusStrip
+          indexerWarnings={state.indexerWarnings}
+          dismissed={state.indexerWarningsDismissed}
+          onDismiss={() => state.setIndexerWarningsDismissed(true)}
+          hiddenCount={state.hiddenCount}
+          hasViewOverrides={state.hasViewOverrides}
+          onResetView={state.resetView}
+          visibleCount={state.visibleCount}
+          totalReleases={state.totalReleases}
+          isSearchMode={state.isSearchMode}
+          searchApiQuery={state.searchApiQuery}
+          canToggleSearchTitle={state.canToggleSearchTitle}
+          isOriginalTitleQuery={state.isOriginalTitleQuery}
+          onToggleSearchTitleVariant={state.toggleSearchTitleVariant}
         />
-      )}
 
-      <InteractiveSearchResultsList
-        releases={state.releases}
-        isLoading={state.activeQuery.isLoading}
-        needsSearchQuery={state.needsSearchQuery}
-        errorMessage={state.errorMessage}
-        grabBusy={state.grabBusy}
-        pendingReleaseKey={state.pendingReleaseKey}
-        grabbedTitles={state.grabbedTitles}
-        onDownload={state.downloadRelease}
-        onRefetch={() => void state.activeQuery.refetch()}
-        totalReleases={state.totalReleases}
-        isError={state.activeQuery.isError}
-        onResetView={state.resetView}
-        aiPickKey={
-          !aiDismissed && aiEnabled ? (aiPick.data?.release_key ?? null) : null
-        }
-      />
+        {!aiDismissed && aiEnabled && (
+          <AiPickBanner
+            isLoading={aiPick.isLoading}
+            isError={aiPick.isError}
+            release={pickedRelease}
+            reasoning={aiPick.data?.reasoning ?? null}
+            grabBusy={state.grabBusy}
+            onGrab={state.downloadRelease}
+            onRetry={() => void aiPick.refetch()}
+            onDismiss={() => setAiDismissed(true)}
+          />
+        )}
+
+        <InteractiveSearchResultsList
+          releases={state.releases}
+          isLoading={state.activeQuery.isLoading}
+          needsSearchQuery={state.needsSearchQuery}
+          errorMessage={state.errorMessage}
+          grabBusy={state.grabBusy}
+          pendingReleaseKey={state.pendingReleaseKey}
+          grabbedTitles={state.grabbedTitles}
+          onDownload={state.downloadRelease}
+          onRefetch={() => void state.activeQuery.refetch()}
+          totalReleases={state.totalReleases}
+          isError={state.activeQuery.isError}
+          onResetView={state.resetView}
+          aiPickKey={
+            !aiDismissed && aiEnabled
+              ? (aiPick.data?.release_key ?? null)
+              : null
+          }
+        />
+      </div>
     </div>
   );
 }
