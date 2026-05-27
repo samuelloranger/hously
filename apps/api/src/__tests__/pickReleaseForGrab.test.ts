@@ -12,11 +12,7 @@ mock.module("@hously/api/services/localAi/client", () => ({
   pickReleaseWithLocalAi: pickReleaseWithLocalAiMock,
 }));
 
-function release(
-  guid: string,
-  title: string,
-  scoreHint: string,
-): NormalizedRelease {
+function release(guid: string, title: string): NormalizedRelease {
   return {
     guid,
     title,
@@ -43,8 +39,8 @@ describe("pickReleaseForGrab", () => {
   it("uses classic pick when AI is disabled", async () => {
     pickReleaseWithLocalAiMock.mockClear();
     const candidates = [
-      release("a", "Movie.2020.720p.WEB-DL.x264-G1", "720p"),
-      release("b", "Movie.2020.1080p.BluRay.x265-G2", "1080p"),
+      release("a", "Movie.2020.720p.WEB-DL.x264-G1"),
+      release("b", "Movie.2020.1080p.BluRay.x265-G2"),
     ];
 
     const result = await pickReleaseForGrab({
@@ -61,8 +57,8 @@ describe("pickReleaseForGrab", () => {
   it("falls back to classic when AI returns null", async () => {
     pickReleaseWithLocalAiMock.mockImplementationOnce(async () => null);
     const candidates = [
-      release("a", "Movie.2020.720p.WEB-DL.x264-G1", "720p"),
-      release("b", "Movie.2020.1080p.BluRay.x265-G2", "1080p"),
+      release("a", "Movie.2020.720p.WEB-DL.x264-G1"),
+      release("b", "Movie.2020.1080p.BluRay.x265-G2"),
     ];
 
     const result = await pickReleaseForGrab({
@@ -82,8 +78,8 @@ describe("pickReleaseForGrab", () => {
       reasoning: "Better quality",
     }));
     const candidates = [
-      release("a", "Movie.2020.720p.WEB-DL.x264-G1", "720p"),
-      release("b", "Movie.2020.1080p.BluRay.x265-G2", "1080p"),
+      release("a", "Movie.2020.720p.WEB-DL.x264-G1"),
+      release("b", "Movie.2020.1080p.BluRay.x265-G2"),
     ];
 
     const result = await pickReleaseForGrab({
@@ -100,9 +96,7 @@ describe("pickReleaseForGrab", () => {
 
   it("skips AI when only one qualifying release", async () => {
     pickReleaseWithLocalAiMock.mockClear();
-    const candidates = [
-      release("a", "Movie.2020.1080p.BluRay.x265-G2", "1080p"),
-    ];
+    const candidates = [release("a", "Movie.2020.1080p.BluRay.x265-G2")];
 
     const result = await pickReleaseForGrab({
       candidates,
