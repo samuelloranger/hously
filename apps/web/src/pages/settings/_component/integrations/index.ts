@@ -11,3 +11,4 @@ export { WeatherIntegrationSection } from "@/pages/settings/_component/integrati
 export { HomeAssistantIntegrationSection } from "@/pages/settings/_component/integrations/HomeAssistantIntegrationSection";
 export { UptimekumaIntegrationSection } from "@/pages/settings/_component/integrations/UptimekumaIntegrationSection";
 export { MinecraftIntegrationSection } from "./MinecraftIntegrationSection";
+export { LocalAiIntegrationSection } from "@/pages/settings/_component/integrations/LocalAiIntegrationSection";

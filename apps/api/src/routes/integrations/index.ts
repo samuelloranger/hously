@@ -14,6 +14,7 @@ import { uptimekumaIntegrationRoutes } from "./uptimekuma";
 import { trackerIntegrationsRoutes } from "./trackers";
 import { oidcIntegrationRoutes } from "./oidc";
 import { minecraftIntegrationRoutes } from "./minecraft";
+import { localAiIntegrationRoutes } from "./local-ai";
 
 export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(weatherIntegrationRoutes)
@@ -29,4 +30,5 @@ export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(uptimekumaIntegrationRoutes)
   .use(trackerIntegrationsRoutes)
   .use(oidcIntegrationRoutes)
-  .use(minecraftIntegrationRoutes);
+  .use(minecraftIntegrationRoutes)
+  .use(localAiIntegrationRoutes);

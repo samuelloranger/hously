@@ -19,6 +19,12 @@ import {
   isCompleteSeries,
 } from "@hously/api/utils/medias/mappers";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeLocalAiConfig } from "@hously/api/utils/integrations/normalizers";
+import {
+  buildAiPickPrompt,
+  AI_SYSTEM_PROMPT,
+} from "@hously/api/utils/medias/buildAiPickPrompt";
 
 function toScoreInput(p: QualityProfile): QualityProfileScoreInput {
   return {
@@ -272,6 +278,101 @@ export const mediasSearchRoutes = new Elysia()
     {
       body: t.Object({
         token: t.String(),
+      }),
+    },
+  )
+  .post(
+    "/search/ai-pick",
+    async ({ body, set }) => {
+      const record = await getIntegrationConfigRecord("local-ai");
+      const config = normalizeLocalAiConfig(record?.config);
+
+      if (!record?.enabled || !config) {
+        set.status = 404;
+        return { error: "Local AI integration not configured or disabled" };
+      }
+
+      const candidates = body.releases.filter((r) => !r.rejected);
+      if (candidates.length === 0) {
+        set.status = 422;
+        return { error: "No valid releases to analyze" };
+      }
+
+      let responseText: string;
+      try {
+        const res = await fetch(`${config.base_url}/v1/chat/completions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: config.model,
+            messages: [
+              { role: "system", content: AI_SYSTEM_PROMPT },
+              {
+                role: "user",
+                content: buildAiPickPrompt(body.media_context, candidates),
+              },
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.1,
+          }),
+          signal: AbortSignal.timeout(30_000),
+        });
+
+        if (!res.ok) {
+          set.status = 502;
+          return { error: "Could not get response from AI" };
+        }
+
+        const data = (await res.json()) as {
+          choices?: Array<{ message?: { content?: string } }>;
+        };
+        responseText = data?.choices?.[0]?.message?.content ?? "";
+      } catch {
+        set.status = 502;
+        return { error: "Could not get response from AI" };
+      }
+
+      let parsed: { release_key?: string; reasoning?: string };
+      try {
+        parsed = JSON.parse(responseText) as {
+          release_key?: string;
+          reasoning?: string;
+        };
+      } catch {
+        set.status = 502;
+        return { error: "Could not get response from AI" };
+      }
+
+      if (
+        typeof parsed.release_key !== "string" ||
+        !candidates.find((r) => r.key === parsed.release_key)
+      ) {
+        set.status = 502;
+        return { error: "Could not get response from AI" };
+      }
+
+      return {
+        release_key: parsed.release_key,
+        reasoning: (parsed.reasoning ?? "").slice(0, 150),
+      };
+    },
+    {
+      body: t.Object({
+        media_context: t.Object({
+          title: t.String(),
+          year: t.Nullable(t.Number()),
+          type: t.Union([t.Literal("movie"), t.Literal("tv")]),
+        }),
+        releases: t.Array(
+          t.Object({
+            key: t.String(),
+            title: t.String(),
+            size_bytes: t.Nullable(t.Number()),
+            seeders: t.Nullable(t.Number()),
+            score: t.Nullable(t.Number()),
+            rejected: t.Boolean(),
+          }),
+        ),
       }),
     },
   );

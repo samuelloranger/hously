@@ -27,4 +27,6 @@ export const INTEGRATION_ENDPOINTS = {
   OIDC: "/api/integrations/oidc",
   MINECRAFT: "/api/integrations/minecraft",
   MINECRAFT_SERVERS: "/api/integrations/minecraft/servers",
+  LOCAL_AI: "/api/integrations/local-ai",
+  LOCAL_AI_TEST: "/api/integrations/local-ai/test",
 } as const;

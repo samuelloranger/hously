@@ -140,6 +140,7 @@ export const queryKeys = {
       servers: () =>
         [...queryKeys.integrations.minecraft.all, "servers"] as const,
     },
+    localAi: () => [...queryKeys.integrations.all, "local-ai"] as const,
   },
 
   admin: {
@@ -203,6 +204,20 @@ export const queryKeys = {
         query,
         libraryMediaId ?? null,
         season ?? null,
+      ] as const,
+    aiPick: (
+      title: string,
+      year: number | null,
+      mediaType: "movie" | "tv",
+      releaseKeys: string,
+    ) =>
+      [
+        ...queryKeys.medias.all,
+        "ai-pick",
+        title,
+        year,
+        mediaType,
+        releaseKeys,
       ] as const,
     providers: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
       [
