@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Clock, Download, Trash2 } from "lucide-react";
+import { ChevronDown, Clock, Download, Sparkles, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { isRemovableDownloadHistoryEntry } from "@hously/shared";
 import { useLibraryDownloads } from "@/features/medias/hooks/useLibraryDownloads";
@@ -106,10 +106,20 @@ export function LibraryDownloadHistorySection({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p
-                        className="text-[11px] font-medium text-neutral-800 dark:text-neutral-100 leading-snug min-w-0 truncate"
+                        className="flex items-center gap-1.5 text-[11px] font-medium text-neutral-800 dark:text-neutral-100 leading-snug min-w-0"
                         title={row.release_title}
                       >
-                        {row.release_title}
+                        {row.ai_picked && (
+                          <span title={t("library.download.aiPick")}>
+                            <Sparkles
+                              size={12}
+                              strokeWidth={2}
+                              className="shrink-0 text-violet-500 dark:text-violet-400"
+                              aria-hidden
+                            />
+                          </span>
+                        )}
+                        <span className="truncate">{row.release_title}</span>
                       </p>
                       <div className="flex items-center gap-1 shrink-0">
                         {removable && (

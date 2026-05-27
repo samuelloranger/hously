@@ -102,6 +102,7 @@ export async function grabRelease(opts: {
         downloadUrl,
         qualityParsed: qJson,
         isUpgrade: opts.isUpgrade ?? false,
+        aiPicked: opts.aiPicked ?? false,
       },
     });
     pendingDownloadHistoryId = dhRow.id;

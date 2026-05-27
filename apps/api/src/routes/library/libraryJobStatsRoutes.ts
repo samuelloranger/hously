@@ -127,6 +127,7 @@ export const libraryJobStatsRoutes = new Elysia()
             episode_id: h.episodeId,
             post_process_error: h.postProcessError,
             post_process_destination_path: h.postProcessDestinationPath,
+            ai_picked: h.aiPicked,
             media_id: h.mediaId,
             media_title: h.media?.title ?? null,
             media_type: h.media?.type ?? null,

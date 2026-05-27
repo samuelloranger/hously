@@ -213,6 +213,7 @@ export interface LibraryDownloadHistoryItem {
   episode_id: number | null;
   post_process_error?: string | null;
   post_process_destination_path?: string | null;
+  ai_picked?: boolean;
 }
 
 export type MediaFileOperation = "hardlink" | "move";

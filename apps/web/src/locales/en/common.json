@@ -1824,7 +1824,8 @@
     "download": {
       "failed": "Failed",
       "done": "Done",
-      "active": "Active"
+      "active": "Active",
+      "aiPick": "Selected by AI"
     },
     "media": {
       "loadingFileInfo": "Loading file info…",

@@ -1824,7 +1824,8 @@
     "download": {
       "failed": "Échoué",
       "done": "Terminé",
-      "active": "Actif"
+      "active": "Actif",
+      "aiPick": "Sélectionné par l'IA"
     },
     "media": {
       "loadingFileInfo": "Chargement des informations du fichier…",
