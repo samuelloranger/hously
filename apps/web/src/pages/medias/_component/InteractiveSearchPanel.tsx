@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useInteractiveSearchState } from "@/features/medias/hooks/useInteractiveSearchState";
 import { useLocalAiIntegration } from "@/pages/settings/useLocalAiIntegration";
 import { useAiPick } from "@/pages/medias/_component/useAiPick";
 import { AiPickBanner } from "@/pages/medias/_component/AiPickBanner";
+import { useFetcher } from "@/lib/api/context";
+import { MEDIAS_ENDPOINTS } from "@/lib/endpoints";
 import { InteractiveSearchToolbar } from "./InteractiveSearchToolbar";
 import { InteractiveSearchStatusStrip } from "./InteractiveSearchStatusStrip";
 import { InteractiveSearchResultsList } from "./InteractiveSearchResultsList";
@@ -64,6 +66,16 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
   useEffect(() => {
     setAiDismissed(false);
   }, [candidateKeys]);
+
+  // Pre-warm the LLM as soon as the panel opens so the model is already loaded
+  // by the time search results arrive (~1-3s later).
+  const fetcher = useFetcher();
+  const warmedRef = useRef(false);
+  useEffect(() => {
+    if (!aiEnabled || warmedRef.current) return;
+    warmedRef.current = true;
+    void fetcher(MEDIAS_ENDPOINTS.INTERACTIVE_SEARCH_AI_WARM).catch(() => {});
+  }, [aiEnabled, fetcher]);
 
   if (!state.canRenderBody) return null;
 
