@@ -33,6 +33,11 @@ export async function grabRelease(opts: {
   indexer?: string | null;
   qualityParsed?: unknown;
   isUpgrade?: boolean;
+  /** Where the grab was initiated (e.g. RSS cron). */
+  grabSource?: "rss";
+  /** True when Local AI selected this release over classic scoring. */
+  aiPicked?: boolean;
+  aiReasoning?: string;
 }): Promise<
   { grabbed: true; releaseTitle: string } | { grabbed: false; reason: string }
 > {
@@ -291,6 +296,9 @@ export async function grabRelease(opts: {
         episode_id: episodeId ?? null,
         release_title: releaseTitle,
         quality: qJson,
+        ...(opts.grabSource ? { grab_source: opts.grabSource } : {}),
+        ...(opts.aiPicked ? { ai_picked: true } : {}),
+        ...(opts.aiReasoning ? { ai_reasoning: opts.aiReasoning } : {}),
       },
     });
 

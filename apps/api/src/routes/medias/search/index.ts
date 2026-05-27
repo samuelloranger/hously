@@ -22,9 +22,9 @@ import { badRequest, notFound, serverError } from "@hously/api/errors";
 import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { normalizeLocalAiConfig } from "@hously/api/utils/integrations/normalizers";
 import {
-  buildAiPickPrompt,
-  AI_SYSTEM_PROMPT,
-} from "@hously/api/utils/medias/buildAiPickPrompt";
+  loadEnabledLocalAiConfig,
+  pickReleaseWithLocalAi,
+} from "@hously/api/services/localAi/client";
 
 function toScoreInput(p: QualityProfile): QualityProfileScoreInput {
   return {
@@ -284,10 +284,9 @@ export const mediasSearchRoutes = new Elysia()
   .post(
     "/search/ai-pick",
     async ({ body, set }) => {
-      const record = await getIntegrationConfigRecord("local-ai");
-      const config = normalizeLocalAiConfig(record?.config);
+      const config = await loadEnabledLocalAiConfig();
 
-      if (!record?.enabled || !config) {
+      if (!config) {
         set.status = 404;
         return { error: "Local AI integration not configured or disabled" };
       }
@@ -298,69 +297,17 @@ export const mediasSearchRoutes = new Elysia()
         return { error: "No valid releases to analyze" };
       }
 
-      let responseText: string;
-      try {
-        const res = await fetch(`${config.base_url}/v1/chat/completions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: config.model,
-            messages: [
-              { role: "system", content: AI_SYSTEM_PROMPT },
-              {
-                role: "user",
-                content: buildAiPickPrompt(body.media_context, candidates),
-              },
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0.1,
-          }),
-          signal: AbortSignal.timeout(30_000),
-        });
-
-        if (!res.ok) {
-          set.status = 502;
-          return { error: "Could not get response from AI" };
-        }
-
-        const data = (await res.json()) as {
-          choices?: Array<{ message?: { content?: string } }>;
-        };
-        responseText = data?.choices?.[0]?.message?.content ?? "";
-      } catch {
+      const result = await pickReleaseWithLocalAi(
+        config,
+        body.media_context,
+        candidates,
+      );
+      if (!result) {
         set.status = 502;
         return { error: "Could not get response from AI" };
       }
 
-      // Strip markdown code fences some models (e.g. Gemma) emit despite json_object mode
-      responseText = responseText
-        .replace(/^```(?:json)?\s*/i, "")
-        .replace(/\s*```\s*$/, "")
-        .trim();
-
-      let parsed: { release_key?: string; reasoning?: string };
-      try {
-        parsed = JSON.parse(responseText) as {
-          release_key?: string;
-          reasoning?: string;
-        };
-      } catch {
-        set.status = 502;
-        return { error: "Could not get response from AI" };
-      }
-
-      if (
-        typeof parsed.release_key !== "string" ||
-        !candidates.find((r) => r.key === parsed.release_key)
-      ) {
-        set.status = 502;
-        return { error: "Could not get response from AI" };
-      }
-
-      return {
-        release_key: parsed.release_key,
-        reasoning: (parsed.reasoning ?? "").slice(0, 150),
-      };
+      return result;
     },
     {
       body: t.Object({

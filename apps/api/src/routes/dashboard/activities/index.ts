@@ -34,6 +34,8 @@ type ActivityRecord = {
   media_id?: number;
   episode_id?: number;
   release_title?: string;
+  grab_source?: string;
+  ai_picked?: boolean;
 };
 
 const ACTIVITY_FEED_SOURCE_LIMIT = 500;
@@ -157,6 +159,8 @@ function mapActivityLogToActivity(log: {
     media_id: parseIntNumber(payload?.media_id),
     episode_id: parseIntNumber(payload?.episode_id),
     release_title: parseString(payload?.release_title),
+    grab_source: parseString(payload?.grab_source),
+    ai_picked: parseBoolean(payload?.ai_picked),
   };
 }
 

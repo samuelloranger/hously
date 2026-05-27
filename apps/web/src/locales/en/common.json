@@ -174,6 +174,7 @@
       "unknownItem": "Unknown item",
       "unknownRelease": "Unknown release",
       "mediaGrab": "Grabbed release: {{title}}",
+      "mediaGrabRssAi": "RSS auto-grab (AI pick): {{title}}",
       "integrationUpdated": "Integration updated: {{integration}}",
       "unknownIntegration": "Unknown integration"
     },
@@ -378,6 +379,8 @@
       "releasesFound_other": "{{count}} releases found",
       "releasesGrabbed_one": "{{count}} grabbed",
       "releasesGrabbed_other": "{{count}} grabbed",
+      "releasesGrabbedByAi_one": "{{count}} by AI",
+      "releasesGrabbedByAi_other": "{{count}} by AI",
       "statusOk": "OK",
       "statusError": "Error",
       "indexers": "Indexers",

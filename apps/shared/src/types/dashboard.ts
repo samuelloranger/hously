@@ -55,6 +55,8 @@ export interface Activity {
   media_id?: number;
   episode_id?: number;
   release_title?: string;
+  grab_source?: string;
+  ai_picked?: boolean;
 }
 
 export interface ActivityDisplay {
@@ -245,6 +247,8 @@ export interface RssRunResult {
   completed_at: string;
   releases_found: number;
   releases_grabbed: number;
+  /** Grabs where Local AI chose the release (RSS auto-grab only). */
+  releases_grabbed_by_ai: number;
   indexers: RssIndexerStat[];
   error: string | null;
 }

@@ -259,9 +259,13 @@ export function getActivityPresentation(
     const title =
       activity.release_title ?? t("dashboard.activity.unknownRelease");
     const svc = activity.service?.trim().toLowerCase() || "library";
+    const isRssAi =
+      activity.grab_source === "rss" && activity.ai_picked === true;
     return {
       Icon: Download,
-      description: t("dashboard.activity.mediaGrab", { title }),
+      description: isRssAi
+        ? t("dashboard.activity.mediaGrabRssAi", { title })
+        : t("dashboard.activity.mediaGrab", { title }),
       time,
       type,
       typeLabel: getActivityTypeLabel(t, type),
