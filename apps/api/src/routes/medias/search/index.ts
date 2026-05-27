@@ -332,6 +332,12 @@ export const mediasSearchRoutes = new Elysia()
         return { error: "Could not get response from AI" };
       }
 
+      // Strip markdown code fences some models (e.g. Gemma) emit despite json_object mode
+      responseText = responseText
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```\s*$/, "")
+        .trim();
+
       let parsed: { release_key?: string; reasoning?: string };
       try {
         parsed = JSON.parse(responseText) as {
