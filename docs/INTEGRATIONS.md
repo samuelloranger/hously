@@ -116,7 +116,6 @@ Generic OAuth/OIDC providers configured via Settings (stored in `OidcProvider`).
 ## Notifications Out
 
 - **Web Push (VAPID)** — `apps/api/src/utils/webpush.ts` loads keys from `vapid_keys/` files or `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` env vars; uses `VAPID_CONTACT_EMAIL` as the contact identity. Subscriptions persisted on `UserSubscription`.
-- **APNs** — not currently wired in the API. The Dockerfile mounts `./certs:/app/certs:ro` for a future APNs cert path; the native iOS app in `../hously-ios` handles its own APNs registration today.
 - **External webhooks out** — `ExternalNotificationService` rows define outbound targets (e.g. Discord, ntfy) with per-event `NotificationTemplate`s. Driver: `apps/api/src/services/externalNotificationService.ts`. Used internally by the qBittorrent and library workflows.
 
 ## Other Webhook Inbounds

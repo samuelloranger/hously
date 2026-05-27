@@ -15,7 +15,7 @@ Last verified: 2026-05-25
 Most self-hosted homelab stacks compose Radarr (movies), Sonarr (TV), Prowlarr (indexers), and a torrent client. Hously originally considered wrapping Radarr/Sonarr as upstream APIs. Two problems killed that approach:
 
 1. **Two services, two configs, two databases of truth.** Movies and TV use almost identical workflows (discovery → quality profile → indexer search → grab → import → notify), but Radarr and Sonarr are separate forks with diverging features, request formats, and quirks. Wrapping both would multiply the surface area for every feature.
-2. **Customization friction.** The end-user value Hously wants to provide — unified release calendar, attention alerts, custom post-processing templates, the iOS app — would have meant translating every concept back and forth through the \*arr REST API, which doesn't expose enough internals (e.g. release scoring) to do well.
+2. **Customization friction.** The end-user value Hously wants to provide — unified release calendar, attention alerts, custom post-processing templates — would have meant translating every concept back and forth through the \*arr REST API, which doesn't expose enough internals (e.g. release scoring) to do well.
 
 ### Decision
 
@@ -37,7 +37,7 @@ There is **no runtime API call to Radarr or Sonarr** anywhere in the day-to-day 
 **Pros**
 - Single source of truth for movies + TV → no sync drift.
 - Native control of release scoring (`apps/api/src/utils/medias/releaseScorer.ts`), upgrade detection (`apps/api/src/services/upgradeDetection.ts`), and attention alerts (`apps/api/src/services/libraryAttention*.ts`).
-- One UI, one notification stream, one iOS app integration.
+- One UI, one notification stream.
 
 **Cons / what we give up**
 - We carry the maintenance cost of indexer adapters (Prowlarr + Jackett) and post-processing (template renderer, file ops, MediaInfo scan) that Radarr/Sonarr would otherwise handle.

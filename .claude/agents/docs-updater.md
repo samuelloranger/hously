@@ -18,9 +18,7 @@ This is **Hously**, a self-hosted command center for homelab enthusiasts. It is 
 - **`apps/web`** — React 19 + Vite + TanStack Router + TanStack Query + Tailwind CSS 4 + Radix/CVA + i18next (EN/FR) + PWA service worker. Feature folders under `src/features/<name>/`, shared primitives under `src/components/ui/`, query keys centralized in `apps/shared/src/queryKeys.ts`. Path alias `@/` for app code.
 - **`apps/shared`** — Types, endpoint constants, TanStack Query hooks, utilities, query key factory, API client factories. Consumed via `@hously/shared`; never reach into `apps/shared/src/**` internals from sibling packages.
 
-Key integrations: qBittorrent (SSE), TMDB, Radarr/Sonarr (legacy webhook + one-time importer — Hously now replaces them with a built-in library), Jellyfin, Plex, Kopia, UptimeKuma, Web Push (VAPID), APNs. The production image builds the web app into `apps/api/public/` and serves it via `@elysiajs/static` when `SERVE_STATIC=true`. The default branch is **main**. Package manager and runtime: **Bun**. Common workflows go through the root **Makefile** (`make dev-api`, `make dev-web`, `make migrate-dev`, `make test`, `make lint`, `make typecheck`).
-
-A native iOS companion lives in the separate repo `../hously-ios` (Swift/SwiftUI, APNs).
+Key integrations: qBittorrent (SSE), TMDB, Radarr/Sonarr (legacy webhook + one-time importer — Hously now replaces them with a built-in library), Jellyfin, Plex, Kopia, UptimeKuma, Web Push (VAPID). The production image builds the web app into `apps/api/public/` and serves it via `@elysiajs/static` when `SERVE_STATIC=true`. The default branch is **main**. Package manager and runtime: **Bun**. Common workflows go through the root **Makefile** (`make dev-api`, `make dev-web`, `make migrate-dev`, `make test`, `make lint`, `make typecheck`).
 
 ## Your Workflow
 
@@ -52,7 +50,7 @@ docs/
 ├── DEPLOYMENT.md            # Single Dockerfile build, SERVE_STATIC, prod compose, migrations
 ├── TROUBLESHOOTING.md       # Known issues, gotchas, debugging tips
 ├── DECISIONS.md             # Architecture Decision Records (ADRs) — e.g. replacing Radarr/Sonarr
-├── INTEGRATIONS.md          # qBittorrent, TMDB, Jellyfin, Plex, webhooks, push (VAPID/APNs)
+├── INTEGRATIONS.md          # qBittorrent, TMDB, Jellyfin, Plex, webhooks, push (VAPID)
 └── modules/
     └── <feature-name>.md    # Per-feature deep dives (chores, calendar, dashboard, medias, torrents, trackers, library)
 ```

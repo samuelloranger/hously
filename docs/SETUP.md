@@ -80,6 +80,3 @@ make library-refresh-titles-apply  # apply en-US TMDB metadata to all library_me
 make db-refresh-collation          # PostgreSQL collation refresh (after libc upgrades)
 ```
 
-## iOS Companion
-
-The native iOS app lives in `../hously-ios` (Swift/SwiftUI, APNs). Not part of this repo, but the API stays compatible with its expected response shapes (snake_case JSON).

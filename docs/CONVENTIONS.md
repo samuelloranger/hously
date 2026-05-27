@@ -31,7 +31,7 @@ const response = {
 
 Mapper helpers live next to the route module they serve — see `apps/api/src/routes/chores/choreMappers.ts` for `mapChore()`, or `apps/api/src/utils/mappers.ts` for shared mappers like `mapUser()`. Larger feature areas (library, dashboard) keep their own mappers under `src/utils/medias/`, `src/services/library/`, etc.
 
-Why: API responses are consumed by both the web app and the iOS Swift client, and snake_case maps cleanly to Swift `Codable` `CodingKeys` and to the URL convention (`/api/added-by` style). camelCase Prisma is just an ORM artifact.
+Why: snake_case keeps response keys aligned with the URL convention (`/api/added-by` style) and gives any non-JS client a clean, language-agnostic shape. camelCase Prisma is just an ORM artifact.
 
 ## Query Keys Live in `apps/web`, Not `apps/shared`
 
@@ -62,7 +62,7 @@ Route handlers wrap business logic in `try/catch` and return error helpers from 
 })
 ```
 
-Why: Elysia's `onError` only catches uncaught throws; explicit returns keep the response shape predictable for the client and the iOS app.
+Why: Elysia's `onError` only catches uncaught throws; explicit returns keep the response shape predictable for the client.
 
 ## URL Conventions
 

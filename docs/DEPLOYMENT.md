@@ -59,7 +59,6 @@ Volumes worth mounting:
 
 - `./data:/app/data` — image storage (`IMAGE_STORAGE_DIR=./data/images`), library/media post-processing scratch.
 - `./vapid_keys:/app/vapid_keys` — optional file-based VAPID keys (alternative to env vars).
-- `./certs:/app/certs:ro` — optional APNs cert mount for the iOS push pipeline.
 
 ## Migrations in Prod
 
