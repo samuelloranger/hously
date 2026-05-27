@@ -121,7 +121,7 @@ export const localAiIntegrationRoutes = new Elysia()
 
       const models = data?.data?.map((m) => m.id) ?? [];
       const model_available =
-        models.length === 0 || models.includes(config.model);
+        models.length === 0 ? null : models.includes(config.model);
 
       return { success: true, models, model_available };
     } catch (error) {

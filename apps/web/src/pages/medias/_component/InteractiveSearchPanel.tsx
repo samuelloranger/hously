@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useInteractiveSearchState } from "@/features/medias/hooks/useInteractiveSearchState";
 import { useLocalAiIntegration } from "@/pages/settings/useLocalAiIntegration";
 import { useAiPick } from "@/pages/medias/_component/useAiPick";
@@ -55,6 +55,15 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
       : null;
 
   const [aiDismissed, setAiDismissed] = useState(false);
+
+  const candidateKeys = state.releases
+    .filter((r) => !r.rejected)
+    .map((r) => r.guid)
+    .join(",");
+
+  useEffect(() => {
+    setAiDismissed(false);
+  }, [candidateKeys]);
 
   if (!state.canRenderBody) return null;
 
@@ -190,6 +199,9 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
         totalReleases={state.totalReleases}
         isError={state.activeQuery.isError}
         onResetView={state.resetView}
+        aiPickKey={
+          !aiDismissed && aiEnabled ? (aiPick.data?.release_key ?? null) : null
+        }
       />
     </div>
   );

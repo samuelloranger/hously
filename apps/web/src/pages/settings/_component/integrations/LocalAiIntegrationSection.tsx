@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { useLocalAiIntegration } from "@/pages/settings/useLocalAiIntegration";
 import { useUpdateLocalAiIntegration } from "@/pages/settings/useUpdateLocalAiIntegration";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
@@ -37,7 +37,7 @@ function LocalAiIntegrationSectionImpl({
   const [model, setModel] = useState(data?.integration?.model ?? "");
   const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));
   const [testState, setTestState] = useState<
-    "idle" | "loading" | "ok" | "error"
+    "idle" | "loading" | "ok" | "model-not-found" | "error"
   >("idle");
 
   const isDirty =
@@ -62,8 +62,11 @@ function LocalAiIntegrationSectionImpl({
   const handleTest = async () => {
     setTestState("loading");
     try {
-      await fetcher(INTEGRATION_ENDPOINTS.LOCAL_AI_TEST);
-      setTestState("ok");
+      const result = await fetcher<{
+        success: boolean;
+        model_available: boolean | null;
+      }>(INTEGRATION_ENDPOINTS.LOCAL_AI_TEST);
+      setTestState(result.model_available === false ? "model-not-found" : "ok");
     } catch {
       setTestState("error");
     }
@@ -103,7 +106,7 @@ function LocalAiIntegrationSectionImpl({
             variant="outline"
             size="sm"
             onClick={() => void handleTest()}
-            disabled={!enabled || testState === "loading"}
+            disabled={!enabled || testState === "loading" || isDirty}
           >
             {testState === "loading" && (
               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -114,6 +117,12 @@ function LocalAiIntegrationSectionImpl({
             <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Connected
+            </span>
+          )}
+          {testState === "model-not-found" && (
+            <span className="flex items-center gap-1 text-sm text-yellow-600 dark:text-yellow-400">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Model not found on server
             </span>
           )}
           {testState === "error" && (
