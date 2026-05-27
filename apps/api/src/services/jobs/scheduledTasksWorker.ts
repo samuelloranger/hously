@@ -148,6 +148,7 @@ export async function processScheduledJob(job: Job) {
             completed_at: new Date().toISOString(),
             releases_found: 0,
             releases_grabbed: 0,
+            releases_grabbed_by_ai: 0,
             indexers: [],
             error: e instanceof Error ? e.message : String(e),
           });

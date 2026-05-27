@@ -85,6 +85,7 @@ export const libraryFilesRoutes = new Elysia()
           episode_id: h.episodeId,
           post_process_error: h.postProcessError,
           post_process_destination_path: h.postProcessDestinationPath,
+          ai_picked: h.aiPicked,
         })),
       };
     } catch {

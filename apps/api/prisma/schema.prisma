@@ -666,6 +666,8 @@ model DownloadHistory {
   failed                     Boolean   @default(false)
   failReason                 String?   @map("fail_reason")
   isUpgrade                  Boolean   @default(false) @map("is_upgrade")
+  /// Local AI selected this release (RSS auto-grab or future AI grab flows)
+  aiPicked                   Boolean   @default(false) @map("ai_picked")
   /// Set when post-processing fails after the torrent completed
   postProcessError           String?   @map("post_process_error") @db.Text
   /// Final library path after successful post-processing

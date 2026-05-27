@@ -3,15 +3,14 @@ import { getActiveIndexerManager } from "@hously/api/services/indexerManager/fac
 import type { NormalizedRelease } from "@hously/api/services/indexerManager/types";
 import type { RssRunStats } from "@hously/api/services/rssRunStatus";
 import { grabRelease } from "@hously/api/services/mediaGrabberGrab";
+import { loadEnabledLocalAiConfig } from "@hously/api/services/localAi/client";
 import {
   normalizeTitleForMatch,
   parseReleaseSeasonEpisode,
-  parseReleaseTitle,
 } from "@hously/api/utils/medias/filenameParser";
-import {
-  scoreRelease,
-  type QualityProfileScoreInput,
-} from "@hously/api/utils/medias/releaseScorer";
+import type { QualityProfileScoreInput } from "@hously/api/utils/medias/releaseScorer";
+import { pickReleaseForGrab } from "@hously/api/utils/medias/pickReleaseForGrab";
+import type { AiPickMediaContext } from "@hously/api/utils/medias/buildAiPickPrompt";
 import {
   APP_DISPLAY_TIMEZONE,
   localDateYmd,
@@ -40,10 +39,22 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
     `[pollIndexerRss] Polling ${adapter.name} RSS for indexers: ${rssIndexers.join(", ")}`,
   );
 
+  const aiConfig = await loadEnabledLocalAiConfig();
+  if (aiConfig) {
+    console.log(
+      "[pollIndexerRss] Local AI enabled — will use AI pick with classic fallback",
+    );
+  }
+
   const releases = await adapter.fetchRss(rssIndexers);
   if (!releases.length) {
     console.log("[pollIndexerRss] No releases in RSS feed");
-    return { releases_found: 0, releases_grabbed: 0, indexers: [] };
+    return {
+      releases_found: 0,
+      releases_grabbed: 0,
+      releases_grabbed_by_ai: 0,
+      indexers: [],
+    };
   }
 
   const indexerCounts = new Map<string, number>();
@@ -232,6 +243,7 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
   let grabbed = 0;
+  let grabbedByAi = 0;
 
   for (const { match, releases: candidates } of episodeCandidates.values()) {
     const profile = match.media.qualityProfileId
@@ -239,7 +251,12 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       : null;
     const profileInput = profile ? toScoreInput(profile) : null;
 
-    const best = pickBest(candidates, profileInput);
+    const best = await pickReleaseForGrab({
+      candidates,
+      profile: profileInput,
+      mediaContext: tvMediaContext(match.media.title),
+      aiConfig,
+    });
     if (!best) {
       console.log(
         `[pollIndexerRss] No qualifying release for ${match.media.title} S${match.season}E${match.episode} (${candidates.length} candidate(s) rejected by profile)`,
@@ -247,9 +264,7 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       continue;
     }
 
-    console.log(
-      `[pollIndexerRss] Match: "${best.release.title}" → ${match.media.title} S${match.season}E${match.episode} (score: ${best.score})`,
-    );
+    logRssMatch(best, `${match.media.title} S${match.season}E${match.episode}`);
 
     grabRelease({
       mediaId: match.media.id,
@@ -257,11 +272,15 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       downloadUrl: best.downloadUrl,
       releaseTitle: best.release.title,
       indexer: best.release.indexer,
+      grabSource: "rss",
+      aiPicked: best.picked_by === "ai",
+      aiReasoning: best.ai_reasoning,
     }).catch((e) =>
       console.warn(`[pollIndexerRss] grab failed for episode ${match.id}:`, e),
     );
 
     grabbed++;
+    if (best.picked_by === "ai") grabbedByAi++;
   }
 
   for (const { match, releases: candidates } of movieCandidates.values()) {
@@ -270,7 +289,12 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       : null;
     const profileInput = profile ? toScoreInput(profile) : null;
 
-    const best = pickBest(candidates, profileInput);
+    const best = await pickReleaseForGrab({
+      candidates,
+      profile: profileInput,
+      mediaContext: movieMediaContext(match.title, match.year),
+      aiConfig,
+    });
     if (!best) {
       console.log(
         `[pollIndexerRss] No qualifying release for ${match.title} (${match.year}) (${candidates.length} candidate(s) rejected by profile)`,
@@ -278,20 +302,22 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       continue;
     }
 
-    console.log(
-      `[pollIndexerRss] Match: "${best.release.title}" → ${match.title} (${match.year}) (score: ${best.score})`,
-    );
+    logRssMatch(best, `${match.title} (${match.year})`);
 
     grabRelease({
       mediaId: match.id,
       downloadUrl: best.downloadUrl,
       releaseTitle: best.release.title,
       indexer: best.release.indexer,
+      grabSource: "rss",
+      aiPicked: best.picked_by === "ai",
+      aiReasoning: best.ai_reasoning,
     }).catch((e) =>
       console.warn(`[pollIndexerRss] grab failed for movie ${match.id}:`, e),
     );
 
     grabbed++;
+    if (best.picked_by === "ai") grabbedByAi++;
   }
 
   for (const { match, releases: candidates } of seasonPackCandidates.values()) {
@@ -300,7 +326,12 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       : null;
     const profileInput = profile ? toScoreInput(profile) : null;
 
-    const best = pickBest(candidates, profileInput);
+    const best = await pickReleaseForGrab({
+      candidates,
+      profile: profileInput,
+      mediaContext: tvMediaContext(match.media.title),
+      aiConfig,
+    });
     if (!best) {
       console.log(
         `[pollIndexerRss] No qualifying release for season pack ${match.media.title} S${match.season} (${candidates.length} candidate(s) rejected by profile)`,
@@ -308,15 +339,16 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       continue;
     }
 
-    console.log(
-      `[pollIndexerRss] Season pack match: "${best.release.title}" → ${match.media.title} S${match.season} (score: ${best.score})`,
-    );
+    logRssMatch(best, `season pack ${match.media.title} S${match.season}`);
 
     grabRelease({
       mediaId: match.media.id,
       downloadUrl: best.downloadUrl,
       releaseTitle: best.release.title,
       indexer: best.release.indexer,
+      grabSource: "rss",
+      aiPicked: best.picked_by === "ai",
+      aiReasoning: best.ai_reasoning,
     }).catch((e) =>
       console.warn(
         `[pollIndexerRss] grab failed for season pack ${match.mediaId} S${match.season}:`,
@@ -325,15 +357,18 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
     );
 
     grabbed++;
+    if (best.picked_by === "ai") grabbedByAi++;
   }
 
   console.log(
-    `[pollIndexerRss] Triggered ${grabbed} grab(s) from ${releases.length} RSS release(s)`,
+    `[pollIndexerRss] Triggered ${grabbed} grab(s) from ${releases.length} RSS release(s)` +
+      (grabbedByAi > 0 ? ` (${grabbedByAi} via AI pick)` : ""),
   );
 
   return {
     releases_found: releases.length,
     releases_grabbed: grabbed,
+    releases_grabbed_by_ai: grabbedByAi,
     indexers: Array.from(indexerCounts.entries()).map(
       ([name, releases_found]) => ({
         name,
@@ -341,6 +376,27 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       }),
     ),
   };
+}
+
+function tvMediaContext(title: string): AiPickMediaContext {
+  return { title, year: null, type: "tv" };
+}
+
+function movieMediaContext(
+  title: string,
+  year: number | null,
+): AiPickMediaContext {
+  return { title, year, type: "movie" };
+}
+
+function logRssMatch(
+  best: Awaited<ReturnType<typeof pickReleaseForGrab>> & object,
+  label: string,
+) {
+  const via = best.picked_by === "ai" ? "AI pick" : `score: ${best.score}`;
+  console.log(
+    `[pollIndexerRss] Match: "${best.release.title}" → ${label} (${via})`,
+  );
 }
 
 function toScoreInput(p: {
@@ -367,42 +423,6 @@ function toScoreInput(p: {
     requireHdr: p.requireHdr,
     preferHdr: p.preferHdr,
   };
-}
-
-function pickBest(
-  candidates: NormalizedRelease[],
-  profile: QualityProfileScoreInput | null,
-): { release: NormalizedRelease; downloadUrl: string; score: number } | null {
-  const scored: {
-    release: NormalizedRelease;
-    downloadUrl: string;
-    score: number;
-  }[] = [];
-
-  for (const release of candidates) {
-    const downloadUrl = release.magnetUrl ?? release.downloadUrl;
-    if (!downloadUrl) continue;
-
-    if (profile) {
-      const parsed = parseReleaseTitle(release.title);
-      const result = scoreRelease(
-        parsed,
-        profile,
-        release.sizeBytes,
-        release.title,
-        release.indexer,
-        release.freeleech,
-      );
-      if (Array.isArray(result)) continue; // rejected by profile
-      scored.push({ release, downloadUrl, score: result });
-    } else {
-      scored.push({ release, downloadUrl, score: 0 });
-    }
-  }
-
-  if (!scored.length) return null;
-  scored.sort((a, b) => b.score - a.score);
-  return scored[0]!;
 }
 
 function extractTitleFromRelease(title: string): {

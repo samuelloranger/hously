@@ -239,6 +239,16 @@ export function RssStatusPanel() {
                           {t("dashboard.rss.releasesGrabbed", {
                             count: lastRun.releases_grabbed,
                           })}
+                          {lastRun.releases_grabbed_by_ai > 0 && (
+                            <>
+                              {" "}
+                              (
+                              {t("dashboard.rss.releasesGrabbedByAi", {
+                                count: lastRun.releases_grabbed_by_ai,
+                              })}
+                              )
+                            </>
+                          )}
                         </span>
                       </>
                     )}
