@@ -381,4 +381,28 @@ export const mediasSearchRoutes = new Elysia()
         ),
       }),
     },
-  );
+  )
+  .get("/search/ai-warm", async ({ set }) => {
+    const record = await getIntegrationConfigRecord("local-ai");
+    const config = normalizeLocalAiConfig(record?.config);
+
+    if (!record?.enabled || !config) {
+      set.status = 204;
+      return;
+    }
+
+    // Fire-and-forget: loads the model into VRAM without blocking the caller.
+    void fetch(`${config.base_url}/v1/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+        temperature: 0,
+      }),
+      signal: AbortSignal.timeout(30_000),
+    }).catch(() => {});
+
+    set.status = 204;
+  });
