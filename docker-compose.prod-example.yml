@@ -9,7 +9,6 @@ services:
     volumes:
       - ./data:/app/data
       - ./vapid_keys:/app/vapid_keys
-      - ./certs:/app/certs:ro
     restart: unless-stopped
     depends_on:
       db:
