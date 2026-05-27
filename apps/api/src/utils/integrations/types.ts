@@ -78,3 +78,8 @@ export interface UptimekumaIntegrationConfig {
   website_url: string;
   api_key: string;
 }
+
+export interface LocalAiConfig {
+  base_url: string;
+  model: string;
+}

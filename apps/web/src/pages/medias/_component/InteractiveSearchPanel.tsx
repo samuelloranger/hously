@@ -1,4 +1,8 @@
+import { useState, useEffect } from "react";
 import { useInteractiveSearchState } from "@/features/medias/hooks/useInteractiveSearchState";
+import { useLocalAiIntegration } from "@/pages/settings/useLocalAiIntegration";
+import { useAiPick } from "@/pages/medias/_component/useAiPick";
+import { AiPickBanner } from "@/pages/medias/_component/AiPickBanner";
 import { InteractiveSearchToolbar } from "./InteractiveSearchToolbar";
 import { InteractiveSearchStatusStrip } from "./InteractiveSearchStatusStrip";
 import { InteractiveSearchResultsList } from "./InteractiveSearchResultsList";
@@ -26,6 +30,40 @@ export interface InteractiveSearchPanelProps {
 
 export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
   const state = useInteractiveSearchState(props);
+
+  const { data: aiConfig } = useLocalAiIntegration();
+  const aiEnabled = Boolean(aiConfig?.integration?.enabled);
+
+  const mediaType =
+    props.media?.media_type === "series"
+      ? "tv"
+      : (props.media?.media_type ?? "movie");
+
+  const aiPick = useAiPick({
+    enabled:
+      aiEnabled && state.releases.length > 0 && !state.activeQuery.isLoading,
+    releases: state.releases,
+    mediaTitle: props.media?.title ?? props.defaultSearchQuery ?? "",
+    mediaYear: props.media?.year ?? null,
+    mediaType: mediaType as "movie" | "tv",
+  });
+
+  const pickedRelease =
+    aiPick.data?.release_key != null
+      ? (state.releases.find((r) => r.guid === aiPick.data?.release_key) ??
+        null)
+      : null;
+
+  const [aiDismissed, setAiDismissed] = useState(false);
+
+  const candidateKeys = state.releases
+    .filter((r) => !r.rejected)
+    .map((r) => r.guid)
+    .join(",");
+
+  useEffect(() => {
+    setAiDismissed(false);
+  }, [candidateKeys]);
 
   if (!state.canRenderBody) return null;
 
@@ -135,6 +173,19 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
         onToggleSearchTitleVariant={state.toggleSearchTitleVariant}
       />
 
+      {!aiDismissed && aiEnabled && (
+        <AiPickBanner
+          isLoading={aiPick.isLoading}
+          isError={aiPick.isError}
+          release={pickedRelease}
+          reasoning={aiPick.data?.reasoning ?? null}
+          grabBusy={state.grabBusy}
+          onGrab={state.downloadRelease}
+          onRetry={() => void aiPick.refetch()}
+          onDismiss={() => setAiDismissed(true)}
+        />
+      )}
+
       <InteractiveSearchResultsList
         releases={state.releases}
         isLoading={state.activeQuery.isLoading}
@@ -148,6 +199,9 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
         totalReleases={state.totalReleases}
         isError={state.activeQuery.isError}
         onResetView={state.resetView}
+        aiPickKey={
+          !aiDismissed && aiEnabled ? (aiPick.data?.release_key ?? null) : null
+        }
       />
     </div>
   );

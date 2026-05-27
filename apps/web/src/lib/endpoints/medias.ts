@@ -16,6 +16,7 @@ export const MEDIAS_ENDPOINTS = {
   },
   INTERACTIVE_SEARCH: "/api/medias/interactive-search",
   INTERACTIVE_SEARCH_DOWNLOAD: "/api/medias/interactive-search/download",
+  INTERACTIVE_SEARCH_AI_PICK: "/api/medias/search/ai-pick",
   INDEXERS: "/api/medias/indexers",
   STREAMING_PROVIDERS: (type?: "movie" | "tv", language?: string) => {
     const p = new URLSearchParams({

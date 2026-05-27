@@ -17,6 +17,7 @@ interface InteractiveSearchResultsListProps {
   totalReleases: number;
   isError: boolean;
   onResetView: () => void;
+  aiPickKey?: string | null;
 }
 
 export function InteractiveSearchResultsList({
@@ -32,6 +33,7 @@ export function InteractiveSearchResultsList({
   totalReleases,
   isError,
   onResetView,
+  aiPickKey,
 }: InteractiveSearchResultsListProps) {
   const { t } = useTranslation("common");
 
@@ -101,6 +103,7 @@ export function InteractiveSearchResultsList({
                   alreadyGrabbed={grabbedTitles.has(
                     release.title.trim().toLowerCase(),
                   )}
+                  isAiPick={aiPickKey != null && release.guid === aiPickKey}
                   t={t}
                 />
               );

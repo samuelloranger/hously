@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Download, Sparkles } from "lucide-react";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
 import { formatBytes } from "@/lib/utils/format";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export function ReleaseCard({
   isDownloading,
   isBusy,
   alreadyGrabbed = false,
+  isAiPick = false,
   t,
 }: {
   release: InteractiveReleaseItem;
@@ -32,6 +33,7 @@ export function ReleaseCard({
   isDownloading: boolean;
   isBusy: boolean;
   alreadyGrabbed?: boolean;
+  isAiPick?: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const grabDisabled =
@@ -62,6 +64,12 @@ export function ReleaseCard({
           </p>
 
           <div className="mt-2 flex flex-wrap gap-1.5">
+            {isAiPick && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
+                <Sparkles className="h-2.5 w-2.5" />
+                AI Pick
+              </span>
+            )}
             {release.is_complete_series && (
               <span className="inline-flex items-center rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
                 Intégrale

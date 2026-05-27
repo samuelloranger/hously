@@ -288,3 +288,15 @@ export interface MinecraftIntegration {
   type: "minecraft";
   enabled: boolean;
 }
+
+export interface LocalAiIntegration {
+  type: "local-ai";
+  enabled: boolean;
+  base_url: string;
+  model: string;
+}
+
+export interface LocalAiIntegrationUpdateResponse {
+  success: boolean;
+  integration: LocalAiIntegration;
+}
