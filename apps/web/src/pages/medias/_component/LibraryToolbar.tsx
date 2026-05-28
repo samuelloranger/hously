@@ -286,10 +286,7 @@ export function LibraryToolbar({
         {languageTags.length > 0 && (
           <>
             <div className="h-4 w-px shrink-0 bg-neutral-200 dark:bg-neutral-700" />
-            <Select
-              value={languageFilter}
-              onValueChange={onLanguageChange}
-            >
+            <Select value={languageFilter} onValueChange={onLanguageChange}>
               <SelectTrigger
                 aria-label={t("medias.library.languageAll")}
                 className="h-8 w-auto rounded-lg border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs"

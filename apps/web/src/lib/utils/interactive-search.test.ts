@@ -105,11 +105,7 @@ describe("filterAndSortReleases — isClientRejected with accented French title"
     // After fix:  titleWords = ["jeremie","rendez","vous","plage"]
     //   "jeremie" absent → 2/4 = 50 % → REJECTED (correct).
     const result = filterAndSortReleases(
-      [
-        makeRelease(
-          "Ratatouille.Premier.Rendezvous.2024.FRENCH.1080p.BluRay",
-        ),
-      ],
+      [makeRelease("Ratatouille.Premier.Rendezvous.2024.FRENCH.1080p.BluRay")],
       BASE_FILTER,
     );
     expect(result).toHaveLength(0);

@@ -2,7 +2,10 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl } from "@hously/api/utils/integrations/utils";
+import {
+  isValidHttpUrl,
+  isPrivateUrl,
+} from "@hously/api/utils/integrations/utils";
 import { normalizeLocalAiConfig } from "@hously/api/utils/integrations/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { requireAdmin } from "@hously/api/middleware/auth";
@@ -42,6 +45,12 @@ export const localAiIntegrationRoutes = new Elysia()
         return badRequest(
           set,
           "Invalid base_url. Must be a valid http(s) URL.",
+        );
+      }
+      if (isPrivateUrl(baseUrl)) {
+        return badRequest(
+          set,
+          "base_url must not point to a private or internal address",
         );
       }
       if (!body.model.trim()) {
@@ -105,6 +114,13 @@ export const localAiIntegrationRoutes = new Elysia()
         return { error: "Local AI integration not configured or disabled" };
       }
 
+      if (isPrivateUrl(config.base_url)) {
+        set.status = 422;
+        return {
+          error: "base_url must not point to a private or internal address",
+        };
+      }
+
       const res = await fetch(`${config.base_url}/v1/models`, {
         headers: { Accept: "application/json" },
         signal: AbortSignal.timeout(5_000),
@@ -120,8 +136,16 @@ export const localAiIntegrationRoutes = new Elysia()
       } | null;
 
       const models = data?.data?.map((m) => m.id) ?? [];
-      const model_available =
-        models.length === 0 ? null : models.includes(config.model);
+
+      if (models.length === 0) {
+        set.status = 502;
+        return {
+          error:
+            "Server reachable but no models are loaded. Make sure the model is pulled.",
+        };
+      }
+
+      const model_available = models.includes(config.model);
 
       return { success: true, models, model_available };
     } catch (error) {

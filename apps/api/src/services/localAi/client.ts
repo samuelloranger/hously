@@ -19,14 +19,20 @@ export async function loadEnabledLocalAiConfig(): Promise<LocalAiConfig | null> 
   return normalizeLocalAiConfig(record?.config);
 }
 
+function truncateAtWord(str: string, max: number): string {
+  if (str.length <= max) return str;
+  const cut = str.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return lastSpace > 0 ? cut.slice(0, lastSpace) : cut;
+}
+
 export function parseLocalAiPickResponse(
   responseText: string,
   candidates: AiPickRelease[],
 ): LocalAiPickResult | null {
-  const trimmed = responseText
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/\s*```\s*$/, "")
-    .trim();
+  // Try to extract content from a markdown code fence first
+  const fenceMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const trimmed = (fenceMatch ? fenceMatch[1] : responseText).trim();
 
   let parsed: { release_key?: string; reasoning?: string };
   try {
@@ -47,7 +53,7 @@ export function parseLocalAiPickResponse(
 
   return {
     release_key: parsed.release_key,
-    reasoning: (parsed.reasoning ?? "").slice(0, 150),
+    reasoning: truncateAtWord(parsed.reasoning ?? "", 150),
   };
 }
 

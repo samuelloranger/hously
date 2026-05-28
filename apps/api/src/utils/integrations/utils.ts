@@ -11,6 +11,33 @@ export const isValidHttpUrl = (value: string): boolean => {
   }
 };
 
+export const isPrivateUrl = (value: string): boolean => {
+  try {
+    const { hostname } = new URL(value);
+
+    // Loopback
+    if (hostname === "localhost" || hostname === "::1") return true;
+    if (/^127\./.test(hostname)) return true;
+
+    // Special
+    if (hostname === "0.0.0.0") return true;
+
+    // Link-local (IPv4 169.254.x.x and IPv6 fe80::)
+    if (/^169\.254\./.test(hostname)) return true;
+    if (/^fe80:/i.test(hostname)) return true;
+
+    // RFC-1918
+    if (/^10\./.test(hostname)) return true;
+    if (/^192\.168\./.test(hostname)) return true;
+    const m = hostname.match(/^172\.(\d+)\./);
+    if (m && parseInt(m[1], 10) >= 16 && parseInt(m[1], 10) <= 31) return true;
+
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 export const toProfiles = (value: unknown): ArrProfile[] => {
   if (!Array.isArray(value)) return [];
   return value

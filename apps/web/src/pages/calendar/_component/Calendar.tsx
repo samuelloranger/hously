@@ -308,9 +308,7 @@ function CalendarBody({
           targetedEventId={targetedEventId}
           onClearSelectedDate={() => setSelectedDate(null)}
           onCreateEvent={() => setParams({ modal: "create" })}
-          onEditEvent={(eventId) =>
-            setParams({ modal: "edit", eventId })
-          }
+          onEditEvent={(eventId) => setParams({ modal: "edit", eventId })}
           onReleaseClick={handleReleaseClick}
         />
       </div>

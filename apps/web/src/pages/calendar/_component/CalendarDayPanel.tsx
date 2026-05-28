@@ -124,8 +124,8 @@ export function CalendarDayPanel({
                     event={event}
                     highlighted={Boolean(
                       targetedEventId &&
-                        event.type === "custom_event" &&
-                        event.metadata?.custom_event_id === targetedEventId,
+                      event.type === "custom_event" &&
+                      event.metadata?.custom_event_id === targetedEventId,
                     )}
                     onEditEvent={() => {
                       if (

@@ -49,7 +49,9 @@ async function main() {
     console.log(`  [${r.seeders ?? "?"}s] ${r.title}  (${r.indexer})`);
   }
 
-  console.log(`\n--- NORMALIZED query (${normalizedResults.length} result(s)) ---`);
+  console.log(
+    `\n--- NORMALIZED query (${normalizedResults.length} result(s)) ---`,
+  );
   for (const r of normalizedResults.slice(0, 10)) {
     console.log(`  [${r.seeders ?? "?"}s] ${r.title}  (${r.indexer})`);
   }

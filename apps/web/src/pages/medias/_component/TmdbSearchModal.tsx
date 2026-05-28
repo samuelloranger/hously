@@ -28,7 +28,9 @@ export function TmdbSearchModal({
     <div
       className={cn(
         "fixed inset-0 z-[var(--z-modal)] transition-opacity duration-200",
-        isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
+        isOpen
+          ? "opacity-100 pointer-events-auto"
+          : "opacity-0 pointer-events-none",
       )}
       aria-hidden={!isOpen}
     >
