@@ -1,3 +1,4 @@
 import { useTrackerIntegration } from "./_trackerIntegration";
 
-export const useYggRebornIntegration = () => useTrackerIntegration("ygg-reborn");
+export const useYggRebornIntegration = () =>
+  useTrackerIntegration("ygg-reborn");

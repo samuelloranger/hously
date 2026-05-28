@@ -69,6 +69,8 @@ function normalizedToInteractive(
   };
 }
 
+let warmInFlight = false;
+
 export const mediasSearchRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
@@ -291,16 +293,15 @@ export const mediasSearchRoutes = new Elysia()
         return { error: "Local AI integration not configured or disabled" };
       }
 
-      const candidates = body.releases.filter((r) => !r.rejected);
-      if (candidates.length === 0) {
+      if (body.releases.length === 0) {
         set.status = 422;
-        return { error: "No valid releases to analyze" };
+        return { error: "No releases to analyze" };
       }
 
       const result = await pickReleaseWithLocalAi(
         config,
         body.media_context,
-        candidates,
+        body.releases,
       );
       if (!result) {
         set.status = 502;
@@ -323,7 +324,6 @@ export const mediasSearchRoutes = new Elysia()
             size_bytes: t.Nullable(t.Number()),
             seeders: t.Nullable(t.Number()),
             score: t.Nullable(t.Number()),
-            rejected: t.Boolean(),
           }),
         ),
       }),
@@ -338,7 +338,13 @@ export const mediasSearchRoutes = new Elysia()
       return;
     }
 
+    if (warmInFlight) {
+      set.status = 204;
+      return;
+    }
+
     // Fire-and-forget: loads the model into VRAM without blocking the caller.
+    warmInFlight = true;
     void fetch(`${config.base_url}/v1/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -348,8 +354,12 @@ export const mediasSearchRoutes = new Elysia()
         max_tokens: 1,
         temperature: 0,
       }),
-      signal: AbortSignal.timeout(30_000),
-    }).catch(() => {});
+      signal: AbortSignal.timeout(10_000),
+    })
+      .catch(() => {})
+      .finally(() => {
+        warmInFlight = false;
+      });
 
     set.status = 204;
   });

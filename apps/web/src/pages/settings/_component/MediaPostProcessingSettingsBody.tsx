@@ -398,7 +398,9 @@ function ReindexLanguagesSection() {
           </p>
         )}
         {status?.state === "failed" && status.error && (
-          <p className="text-xs text-red-600 dark:text-red-400">{status.error}</p>
+          <p className="text-xs text-red-600 dark:text-red-400">
+            {status.error}
+          </p>
         )}
       </div>
     </div>

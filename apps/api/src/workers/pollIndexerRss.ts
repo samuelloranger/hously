@@ -242,33 +242,40 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
   });
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
-  let grabbed = 0;
-  let grabbedByAi = 0;
+  type GrabResult = { grabbed: boolean; ai: boolean };
 
-  for (const { match, releases: candidates } of episodeCandidates.values()) {
-    const profile = match.media.qualityProfileId
-      ? profileMap.get(match.media.qualityProfileId)
-      : null;
+  async function processGrabMatch(
+    candidates: NormalizedRelease[],
+    profileId: number | null,
+    mediaContext: AiPickMediaContext,
+    label: string,
+    grabArgs: Omit<
+      Parameters<typeof grabRelease>[0],
+      "grabSource" | "aiPicked" | "aiReasoning" | "downloadUrl" | "releaseTitle" | "indexer"
+    >,
+    warnTag: string,
+  ): Promise<GrabResult> {
+    const profile = profileId ? profileMap.get(profileId) : null;
     const profileInput = profile ? toScoreInput(profile) : null;
 
     const best = await pickReleaseForGrab({
       candidates,
       profile: profileInput,
-      mediaContext: tvMediaContext(match.media.title),
+      mediaContext,
       aiConfig,
     });
+
     if (!best) {
       console.log(
-        `[pollIndexerRss] No qualifying release for ${match.media.title} S${match.season}E${match.episode} (${candidates.length} candidate(s) rejected by profile)`,
+        `[pollIndexerRss] No qualifying release for ${label} (${candidates.length} candidate(s) rejected by profile)`,
       );
-      continue;
+      return { grabbed: false, ai: false };
     }
 
-    logRssMatch(best, `${match.media.title} S${match.season}E${match.episode}`);
+    logRssMatch(best, label);
 
     grabRelease({
-      mediaId: match.media.id,
-      episodeId: match.id,
+      ...grabArgs,
       downloadUrl: best.downloadUrl,
       releaseTitle: best.release.title,
       indexer: best.release.indexer,
@@ -276,89 +283,55 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       aiPicked: best.picked_by === "ai",
       aiReasoning: best.ai_reasoning,
     }).catch((e) =>
-      console.warn(`[pollIndexerRss] grab failed for episode ${match.id}:`, e),
+      console.warn(`[pollIndexerRss] grab failed for ${warnTag}:`, e),
     );
 
-    grabbed++;
-    if (best.picked_by === "ai") grabbedByAi++;
+    return { grabbed: true, ai: best.picked_by === "ai" };
   }
 
-  for (const { match, releases: candidates } of movieCandidates.values()) {
-    const profile = match.qualityProfileId
-      ? profileMap.get(match.qualityProfileId)
-      : null;
-    const profileInput = profile ? toScoreInput(profile) : null;
-
-    const best = await pickReleaseForGrab({
-      candidates,
-      profile: profileInput,
-      mediaContext: movieMediaContext(match.title, match.year),
-      aiConfig,
-    });
-    if (!best) {
-      console.log(
-        `[pollIndexerRss] No qualifying release for ${match.title} (${match.year}) (${candidates.length} candidate(s) rejected by profile)`,
-      );
-      continue;
-    }
-
-    logRssMatch(best, `${match.title} (${match.year})`);
-
-    grabRelease({
-      mediaId: match.id,
-      downloadUrl: best.downloadUrl,
-      releaseTitle: best.release.title,
-      indexer: best.release.indexer,
-      grabSource: "rss",
-      aiPicked: best.picked_by === "ai",
-      aiReasoning: best.ai_reasoning,
-    }).catch((e) =>
-      console.warn(`[pollIndexerRss] grab failed for movie ${match.id}:`, e),
-    );
-
-    grabbed++;
-    if (best.picked_by === "ai") grabbedByAi++;
-  }
-
-  for (const { match, releases: candidates } of seasonPackCandidates.values()) {
-    const profile = match.media.qualityProfileId
-      ? profileMap.get(match.media.qualityProfileId)
-      : null;
-    const profileInput = profile ? toScoreInput(profile) : null;
-
-    const best = await pickReleaseForGrab({
-      candidates,
-      profile: profileInput,
-      mediaContext: tvMediaContext(match.media.title),
-      aiConfig,
-    });
-    if (!best) {
-      console.log(
-        `[pollIndexerRss] No qualifying release for season pack ${match.media.title} S${match.season} (${candidates.length} candidate(s) rejected by profile)`,
-      );
-      continue;
-    }
-
-    logRssMatch(best, `season pack ${match.media.title} S${match.season}`);
-
-    grabRelease({
-      mediaId: match.media.id,
-      downloadUrl: best.downloadUrl,
-      releaseTitle: best.release.title,
-      indexer: best.release.indexer,
-      grabSource: "rss",
-      aiPicked: best.picked_by === "ai",
-      aiReasoning: best.ai_reasoning,
-    }).catch((e) =>
-      console.warn(
-        `[pollIndexerRss] grab failed for season pack ${match.mediaId} S${match.season}:`,
-        e,
+  const [episodeResults, movieResults, seasonPackResults] = await Promise.all([
+    Promise.all(
+      [...episodeCandidates.values()].map(({ match, releases: candidates }) =>
+        processGrabMatch(
+          candidates,
+          match.media.qualityProfileId,
+          tvMediaContext(match.media.title),
+          `${match.media.title} S${match.season}E${match.episode}`,
+          { mediaId: match.media.id, episodeId: match.id },
+          `episode ${match.id}`,
+        ),
       ),
-    );
+    ),
+    Promise.all(
+      [...movieCandidates.values()].map(({ match, releases: candidates }) =>
+        processGrabMatch(
+          candidates,
+          match.qualityProfileId,
+          movieMediaContext(match.title, match.year),
+          `${match.title} (${match.year})`,
+          { mediaId: match.id },
+          `movie ${match.id}`,
+        ),
+      ),
+    ),
+    Promise.all(
+      [...seasonPackCandidates.values()].map(
+        ({ match, releases: candidates }) =>
+          processGrabMatch(
+            candidates,
+            match.media.qualityProfileId,
+            tvMediaContext(match.media.title),
+            `season pack ${match.media.title} S${match.season}`,
+            { mediaId: match.media.id },
+            `season pack ${match.mediaId} S${match.season}`,
+          ),
+      ),
+    ),
+  ]);
 
-    grabbed++;
-    if (best.picked_by === "ai") grabbedByAi++;
-  }
+  const allResults = [...episodeResults, ...movieResults, ...seasonPackResults];
+  const grabbed = allResults.filter((r) => r.grabbed).length;
+  const grabbedByAi = allResults.filter((r) => r.ai).length;
 
   console.log(
     `[pollIndexerRss] Triggered ${grabbed} grab(s) from ${releases.length} RSS release(s)` +

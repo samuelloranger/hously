@@ -6,10 +6,7 @@ import type {
 } from "@hously/shared/types";
 import { sameDay, sameMonth } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";
-import {
-  getDayName,
-  getMonthName,
-} from "@/pages/calendar/_component/utils";
+import { getDayName, getMonthName } from "@/pages/calendar/_component/utils";
 
 interface CalendarGridProps {
   currentYear: number;

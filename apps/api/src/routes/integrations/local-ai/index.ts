@@ -120,8 +120,16 @@ export const localAiIntegrationRoutes = new Elysia()
       } | null;
 
       const models = data?.data?.map((m) => m.id) ?? [];
-      const model_available =
-        models.length === 0 ? null : models.includes(config.model);
+
+      if (models.length === 0) {
+        set.status = 502;
+        return {
+          error:
+            "Server reachable but no models are loaded. Make sure the model is pulled.",
+        };
+      }
+
+      const model_available = models.includes(config.model);
 
       return { success: true, models, model_available };
     } catch (error) {
