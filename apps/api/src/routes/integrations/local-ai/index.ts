@@ -2,10 +2,7 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import {
-  isValidHttpUrl,
-  isPrivateUrl,
-} from "@hously/api/utils/integrations/utils";
+import { isValidHttpUrl } from "@hously/api/utils/integrations/utils";
 import { normalizeLocalAiConfig } from "@hously/api/utils/integrations/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { requireAdmin } from "@hously/api/middleware/auth";
@@ -45,12 +42,6 @@ export const localAiIntegrationRoutes = new Elysia()
         return badRequest(
           set,
           "Invalid base_url. Must be a valid http(s) URL.",
-        );
-      }
-      if (isPrivateUrl(baseUrl)) {
-        return badRequest(
-          set,
-          "base_url must not point to a private or internal address",
         );
       }
       if (!body.model.trim()) {
@@ -112,13 +103,6 @@ export const localAiIntegrationRoutes = new Elysia()
       if (!record?.enabled || !config) {
         set.status = 404;
         return { error: "Local AI integration not configured or disabled" };
-      }
-
-      if (isPrivateUrl(config.base_url)) {
-        set.status = 422;
-        return {
-          error: "base_url must not point to a private or internal address",
-        };
       }
 
       const res = await fetch(`${config.base_url}/v1/models`, {
