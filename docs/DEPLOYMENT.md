@@ -51,7 +51,7 @@ services:
     depends_on:
       db: { condition: service_healthy }
     ports: ["3000:3000"]
-  db:    postgres:15-alpine
+  db: postgres:15-alpine
   redis: redis:7-alpine
 ```
 
@@ -65,7 +65,7 @@ Volumes worth mounting:
 The Dockerfile's `entrypoint.sh` runs `prisma migrate deploy` before starting the API. To run migrations manually against a running container:
 
 ```bash
-docker compose -f docker-compose.prod.yml exec hously make migrate-deploy
+docker compose -f docker-compose.prod.yml exec hously bun run db:migrate
 ```
 
 `make migrate-deploy` resolves to `cd apps/api && bun run db:migrate`. **Never** run `make migrate-dev` (which is interactive and creates new migration files) or `make migrate-push` (bypasses migration history) against production.

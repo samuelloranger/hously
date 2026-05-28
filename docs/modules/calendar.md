@@ -6,21 +6,23 @@ Last verified: 2026-05-25
 
 ## Locations
 
-| Layer  | Path                                                     |
-| ------ | -------------------------------------------------------- |
-| Web    | `apps/web/src/pages/calendar/`                           |
-| API    | `apps/api/src/routes/calendar/` (`events`, `countries`, `ical`) |
-| Schema | `CustomEvent`, plus virtual holiday/release events       |
-| Worker | `apps/api/src/workers/checkAllDayEvents.ts`              |
-| Service| `apps/api/src/services/holidayCalendar.ts`               |
+| Layer   | Path                                                            |
+| ------- | --------------------------------------------------------------- |
+| Web     | `apps/web/src/pages/calendar/`                                  |
+| API     | `apps/api/src/routes/calendar/` (`events`, `countries`, `ical`) |
+| Schema  | `CustomEvent`, plus virtual holiday/release events              |
+| Worker  | `apps/api/src/workers/checkAllDayEvents.ts`                     |
+| Service | `apps/api/src/services/holidayCalendar.ts`                      |
 
 ## API Surface
 
 `apps/api/src/routes/calendar/index.ts` composes:
 
-- `events.ts` — `GET /api/calendar/events?from=&to=`, `POST /api/calendar/events`, `PATCH /api/calendar/events/:id`, `DELETE /api/calendar/events/:id`. Returns a merged stream of `CustomEvent` rows + holidays from the configured country + library release dates within range.
+- `events.ts` — `GET /api/calendar?year=&month=&months=`. Returns a merged stream of `CustomEvent` rows + holidays from the configured country + library release dates within the requested month window.
 - `countries.ts` — country/subdivision picker for `AppSettings.countryCode` / `calendarSubdivisionCode`. Holidays come from a static dataset in `holidayCalendar.ts`.
-- `ical.ts` — `GET /api/calendar/ical/:token` returns an iCal feed. The token is `User.calendarToken` (unique random opaque token), so users can subscribe in Apple Calendar / Google Calendar without exposing credentials.
+- `ical.ts` — `GET /api/calendar/feed/:token` returns an iCal feed; `GET/POST/DELETE /api/calendar/ical-token` manages the token. The token is `User.calendarToken` (unique random opaque token), so users can subscribe in Apple Calendar / Google Calendar without exposing credentials.
+
+Custom event mutations live under a separate router: `POST /api/custom-events`, `PUT /api/custom-events/:id`, `DELETE /api/custom-events/:id`.
 
 ## Holidays
 
