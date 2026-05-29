@@ -7,13 +7,13 @@ import {
   tieredSearch,
 } from "@hously/api/services/indexerManager";
 import type { NormalizedRelease } from "@hously/api/services/indexerManager";
-import type { QualityProfile } from "@prisma/client";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
 import { parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
+import { scoreRelease } from "@hously/api/utils/medias/releaseScorer";
 import {
-  scoreRelease,
-  type QualityProfileScoreInput,
-} from "@hously/api/utils/medias/releaseScorer";
+  profileToScoreInput,
+  qualityProfileFormatsInclude,
+} from "@hously/api/services/mediaGrabberHelpers";
 import {
   isSeasonPack,
   isCompleteSeries,
@@ -25,21 +25,6 @@ import {
   loadEnabledLocalAiConfig,
   pickReleaseWithLocalAi,
 } from "@hously/api/services/localAi/client";
-
-function toScoreInput(p: QualityProfile): QualityProfileScoreInput {
-  return {
-    minResolution: p.minResolution,
-    cutoffResolution: p.cutoffResolution,
-    preferredSources: p.preferredSources,
-    preferredCodecs: p.preferredCodecs,
-    preferredLanguages: p.preferredLanguages ?? [],
-    prioritizedTrackers: p.prioritizedTrackers ?? [],
-    preferTrackerOverQuality: p.preferTrackerOverQuality ?? false,
-    maxSizeGb: p.maxSizeGb,
-    requireHdr: p.requireHdr,
-    preferHdr: p.preferHdr,
-  };
-}
 
 function normalizedToInteractive(
   r: NormalizedRelease,
@@ -150,11 +135,13 @@ export const mediasSearchRoutes = new Elysia()
           if (Number.isFinite(libId)) {
             const media = await prisma.libraryMedia.findUnique({
               where: { id: libId },
-              include: { qualityProfile: true },
+              include: {
+                qualityProfile: { include: qualityProfileFormatsInclude },
+              },
             });
             const qp = media?.qualityProfile;
             if (qp) {
-              const profile = toScoreInput(qp);
+              const profile = profileToScoreInput(qp);
               mapped = mapped.map((r) => {
                 const parsed = parseReleaseTitle(r.title);
                 const score = scoreRelease(
@@ -164,6 +151,7 @@ export const mediasSearchRoutes = new Elysia()
                   r.title,
                   r.indexer,
                   r.freeleech,
+                  r.seeders,
                 );
                 const qualityReject = Array.isArray(score);
                 const parsed_quality = {

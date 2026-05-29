@@ -3,7 +3,11 @@ import { Elysia, t } from "elysia";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
-import { profileToScoreInput } from "@hously/api/services/mediaGrabberHelpers";
+import {
+  profileToScoreInput,
+  qualityProfileFormatsInclude,
+  loadProfileWithFormats,
+} from "@hously/api/services/mediaGrabberHelpers";
 import { filesFailProfile } from "@hously/api/services/upgradeDetection";
 
 import { mapLibraryMedia, libraryMediaInclude } from "./libraryHelpers";
@@ -83,11 +87,12 @@ export const libraryMetaRoutes = new Elysia()
         if (!existing) return notFound(set, "Library item not found");
 
         let newProfile: Awaited<
-          ReturnType<typeof prisma.qualityProfile.findUnique>
+          ReturnType<typeof loadProfileWithFormats>
         > | null = null;
         if (body.quality_profile_id != null) {
           newProfile = await prisma.qualityProfile.findUnique({
             where: { id: body.quality_profile_id },
+            include: qualityProfileFormatsInclude,
           });
           if (!newProfile) {
             return badRequest(set, "Quality profile not found");

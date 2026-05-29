@@ -13,6 +13,8 @@ const profile: QualityProfileScoreInput = {
   maxSizeGb: null,
   requireHdr: false,
   preferHdr: false,
+  minSeeders: 0,
+  customFormats: [],
 };
 
 describe("filesFailProfile", () => {

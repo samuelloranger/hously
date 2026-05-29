@@ -30,6 +30,7 @@ export function scoreReleasesForProfile(
         release.title,
         release.indexer,
         release.freeleech,
+        release.seeders ?? null,
       );
       if (Array.isArray(result)) continue;
       scored.push({ release, downloadUrl, score: result });
