@@ -5,7 +5,6 @@ import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
 import {
   profileToScoreInput,
-  qualityProfileFormatsInclude,
   loadProfileWithFormats,
 } from "@hously/api/services/mediaGrabberHelpers";
 import { filesFailProfile } from "@hously/api/services/upgradeDetection";
@@ -86,14 +85,10 @@ export const libraryMetaRoutes = new Elysia()
         });
         if (!existing) return notFound(set, "Library item not found");
 
-        let newProfile: Awaited<
-          ReturnType<typeof loadProfileWithFormats>
-        > | null = null;
+        let newProfile: Awaited<ReturnType<typeof loadProfileWithFormats>> =
+          null;
         if (body.quality_profile_id != null) {
-          newProfile = await prisma.qualityProfile.findUnique({
-            where: { id: body.quality_profile_id },
-            include: qualityProfileFormatsInclude,
-          });
+          newProfile = await loadProfileWithFormats(body.quality_profile_id);
           if (!newProfile) {
             return badRequest(set, "Quality profile not found");
           }

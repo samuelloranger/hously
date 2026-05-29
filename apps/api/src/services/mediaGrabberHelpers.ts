@@ -30,6 +30,8 @@ export function mapAssignedFormats(
 ): AssignedCustomFormat[] {
   return (p.customFormats ?? []).map((link) => ({
     name: link.customFormat.name,
+    // `conditions` is stored as JSON and validated on write; the cast is a
+    // deliberate deferral of runtime parsing (a Zod parse may be added later).
     conditions:
       (link.customFormat
         .conditions as unknown as AssignedCustomFormat["conditions"]) ?? [],
@@ -63,6 +65,7 @@ export function profileToScoreInput(
     maxSizeGb: p.maxSizeGb,
     requireHdr: p.requireHdr,
     preferHdr: p.preferHdr,
+    // null/unset minSeeders means "no minimum" — the gate is skipped at 0.
     minSeeders: p.minSeeders ?? 0,
     customFormats: mapAssignedFormats(p),
   };
