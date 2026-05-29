@@ -36,7 +36,7 @@ WORKDIR /app
 # Set locale for UTF-8 support
 ENV LANG=C.UTF-8
 
-# Prisma runtime requires OpenSSL, APNs needs curl, mediainfo for file scanning
+# Prisma runtime requires OpenSSL; curl for outbound HTTP; mediainfo for file scanning
 RUN apt-get update -y && apt-get install -y openssl curl mediainfo mkvtoolnix \
     && rm -rf /var/lib/apt/lists/*
 
