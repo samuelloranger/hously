@@ -139,7 +139,6 @@ export function scoreReleaseDetailed(
   profile: QualityProfileScoreInput,
 ): ScoreBreakdown {
   const { parsed, sizeBytes, indexerName, seeders, freeleech } = ctx;
-  const titleForFlags = ctx.rawTitle;
   const reasons: RejectionReason[] = [];
 
   const pr = resolutionRank(parsed.resolution);
@@ -147,59 +146,112 @@ export function scoreReleaseDetailed(
   if (minR == null || pr == null) {
     reasons.push({ code: "resolution_below_min" });
   } else if (pr < minR) {
-    reasons.push({ code: "resolution_below_min", params: { min: profile.minResolution } });
+    reasons.push({
+      code: "resolution_below_min",
+      params: { min: profile.minResolution },
+    });
   } else if (profile.cutoffResolution != null) {
     const cutoffR = minResolutionRank(profile.cutoffResolution);
     if (cutoffR != null && pr > cutoffR) {
-      reasons.push({ code: "resolution_above_cutoff", params: { cutoff: profile.cutoffResolution } });
+      reasons.push({
+        code: "resolution_above_cutoff",
+        params: { cutoff: profile.cutoffResolution },
+      });
     }
   }
 
-  if (profile.requireHdr && !parsed.hdr) reasons.push({ code: "hdr_required_absent" });
+  if (profile.requireHdr && !parsed.hdr)
+    reasons.push({ code: "hdr_required_absent" });
 
   if (profile.preferredLanguages.length > 0) {
-    const flags = new Set(parseAudioFlags(titleForFlags).map((f) => f.toLowerCase()));
-    const hasMatch = profile.preferredLanguages.some((p) => flags.has(p.trim().toLowerCase()));
+    const flags = new Set(
+      parseAudioFlags(ctx.rawTitle).map((f) => f.toLowerCase()),
+    );
+    const hasMatch = profile.preferredLanguages.some((p) =>
+      flags.has(p.trim().toLowerCase()),
+    );
     if (!hasMatch) reasons.push({ code: "language_no_match" });
   }
 
-  if (profile.maxSizeGb != null && sizeBytes != null && sizeBytes > profile.maxSizeGb * 1e9) {
-    reasons.push({ code: "size_over_cap", params: { cap_gb: profile.maxSizeGb } });
+  if (
+    profile.maxSizeGb != null &&
+    sizeBytes != null &&
+    sizeBytes > profile.maxSizeGb * 1e9
+  ) {
+    reasons.push({
+      code: "size_over_cap",
+      params: { cap_gb: profile.maxSizeGb },
+    });
   }
 
   if (parsed.isSample) reasons.push({ code: "is_sample" });
 
   // Built-in minSeeders gate — null seeders is treated as unknown (never rejected).
-  if (profile.minSeeders > 0 && seeders != null && seeders < profile.minSeeders) {
-    reasons.push({ code: "seeders_below_min", params: { min: profile.minSeeders, got: seeders } });
+  if (
+    profile.minSeeders > 0 &&
+    seeders != null &&
+    seeders < profile.minSeeders
+  ) {
+    reasons.push({
+      code: "seeders_below_min",
+      params: { min: profile.minSeeders, got: seeders },
+    });
   }
 
-  // Custom-format gates (required absent / forbidden present).
-  const matchedFormats: string[] = [];
+  // Evaluate each format ONCE (keyed by identity, not name — avoids double work
+  // and name-collision bugs), then reuse for gates and scoring below.
+  const formatMatchResults = new Map<AssignedCustomFormat, boolean>(
+    profile.customFormats.map((fmt) => [fmt, formatMatches(fmt, ctx)]),
+  );
+  const matchedFormats: string[] = profile.customFormats
+    .filter((fmt) => formatMatchResults.get(fmt))
+    .map((fmt) => fmt.name);
   for (const fmt of profile.customFormats) {
-    const matched = formatMatches(fmt, ctx);
-    if (matched) matchedFormats.push(fmt.name);
-    if (fmt.required && !matched) reasons.push({ code: "custom_format_required_absent", params: { name: fmt.name } });
-    if (fmt.forbidden && matched) reasons.push({ code: "custom_format_forbidden_present", params: { name: fmt.name } });
+    const matched = formatMatchResults.get(fmt) ?? false;
+    if (fmt.required && !matched)
+      reasons.push({
+        code: "custom_format_required_absent",
+        params: { name: fmt.name },
+      });
+    if (fmt.forbidden && matched)
+      reasons.push({
+        code: "custom_format_forbidden_present",
+        params: { name: fmt.name },
+      });
   }
 
   if (reasons.length > 0) return { rejected: true, reasons };
 
+  // Only non-zero contributors are recorded. A component absent from the
+  // breakdown means it contributed 0 (e.g. resolution exactly at the profile
+  // minimum), not that it was skipped.
   const components: ScoreComponent[] = [];
-  const add = (code: ScoreComponent["code"], value: number, params?: ScoreComponent["params"]) => {
-    if (value !== 0) components.push({ code, value, ...(params ? { params } : {}) });
+  const add = (
+    code: ScoreComponent["code"],
+    value: number,
+    params?: ScoreComponent["params"],
+  ) => {
+    if (value !== 0)
+      components.push({ code, value, ...(params ? { params } : {}) });
   };
 
   const tierDelta = pr! - minR!;
   add("resolution_tier", tierDelta * 1000, { tier: tierDelta });
 
-  const srcIdx = profile.preferredSources.findIndex((pref) => parsedSourceMatchesPreferred(parsed.source, pref));
+  const srcIdx = profile.preferredSources.findIndex((pref) =>
+    parsedSourceMatchesPreferred(parsed.source, pref),
+  );
   add("preferred_source", indexScore(srcIdx, 500));
 
-  const codecIdx = profile.preferredCodecs.findIndex((pref) => (parsed.codec ? codecMatches(pref, parsed.codec) : false));
+  const codecIdx = profile.preferredCodecs.findIndex((pref) =>
+    parsed.codec ? codecMatches(pref, parsed.codec) : false,
+  );
   add("preferred_codec", indexScore(codecIdx, 200));
 
-  add("language_match", languagePreferenceScore(titleForFlags, profile.preferredLanguages));
+  add(
+    "language_match",
+    languagePreferenceScore(ctx.rawTitle, profile.preferredLanguages),
+  );
 
   if (profile.preferHdr && parsed.hdr) add("prefer_hdr", 100);
   if (parsed.isProper) add("proper_repack", 150);
@@ -211,7 +263,9 @@ export function scoreReleaseDetailed(
   }
 
   if (indexerName && profile.prioritizedTrackers.length > 0) {
-    const trackerIdx = profile.prioritizedTrackers.findIndex((t) => t.toLowerCase() === indexerName.toLowerCase());
+    const trackerIdx = profile.prioritizedTrackers.findIndex(
+      (t) => t.toLowerCase() === indexerName.toLowerCase(),
+    );
     if (trackerIdx >= 0) {
       const base = profile.preferTrackerOverQuality ? 1500 : 300;
       add("tracker_priority", indexScore(trackerIdx, base));
@@ -219,7 +273,8 @@ export function scoreReleaseDetailed(
   }
 
   for (const fmt of profile.customFormats) {
-    if (matchedFormats.includes(fmt.name)) add("custom_format", fmt.score, { name: fmt.name });
+    if (formatMatchResults.get(fmt))
+      add("custom_format", fmt.score, { name: fmt.name });
   }
 
   const total = components.reduce((sum, c) => sum + c.value, 0);
@@ -253,5 +308,7 @@ export function scoreRelease(
     },
     profile,
   );
-  return breakdown.rejected ? breakdown.reasons.map((r) => r.code) : breakdown.total;
+  return breakdown.rejected
+    ? breakdown.reasons.map((r) => r.code)
+    : breakdown.total;
 }

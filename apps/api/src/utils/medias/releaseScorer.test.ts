@@ -578,3 +578,90 @@ describe("regression: no custom formats, minSeeders 0 → identical total", () =
     expect(r).toBe(700);
   });
 });
+
+describe("score breakdown components", () => {
+  test("size_penalty component for large file with no maxSizeGb", () => {
+    const b = scoreReleaseDetailed(
+      ctxOf(parsed(), { sizeBytes: 15_000_000_000 }),
+      baseProfile,
+    );
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(b.components.find((c) => c.code === "size_penalty")?.value).toBe(
+        -250,
+      ); // floor(15-10)*50
+    }
+  });
+
+  test("tracker_priority component when indexer is prioritized", () => {
+    const b = scoreReleaseDetailed(
+      ctxOf(parsed(), { indexerName: "TopTracker" }),
+      {
+        ...baseProfile,
+        prioritizedTrackers: ["TopTracker"],
+        preferTrackerOverQuality: false,
+      },
+    );
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(
+        b.components.find(
+          (c) => c.code === "tracker_priority" && c.value === 300,
+        ),
+      ).toBeDefined();
+    }
+  });
+
+  test("multiple formats: only matched ones contribute a component", () => {
+    const atmos: AssignedCustomFormat = {
+      name: "Atmos",
+      conditions: [
+        { type: "title_regex", operator: "matches", value: "atmos" },
+      ],
+      score: 200,
+      required: false,
+      forbidden: false,
+    };
+    const dv: AssignedCustomFormat = {
+      name: "DV",
+      conditions: [
+        { type: "title_regex", operator: "matches", value: "dolby.?vision" },
+      ],
+      score: 300,
+      required: false,
+      forbidden: false,
+    };
+    const b = scoreReleaseDetailed(
+      ctxOf(parsed(), { rawTitle: "Movie.2024.1080p.BluRay.Atmos.x265-GROUP" }),
+      { ...baseProfile, customFormats: [atmos, dv] },
+    );
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(b.matchedFormats).toEqual(["Atmos"]);
+      expect(
+        b.components.filter((c) => c.code === "custom_format"),
+      ).toHaveLength(1);
+    }
+  });
+
+  test("matched format with score 0 emits no component but still counts as matched", () => {
+    const zero: AssignedCustomFormat = {
+      name: "Zero",
+      conditions: [{ type: "source", operator: "equals", value: "BluRay" }],
+      score: 0,
+      required: false,
+      forbidden: false,
+    };
+    const b = scoreReleaseDetailed(ctxOf(parsed()), {
+      ...baseProfile,
+      customFormats: [zero],
+    });
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(b.matchedFormats).toContain("Zero");
+      expect(
+        b.components.find((c) => c.code === "custom_format"),
+      ).toBeUndefined();
+    }
+  });
+});
