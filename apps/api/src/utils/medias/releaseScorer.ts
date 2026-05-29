@@ -2,6 +2,14 @@ import {
   type ParsedRelease,
   parseAudioFlags,
 } from "@hously/api/utils/medias/filenameParser";
+import type {
+  AssignedCustomFormat,
+  RejectionReason,
+  ReleaseEvalContext,
+  ScoreBreakdown,
+  ScoreComponent,
+} from "@hously/api/utils/medias/customFormatTypes";
+import { formatMatches } from "@hously/api/utils/medias/customFormatEvaluator";
 
 export interface QualityProfileScoreInput {
   minResolution: number;
@@ -21,6 +29,10 @@ export interface QualityProfileScoreInput {
   maxSizeGb: number | null;
   requireHdr: boolean;
   preferHdr: boolean;
+  /** Built-in dead-torrent guard. 0 = off. Rejects when seeders < minSeeders (null seeders never rejected). */
+  minSeeders: number;
+  /** Custom formats assigned to this profile (with per-profile score + gates). */
+  customFormats: AssignedCustomFormat[];
 }
 
 const RES_RANK: Record<number, number> = {
@@ -122,12 +134,104 @@ function languagePreferenceScore(title: string, preferred: string[]): number {
   return indexScore(idx, 300);
 }
 
+export function scoreReleaseDetailed(
+  ctx: ReleaseEvalContext,
+  profile: QualityProfileScoreInput,
+): ScoreBreakdown {
+  const { parsed, sizeBytes, indexerName, seeders, freeleech } = ctx;
+  const titleForFlags = ctx.rawTitle;
+  const reasons: RejectionReason[] = [];
+
+  const pr = resolutionRank(parsed.resolution);
+  const minR = minResolutionRank(profile.minResolution);
+  if (minR == null || pr == null) {
+    reasons.push({ code: "resolution_below_min" });
+  } else if (pr < minR) {
+    reasons.push({ code: "resolution_below_min", params: { min: profile.minResolution } });
+  } else if (profile.cutoffResolution != null) {
+    const cutoffR = minResolutionRank(profile.cutoffResolution);
+    if (cutoffR != null && pr > cutoffR) {
+      reasons.push({ code: "resolution_above_cutoff", params: { cutoff: profile.cutoffResolution } });
+    }
+  }
+
+  if (profile.requireHdr && !parsed.hdr) reasons.push({ code: "hdr_required_absent" });
+
+  if (profile.preferredLanguages.length > 0) {
+    const flags = new Set(parseAudioFlags(titleForFlags).map((f) => f.toLowerCase()));
+    const hasMatch = profile.preferredLanguages.some((p) => flags.has(p.trim().toLowerCase()));
+    if (!hasMatch) reasons.push({ code: "language_no_match" });
+  }
+
+  if (profile.maxSizeGb != null && sizeBytes != null && sizeBytes > profile.maxSizeGb * 1e9) {
+    reasons.push({ code: "size_over_cap", params: { cap_gb: profile.maxSizeGb } });
+  }
+
+  if (parsed.isSample) reasons.push({ code: "is_sample" });
+
+  // Built-in minSeeders gate — null seeders is treated as unknown (never rejected).
+  if (profile.minSeeders > 0 && seeders != null && seeders < profile.minSeeders) {
+    reasons.push({ code: "seeders_below_min", params: { min: profile.minSeeders, got: seeders } });
+  }
+
+  // Custom-format gates (required absent / forbidden present).
+  const matchedFormats: string[] = [];
+  for (const fmt of profile.customFormats) {
+    const matched = formatMatches(fmt, ctx);
+    if (matched) matchedFormats.push(fmt.name);
+    if (fmt.required && !matched) reasons.push({ code: "custom_format_required_absent", params: { name: fmt.name } });
+    if (fmt.forbidden && matched) reasons.push({ code: "custom_format_forbidden_present", params: { name: fmt.name } });
+  }
+
+  if (reasons.length > 0) return { rejected: true, reasons };
+
+  const components: ScoreComponent[] = [];
+  const add = (code: ScoreComponent["code"], value: number, params?: ScoreComponent["params"]) => {
+    if (value !== 0) components.push({ code, value, ...(params ? { params } : {}) });
+  };
+
+  const tierDelta = pr! - minR!;
+  add("resolution_tier", tierDelta * 1000, { tier: tierDelta });
+
+  const srcIdx = profile.preferredSources.findIndex((pref) => parsedSourceMatchesPreferred(parsed.source, pref));
+  add("preferred_source", indexScore(srcIdx, 500));
+
+  const codecIdx = profile.preferredCodecs.findIndex((pref) => (parsed.codec ? codecMatches(pref, parsed.codec) : false));
+  add("preferred_codec", indexScore(codecIdx, 200));
+
+  add("language_match", languagePreferenceScore(titleForFlags, profile.preferredLanguages));
+
+  if (profile.preferHdr && parsed.hdr) add("prefer_hdr", 100);
+  if (parsed.isProper) add("proper_repack", 150);
+  if (freeleech) add("freeleech", 200);
+
+  if (profile.maxSizeGb == null && sizeBytes != null) {
+    const gb = sizeBytes / 1e9;
+    if (gb > 10) add("size_penalty", -Math.floor(gb - 10) * 50);
+  }
+
+  if (indexerName && profile.prioritizedTrackers.length > 0) {
+    const trackerIdx = profile.prioritizedTrackers.findIndex((t) => t.toLowerCase() === indexerName.toLowerCase());
+    if (trackerIdx >= 0) {
+      const base = profile.preferTrackerOverQuality ? 1500 : 300;
+      add("tracker_priority", indexScore(trackerIdx, base));
+    }
+  }
+
+  for (const fmt of profile.customFormats) {
+    if (matchedFormats.includes(fmt.name)) add("custom_format", fmt.score, { name: fmt.name });
+  }
+
+  const total = components.reduce((sum, c) => sum + c.value, 0);
+  return { rejected: false, total, components, matchedFormats };
+}
+
 /**
  * Score a parsed release against a quality profile.
  * @param releaseTitleForFlags raw indexer title (used for parseAudioFlags / language bonus)
  * @param indexerName name of the Prowlarr indexer (used for tracker priority bonus)
- * @returns a numeric score on success, or a non-empty string[] listing the hard-requirement
- *   failures (one entry per failed constraint) when the release is rejected.
+ * @returns a numeric score on success, or a non-empty string[] listing the stable rejection
+ *   CODES (not localized prose — the FE translates them) when the release is rejected.
  */
 export function scoreRelease(
   parsed: ParsedRelease,
@@ -136,90 +240,18 @@ export function scoreRelease(
   releaseTitleForFlags?: string | null,
   indexerName?: string | null,
   freeleech?: boolean,
+  seeders?: number | null,
 ): number | string[] {
-  const rejections: string[] = [];
-
-  const pr = resolutionRank(parsed.resolution);
-  const minR = minResolutionRank(profile.minResolution);
-  if (minR == null || pr == null) {
-    rejections.push("Resolution");
-  } else {
-    if (pr < minR) rejections.push("Resolution");
-    else if (profile.cutoffResolution != null) {
-      const cutoffR = minResolutionRank(profile.cutoffResolution);
-      if (cutoffR != null && pr > cutoffR) rejections.push("Resolution");
-    }
-  }
-
-  if (profile.requireHdr && !parsed.hdr) rejections.push("HDR");
-
-  if (profile.preferredLanguages.length > 0) {
-    const flags = new Set(
-      parseAudioFlags(releaseTitleForFlags ?? "").map((f) => f.toLowerCase()),
-    );
-    const hasMatch = profile.preferredLanguages.some((p) =>
-      flags.has(p.trim().toLowerCase()),
-    );
-    if (!hasMatch) rejections.push("Language");
-  }
-
-  if (
-    profile.maxSizeGb != null &&
-    sizeBytes != null &&
-    sizeBytes > profile.maxSizeGb * 1e9
-  ) {
-    rejections.push("Size");
-  }
-
-  if (parsed.isSample) rejections.push("Sample");
-
-  if (rejections.length > 0) return rejections;
-
-  let score = 0;
-
-  const tierDelta = pr! - minR!;
-  score += tierDelta * 1000;
-
-  const srcIdx = profile.preferredSources.findIndex((pref) =>
-    parsedSourceMatchesPreferred(parsed.source, pref),
+  const breakdown = scoreReleaseDetailed(
+    {
+      parsed,
+      rawTitle: releaseTitleForFlags ?? "",
+      sizeBytes,
+      indexerName: indexerName ?? null,
+      seeders: seeders ?? null,
+      freeleech: Boolean(freeleech),
+    },
+    profile,
   );
-  score += indexScore(srcIdx, 500);
-
-  const codecIdx = profile.preferredCodecs.findIndex((pref) => {
-    if (!parsed.codec) return false;
-    return codecMatches(pref, parsed.codec);
-  });
-  score += indexScore(codecIdx, 200);
-
-  score += languagePreferenceScore(
-    releaseTitleForFlags ?? "",
-    profile.preferredLanguages,
-  );
-
-  if (profile.preferHdr && parsed.hdr) score += 100;
-
-  // PROPER/REPACK releases fix mastering errors — prefer them over the original at same quality
-  if (parsed.isProper) score += 150;
-
-  // Freeleech releases don't count against ratio — prefer them on private trackers
-  if (freeleech) score += 200;
-
-  if (profile.maxSizeGb == null && sizeBytes != null) {
-    const gb = sizeBytes / 1e9;
-    if (gb > 10) {
-      score -= Math.floor(gb - 10) * 50;
-    }
-  }
-
-  if (indexerName && profile.prioritizedTrackers.length > 0) {
-    const trackerIdx = profile.prioritizedTrackers.findIndex(
-      (t) => t.toLowerCase() === indexerName.toLowerCase(),
-    );
-    if (trackerIdx >= 0) {
-      const base = profile.preferTrackerOverQuality ? 1500 : 300;
-      score += indexScore(trackerIdx, base);
-    }
-  }
-
-  return score;
+  return breakdown.rejected ? breakdown.reasons.map((r) => r.code) : breakdown.total;
 }
