@@ -986,7 +986,8 @@
         "qualityProfiles": "Profils de qualité",
         "librarySettings": "Paramètres de la bibliothèque",
         "history": "Historique",
-        "import": "Importation"
+        "import": "Importation",
+        "customFormats": "Formats personnalisés"
       }
     },
     "qualityProfiles": {
@@ -2044,6 +2045,18 @@
       "valueInvalidForOperator": "La valeur n'est pas valide pour l'opérateur sélectionné",
       "regexInvalid": "Expression régulière invalide",
       "unknownCustomFormatId": "Identifiant de format personnalisé inconnu"
-    }
+    },
+    "nameRequired": "Le nom est requis",
+    "createSuccess": "Format créé",
+    "updateSuccess": "Format mis à jour",
+    "deleteSuccess": "Format supprimé",
+    "saveError": "Impossible d'enregistrer le format",
+    "deleteError": "Impossible de supprimer le format",
+    "loadError": "Impossible de charger les formats personnalisés",
+    "deleteConfirm": "Supprimer le format \"{{name}}\"? Il sera retiré de tous les profils de qualité.",
+    "createTitle": "Nouveau format personnalisé",
+    "editTitle": "Modifier le format personnalisé",
+    "formDescription": "Définissez les conditions qui doivent correspondre pour que ce format s'applique.",
+    "conditions": "Conditions"
   }
 }

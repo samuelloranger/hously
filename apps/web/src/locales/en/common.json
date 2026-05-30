@@ -986,7 +986,8 @@
         "qualityProfiles": "Quality Profiles",
         "librarySettings": "Library Settings",
         "history": "History",
-        "import": "Import"
+        "import": "Import",
+        "customFormats": "Custom Formats"
       }
     },
     "qualityProfiles": {
@@ -2044,6 +2045,18 @@
       "valueInvalidForOperator": "Value is not valid for the selected operator",
       "regexInvalid": "Invalid regular expression",
       "unknownCustomFormatId": "Unknown custom format ID"
-    }
+    },
+    "nameRequired": "Name is required",
+    "createSuccess": "Format created",
+    "updateSuccess": "Format updated",
+    "deleteSuccess": "Format deleted",
+    "saveError": "Could not save format",
+    "deleteError": "Could not delete format",
+    "loadError": "Could not load custom formats",
+    "deleteConfirm": "Delete format \"{{name}}\"? This will remove it from all quality profiles.",
+    "createTitle": "New custom format",
+    "editTitle": "Edit custom format",
+    "formDescription": "Define conditions that must match for this format to apply.",
+    "conditions": "Conditions"
   }
 }

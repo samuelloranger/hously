@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { QualityProfilesTab } from "@/pages/settings/_component/QualityProfilesTab";
+import { CustomFormatsTab } from "@/pages/settings/_component/CustomFormatsTab";
 import { MediaPostProcessingTab } from "@/pages/settings/_component/MediaPostProcessingTab";
 import { LibraryHistoryTab } from "@/pages/medias/_component/LibraryHistoryTab";
 import { ArrLibraryImportPanel } from "@/pages/settings/_component/ArrLibraryImportPanel";
@@ -11,11 +12,13 @@ import {
   Film,
   Download,
   Clapperboard,
+  Tags,
 } from "lucide-react";
 import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 type MediaSubTab =
   | "quality-profiles"
+  | "custom-formats"
   | "library-settings"
   | "history"
   | "import";
@@ -40,6 +43,11 @@ export function MediaSettingsTab() {
       id: "quality-profiles" as const,
       label: t("settings.media.tabs.qualityProfiles"),
       icon: SlidersHorizontal,
+    },
+    {
+      id: "custom-formats" as const,
+      label: t("settings.media.tabs.customFormats"),
+      icon: Tags,
     },
     {
       id: "library-settings" as const,
@@ -74,6 +82,7 @@ export function MediaSettingsTab() {
 
       <div>
         {activeSubTab === "quality-profiles" && <QualityProfilesTab />}
+        {activeSubTab === "custom-formats" && <CustomFormatsTab />}
         {activeSubTab === "library-settings" && <MediaPostProcessingTab />}
         {activeSubTab === "history" && <LibraryHistoryTab />}
         {activeSubTab === "import" && <ArrLibraryImportPanel />}
