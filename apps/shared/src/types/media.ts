@@ -55,6 +55,19 @@ export interface TmdbWatchProvidersResponse {
   link: string | null;
 }
 
+export interface ScoreComponentDto {
+  code: string;
+  value: number;
+  params?: Record<string, string | number>;
+}
+
+export interface ScoreBreakdownDto {
+  rejected: boolean;
+  total: number | null;
+  components: ScoreComponentDto[];
+  matched_formats: string[];
+}
+
 export interface ParsedQualityFields {
   resolution: number | null;
   source: string | null;
@@ -101,6 +114,8 @@ export interface InteractiveReleaseItem {
    * Plan 2 task — see docs/superpowers/plans.)
    */
   quality_rejection_reasons?: string[] | null;
+  /** Structured score breakdown per release, populated when search is scoped to a library item with a quality profile. */
+  score_breakdown?: ScoreBreakdownDto | null;
   /** True when the release title matches a full-season pattern (SXX with no episode number) */
   is_season_pack?: boolean;
   /** True when the release is a complete series (intégrale, Complete Series, …) */

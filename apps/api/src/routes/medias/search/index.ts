@@ -9,7 +9,8 @@ import {
 import type { NormalizedRelease } from "@hously/api/services/indexerManager";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
 import { parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
-import { scoreRelease } from "@hously/api/utils/medias/releaseScorer";
+import { scoreReleaseDetailed } from "@hously/api/utils/medias/releaseScorer";
+import type { ScoreBreakdownDto } from "@hously/shared/types";
 import {
   profileToScoreInput,
   qualityProfileFormatsInclude,
@@ -144,16 +145,18 @@ export const mediasSearchRoutes = new Elysia()
               const profile = profileToScoreInput(qp);
               mapped = mapped.map((r) => {
                 const parsed = parseReleaseTitle(r.title);
-                const score = scoreRelease(
-                  parsed,
+                const breakdown = scoreReleaseDetailed(
+                  {
+                    parsed,
+                    rawTitle: r.title,
+                    sizeBytes: r.size_bytes,
+                    indexerName: r.indexer,
+                    seeders: r.seeders,
+                    freeleech: Boolean(r.freeleech),
+                  },
                   profile,
-                  r.size_bytes,
-                  r.title,
-                  r.indexer,
-                  r.freeleech,
-                  r.seeders,
                 );
-                const qualityReject = Array.isArray(score);
+                const qualityReject = breakdown.rejected;
                 const parsed_quality = {
                   resolution: parsed.resolution,
                   source: parsed.source,
@@ -163,17 +166,38 @@ export const mediasSearchRoutes = new Elysia()
                 const rejected = r.rejected || qualityReject;
                 let rejection_reason = r.rejection_reason;
                 if (qualityReject) {
-                  const qmsg = score.join(", ");
+                  const qmsg = breakdown.reasons.map((x) => x.code).join(", ");
                   rejection_reason = rejection_reason
                     ? `${rejection_reason}; ${qmsg}`
                     : qmsg;
                 }
+                const score_breakdown: ScoreBreakdownDto = breakdown.rejected
+                  ? {
+                      rejected: true,
+                      total: null,
+                      components: [],
+                      matched_formats: [],
+                    }
+                  : {
+                      rejected: false,
+                      total: breakdown.total,
+                      components: breakdown.components.map((c) => ({
+                        code: c.code,
+                        value: c.value,
+                        ...(c.params ? { params: c.params } : {}),
+                      })),
+                      matched_formats: breakdown.matchedFormats,
+                    };
                 return {
                   ...r,
-                  quality_score: qualityReject ? null : score,
+                  quality_score: qualityReject ? null : breakdown.total,
+                  quality_rejection_reasons: qualityReject
+                    ? breakdown.reasons.map((x) => x.code)
+                    : null,
                   parsed_quality,
                   rejected,
                   rejection_reason,
+                  score_breakdown,
                 };
               });
               mapped.sort((a, b) => {
