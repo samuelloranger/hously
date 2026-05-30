@@ -1971,15 +1971,15 @@
   },
   "scoring": {
     "reject": {
-      "resolutionBelowMin": "Sous la résolution minimale ({{min}}p)",
-      "resolutionAboveCutoff": "Dépasse la résolution de coupure ({{cutoff}}p)",
+      "resolutionBelowMin": "Sous la résolution minimale",
+      "resolutionAboveCutoff": "Dépasse la résolution de coupure",
       "hdrRequiredAbsent": "HDR requis mais absent",
       "languageNoMatch": "La langue ne correspond pas au profil",
-      "sizeOverCap": "Taille du fichier dépasse la limite ({{cap_gb}} Go)",
+      "sizeOverCap": "Taille du fichier dépasse la limite",
       "isSample": "Fichier sample rejeté",
-      "seedersBelowMin": "Pas assez de sources ({{got}} < {{min}})",
-      "customFormatRequiredAbsent": "Format personnalisé requis absent : {{name}}",
-      "customFormatForbiddenPresent": "Format personnalisé interdit présent : {{name}}"
+      "seedersBelowMin": "Pas assez de sources",
+      "customFormatRequiredAbsent": "Format personnalisé requis absent",
+      "customFormatForbiddenPresent": "Format personnalisé interdit présent"
     },
     "component": {
       "resolutionTier": "Niveau de résolution",

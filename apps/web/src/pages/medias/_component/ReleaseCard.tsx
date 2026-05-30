@@ -1,7 +1,10 @@
-import { Download, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Download, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
 import { formatBytes } from "@/lib/utils/format";
 import { Button } from "@/components/ui/button";
+import { codeKey, REJECTION_CODE_KEYS } from "@/lib/i18n/scoringCodes";
+import { ScoreBreakdownPanel } from "@/pages/medias/_component/ScoreBreakdownPanel";
 
 /** Insert <wbr> after dots so long release titles can wrap on mobile. */
 function BreakableTitle({ text }: { text: string }) {
@@ -36,6 +39,7 @@ export function ReleaseCard({
   isAiPick?: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
+  const [showBreakdown, setShowBreakdown] = useState(false);
   const grabDisabled =
     isBusy || (!release.download_url && !release.download_token);
   return (
@@ -140,30 +144,37 @@ export function ReleaseCard({
             )}
           </div>
 
-          {release.rejected && (
-            <>
-              {release.rejection_reason && (
-                <p className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                  {release.rejection_reason}
-                </p>
-              )}
-              {release.quality_rejection_reasons &&
-                release.quality_rejection_reasons.length > 0 && (
-                  <p className="mt-1 rounded-md bg-amber-100/60 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                    {release.quality_rejection_reasons.length === 1
-                      ? t(
-                          `medias.interactive.rejection.${release.quality_rejection_reasons[0]}`,
-                          {
-                            defaultValue: t(
-                              "medias.interactive.rejection.generic",
-                            ),
-                          },
-                        )
-                      : t("medias.interactive.rejection.generic")}
-                  </p>
+          {release.rejected &&
+            release.quality_rejection_reasons != null &&
+            release.quality_rejection_reasons.length > 0 && (
+              <div className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                {release.quality_rejection_reasons.map((code) => (
+                  <p key={code}>{t(codeKey(REJECTION_CODE_KEYS, code))}</p>
+                ))}
+              </div>
+            )}
+
+          {!release.rejected &&
+            release.score_breakdown &&
+            !release.score_breakdown.rejected && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowBreakdown((v) => !v)}
+                  className="mt-2 flex items-center gap-1 text-[10px] font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+                >
+                  {showBreakdown ? (
+                    <ChevronUp className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                  {t("customFormats.scoreBreakdown")}
+                </button>
+                {showBreakdown && (
+                  <ScoreBreakdownPanel breakdown={release.score_breakdown} />
                 )}
-            </>
-          )}
+              </>
+            )}
         </div>
 
         <Button
