@@ -1,3 +1,5 @@
+import type { QualityProfileCustomFormatAssignment } from "./customFormats";
+
 export interface QualityProfile {
   id: number;
   name: string;
@@ -11,6 +13,8 @@ export interface QualityProfile {
   require_hdr: boolean;
   prefer_hdr: boolean;
   cutoff_resolution: number | null;
+  min_seeders: number;
+  custom_formats: QualityProfileCustomFormatAssignment[];
   created_at: string;
   updated_at: string;
 }

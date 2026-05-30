@@ -377,6 +377,11 @@ export const queryKeys = {
     list: () => [...queryKeys.qualityProfiles.all, "list"] as const,
   },
 
+  customFormats: {
+    all: ["custom-formats"] as const,
+    list: () => [...queryKeys.customFormats.all, "list"] as const,
+  },
+
   indexerManager: {
     all: ["indexer-manager"] as const,
     indexers: () => [...queryKeys.indexerManager.all, "indexers"] as const,
