@@ -1,70 +1,172 @@
 /**
- * Integration tests for /api/custom-formats.
+ * Route tests for /api/custom-formats.
  *
- * Strategy: use mock.module() before dynamic-importing the route so that
- * @hously/api/auth and @hously/api/middleware/auth resolve to stubs, and
- * @hously/api/db resolves to a real PrismaClient connected to the dev DB.
+ * Uses an in-memory stub prisma (not a real PrismaClient) so the suite is
+ * fully isolated and never needs DATABASE_URL. Mirrors the downloadsScanner
+ * pattern: top-level mock.module() + describe.serial().
  *
- * Static `import` statements are hoisted and run before any code, so all
- * mocking must happen via mock.module() + lazy dynamic import().
+ * Auth is controlled by mocking @hously/api/lib/auth (BetterAuth) and
+ * prisma.user.findUnique — so the REAL requireUser middleware runs but
+ * resolves to our injected fake user. This survives test/index.test.ts
+ * pre-loading the entire app because mock.module updates live ESM bindings.
  */
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Elysia } from "elysia";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 
-const hasDb = !!process.env.DATABASE_URL;
+// ── In-memory stub state ──────────────────────────────────────────────────────
 
-// ── 1. Real Prisma (overrides preload's "../src/db" null-proxy) ───────────────
-const realPrisma = hasDb
-  ? new PrismaClient({
-      adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
-    })
-  : null;
+const EPOCH = new Date(0);
 
-mock.module("@hously/api/db", () => ({ prisma: realPrisma }));
+let nextId = 1;
+let formatRows: Map<
+  number,
+  { id: number; name: string; conditions: unknown[]; createdAt: Date; updatedAt: Date }
+> = new Map();
+let simulateDuplicate = false;
 
-// ── 2. Mutable user slot — tests set this to control auth state ───────────────
-type FakeUser = { id: string; is_admin: boolean; email: string } | null;
-let injectedUser: FakeUser = null;
+// ── Auth state ────────────────────────────────────────────────────────────────
 
-// ── 3. Stub out Better Auth and requireUser ───────────────────────────────────
+type FakeUser = {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  isAdmin: boolean | null;
+  locale: string | null;
+  lastLogin: Date | null;
+  createdAt: Date | null;
+  lastActivity: Date | null;
+  avatarUrl: string | null;
+  navPosition: string | null;
+} | null;
+
+// The currently-injected user. Set to null to simulate unauthenticated.
+let injectedDbUser: FakeUser = null;
+
+// ── Prisma stub ───────────────────────────────────────────────────────────────
+
+const prismaCfStub = {
+  customFormat: {
+    findMany: mock(async (args?: { orderBy?: { name?: string } }) => {
+      const rows = [...formatRows.values()];
+      if (args?.orderBy && "name" in args.orderBy) {
+        const dir = args.orderBy.name === "asc" ? 1 : -1;
+        rows.sort((a, b) => dir * a.name.localeCompare(b.name));
+      }
+      return rows;
+    }),
+    findUnique: mock(async (args: { where: { id: number } }) => {
+      return formatRows.get(args.where.id) ?? null;
+    }),
+    create: mock(
+      async (args: { data: { name: string; conditions: unknown } }) => {
+        if (simulateDuplicate) {
+          simulateDuplicate = false;
+          throw Object.assign(new Error("Unique constraint failed"), {
+            code: "P2002",
+          });
+        }
+        const id = nextId++;
+        const row = {
+          id,
+          name: args.data.name,
+          conditions: args.data.conditions as unknown[],
+          createdAt: EPOCH,
+          updatedAt: EPOCH,
+        };
+        formatRows.set(id, row);
+        return row;
+      },
+    ),
+    update: mock(
+      async (args: {
+        where: { id: number };
+        data: { name: string; conditions: unknown };
+      }) => {
+        const row = formatRows.get(args.where.id);
+        if (!row)
+          throw Object.assign(new Error("Not found"), { code: "P2025" });
+        const updated = {
+          ...row,
+          name: args.data.name,
+          conditions: args.data.conditions as unknown[],
+          updatedAt: new Date(),
+        };
+        formatRows.set(args.where.id, updated);
+        return updated;
+      },
+    ),
+    delete: mock(async (args: { where: { id: number } }) => {
+      const row = formatRows.get(args.where.id);
+      if (!row)
+        throw Object.assign(new Error("Not found"), { code: "P2025" });
+      formatRows.delete(args.where.id);
+      return row;
+    }),
+  },
+  user: {
+    findUnique: mock(async () => injectedDbUser),
+  },
+};
+
+// ── Top-level mocks ───────────────────────────────────────────────────────────
+
+mock.module("@hously/api/db", () => ({ prisma: prismaCfStub }));
+
+// Stub Better Auth so requireUser's resolveUser reads from injectedDbUser.
+// auth.api.getSession returns a fake session when injectedDbUser is set, or
+// null when it's null (→ 401). Uses a stable session user id "stub-user".
+mock.module("@hously/api/lib/auth", () => ({
+  auth: {
+    api: {
+      getSession: async () =>
+        injectedDbUser ? { user: { id: injectedDbUser.id } } : null,
+    },
+    handler: async () => new Response("", { status: 404 }),
+  },
+}));
+
+// Stub the Elysia Better Auth plugin (no-op for routes that mount it)
 mock.module("@hously/api/auth", () => ({
-  // auth plugin used in customFormatsRoutes — must be a valid Elysia plugin fn
   auth: (app: Elysia) => app,
 }));
 
-mock.module("@hously/api/middleware/auth", () => ({
-  requireUser: (app: Elysia) =>
-    app
-      .resolve(() => ({ user: injectedUser as FakeUser }))
-      .onBeforeHandle(
-        ({
-          user,
-          set,
-        }: {
-          user: FakeUser;
-          set: { status?: number | string };
-        }) => {
-          if (!user) {
-            set.status = 401;
-            return { error: "Unauthorized" };
-          }
-        },
-      ),
-}));
+// ── Lazy-import the route ─────────────────────────────────────────────────────
 
-// ── 4. Lazy-import the route (picks up the mocks above) ───────────────────────
 const { customFormatsRoutes } = await import("./index");
 
 const app = new Elysia().use(customFormatsRoutes);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
 const VALID_CONDITION = { type: "source", operator: "equals", value: "WEB-DL" };
-const ADMIN: FakeUser = {
-  id: "admin",
-  is_admin: true,
+
+const ADMIN_DB_USER: FakeUser = {
+  id: "admin-id",
   email: "admin@test.local",
+  firstName: "Admin",
+  lastName: null,
+  isAdmin: true,
+  locale: null,
+  lastLogin: null,
+  createdAt: EPOCH,
+  lastActivity: null,
+  avatarUrl: null,
+  navPosition: null,
+};
+
+const REGULAR_DB_USER: FakeUser = {
+  id: "user-id",
+  email: "user@test.local",
+  firstName: "User",
+  lastName: null,
+  isAdmin: false,
+  locale: null,
+  lastLogin: null,
+  createdAt: EPOCH,
+  lastActivity: null,
+  avatarUrl: null,
+  navPosition: null,
 };
 
 function req(path: string, init?: RequestInit) {
@@ -93,20 +195,22 @@ async function createFormat(name: string) {
 }
 
 // ── Suite ─────────────────────────────────────────────────────────────────────
-describe("Custom Formats API", () => {
-  beforeEach(async () => {
-    injectedUser = ADMIN;
-    if (!hasDb || !realPrisma) return;
-    await realPrisma.customFormat.deleteMany({});
-  });
 
-  afterEach(async () => {
-    if (!hasDb || !realPrisma) return;
-    await realPrisma.customFormat.deleteMany({});
+describe.serial("Custom Formats API", () => {
+  beforeEach(() => {
+    injectedDbUser = ADMIN_DB_USER;
+    nextId = 1;
+    formatRows = new Map();
+    simulateDuplicate = false;
+    prismaCfStub.customFormat.findMany.mockClear();
+    prismaCfStub.customFormat.findUnique.mockClear();
+    prismaCfStub.customFormat.create.mockClear();
+    prismaCfStub.customFormat.update.mockClear();
+    prismaCfStub.customFormat.delete.mockClear();
+    prismaCfStub.user.findUnique.mockClear();
   });
 
   it("POST valid → 201 returns id and snake_case fields", async () => {
-    if (!hasDb) return;
     const res = await app.handle(
       jsonReq("/api/custom-formats", "POST", {
         name: "WEB-DL",
@@ -123,7 +227,6 @@ describe("Custom Formats API", () => {
   });
 
   it("GET / lists formats ordered by name asc", async () => {
-    if (!hasDb) return;
     await createFormat("Zebra");
     await createFormat("Alpha");
 
@@ -137,7 +240,6 @@ describe("Custom Formats API", () => {
   });
 
   it("GET :id returns the format", async () => {
-    if (!hasDb) return;
     const created = await createFormat("HDR");
 
     const res = await app.handle(req(`/api/custom-formats/${created.id}`));
@@ -147,7 +249,6 @@ describe("Custom Formats API", () => {
   });
 
   it("PUT :id renames format → 200", async () => {
-    if (!hasDb) return;
     const created = await createFormat("Original");
 
     const res = await app.handle(
@@ -162,7 +263,6 @@ describe("Custom Formats API", () => {
   });
 
   it("DELETE :id → { deleted: true }", async () => {
-    if (!hasDb) return;
     const created = await createFormat("ToDelete");
 
     const res = await app.handle(
@@ -174,7 +274,6 @@ describe("Custom Formats API", () => {
   });
 
   it("GET :id after DELETE → 404", async () => {
-    if (!hasDb) return;
     const created = await createFormat("Ghost");
     await app.handle(
       req(`/api/custom-formats/${created.id}`, { method: "DELETE" }),
@@ -185,7 +284,6 @@ describe("Custom Formats API", () => {
   });
 
   it("POST with operator_invalid_for_type → 400 with code", async () => {
-    if (!hasDb) return;
     const res = await app.handle(
       jsonReq("/api/custom-formats", "POST", {
         name: "Bad",
@@ -198,15 +296,13 @@ describe("Custom Formats API", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    if (!hasDb) return;
-    injectedUser = null;
+    injectedDbUser = null;
     const res = await app.handle(req("/api/custom-formats"));
     expect(res.status).toBe(401);
   });
 
   it("POST returns 403 when non-admin", async () => {
-    if (!hasDb) return;
-    injectedUser = { id: "user1", is_admin: false, email: "user@test.local" };
+    injectedDbUser = REGULAR_DB_USER;
     const res = await app.handle(
       jsonReq("/api/custom-formats", "POST", {
         name: "Nope",
@@ -216,22 +312,9 @@ describe("Custom Formats API", () => {
     expect(res.status).toBe(403);
   });
 
-  it("POST duplicate name → 409", async () => {
-    if (!hasDb) return;
-    await createFormat("Dup");
-    const res = await app.handle(
-      jsonReq("/api/custom-formats", "POST", {
-        name: "Dup",
-        conditions: [VALID_CONDITION],
-      }),
-    );
-    expect(res.status).toBe(409);
-  });
-
   it("PUT returns 403 when non-admin", async () => {
-    if (!hasDb) return;
     const created = await createFormat("Guarded");
-    injectedUser = { id: "user1", is_admin: false, email: "user@test.local" };
+    injectedDbUser = REGULAR_DB_USER;
     const res = await app.handle(
       jsonReq(`/api/custom-formats/${created.id}`, "PUT", {
         name: "Renamed",
@@ -242,9 +325,8 @@ describe("Custom Formats API", () => {
   });
 
   it("DELETE returns 403 when non-admin", async () => {
-    if (!hasDb) return;
     const created = await createFormat("GuardedDel");
-    injectedUser = { id: "user1", is_admin: false, email: "user@test.local" };
+    injectedDbUser = REGULAR_DB_USER;
     const res = await app.handle(
       req(`/api/custom-formats/${created.id}`, { method: "DELETE" }),
     );
@@ -252,7 +334,6 @@ describe("Custom Formats API", () => {
   });
 
   it("DELETE non-existent id → 404", async () => {
-    if (!hasDb) return;
     const res = await app.handle(
       req("/api/custom-formats/999999", { method: "DELETE" }),
     );
@@ -260,7 +341,6 @@ describe("Custom Formats API", () => {
   });
 
   it("PUT with invalid conditions → 400 with code", async () => {
-    if (!hasDb) return;
     const created = await createFormat("ToBreak");
     const res = await app.handle(
       jsonReq(`/api/custom-formats/${created.id}`, "PUT", {
@@ -270,5 +350,17 @@ describe("Custom Formats API", () => {
     );
     expect(res.status).toBe(400);
     expect(((await res.json()) as any).error).toBe("operator_invalid_for_type");
+  });
+
+  it("POST duplicate name → 409", async () => {
+    await createFormat("Dup");
+    simulateDuplicate = true;
+    const res = await app.handle(
+      jsonReq("/api/custom-formats", "POST", {
+        name: "Dup",
+        conditions: [VALID_CONDITION],
+      }),
+    );
+    expect(res.status).toBe(409);
   });
 });

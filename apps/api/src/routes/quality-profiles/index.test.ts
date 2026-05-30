@@ -1,65 +1,285 @@
 /**
- * Integration tests for /api/quality-profiles.
+ * Route tests for /api/quality-profiles.
  *
- * Strategy: use mock.module() before dynamic-importing the route so that
- * @hously/api/auth and @hously/api/middleware/auth resolve to stubs, and
- * @hously/api/db resolves to a real PrismaClient connected to the dev DB.
+ * Uses an in-memory stub prisma (not a real PrismaClient) so the suite is
+ * fully isolated and never needs DATABASE_URL. Mirrors the downloadsScanner
+ * pattern: top-level mock.module() + describe.serial().
  *
- * Static `import` statements are hoisted and run before any code, so all
- * mocking must happen via mock.module() + lazy dynamic import().
+ * Auth is controlled by mocking @hously/api/lib/auth (BetterAuth) and
+ * prisma.user.findUnique — so the REAL requireUser middleware runs but
+ * resolves to our injected fake user. This survives test/index.test.ts
+ * pre-loading the entire app because mock.module updates live ESM bindings.
  */
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Elysia } from "elysia";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 
-const hasDb = !!process.env.DATABASE_URL;
+// ── In-memory stub state ──────────────────────────────────────────────────────
 
-// ── 1. Real Prisma (overrides preload's "../src/db" null-proxy) ───────────────
-const realPrisma = hasDb
-  ? new PrismaClient({
-      adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
-    })
-  : null;
+const EPOCH = new Date(0);
 
-mock.module("@hously/api/db", () => ({ prisma: realPrisma }));
+let nextProfileId = 1;
+let nextFormatId = 100;
 
-// ── 2. Mutable user slot — tests set this to control auth state ───────────────
-type FakeUser = { id: string; is_admin: boolean; email: string } | null;
-let injectedUser: FakeUser = null;
+type CfRow = {
+  id: number;
+  name: string;
+  conditions: unknown[];
+  createdAt: Date;
+  updatedAt: Date;
+};
 
-// ── 3. Stub out Better Auth and requireUser ───────────────────────────────────
+type AssignmentRow = {
+  qualityProfileId: number;
+  customFormatId: number;
+  score: number;
+  required: boolean;
+  forbidden: boolean;
+};
+
+type ProfileRow = {
+  id: number;
+  name: string;
+  minResolution: number;
+  preferredSources: string[];
+  preferredCodecs: string[];
+  preferredLanguages: string[];
+  prioritizedTrackers: string[];
+  preferTrackerOverQuality: boolean;
+  maxSizeGb: number | null;
+  requireHdr: boolean;
+  preferHdr: boolean;
+  cutoffResolution: number | null;
+  minSeeders: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+let profileRows: Map<number, ProfileRow> = new Map();
+let assignmentRows: AssignmentRow[] = [];
+let formatRows: Map<number, CfRow> = new Map();
+
+let simulateProfileDuplicate = false;
+let simulateFkError = false;
+
+// ── Auth state ────────────────────────────────────────────────────────────────
+
+type FakeDbUser = {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  isAdmin: boolean | null;
+  locale: string | null;
+  lastLogin: Date | null;
+  createdAt: Date | null;
+  lastActivity: Date | null;
+  avatarUrl: string | null;
+  navPosition: string | null;
+} | null;
+
+let injectedDbUser: FakeDbUser = null;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function buildProfileWithFormats(profile: ProfileRow) {
+  const assignments = assignmentRows.filter(
+    (a) => a.qualityProfileId === profile.id,
+  );
+  return {
+    ...profile,
+    customFormats: assignments.map((a) => ({
+      qualityProfileId: a.qualityProfileId,
+      customFormatId: a.customFormatId,
+      score: a.score,
+      required: a.required,
+      forbidden: a.forbidden,
+      customFormat: formatRows.get(a.customFormatId) ?? {
+        id: a.customFormatId,
+        name: "Unknown",
+        conditions: [],
+        createdAt: EPOCH,
+        updatedAt: EPOCH,
+      },
+    })),
+  };
+}
+
+function buildTxStub() {
+  return {
+    qualityProfile: {
+      create: async (args: {
+        data: Omit<ProfileRow, "id" | "createdAt" | "updatedAt">;
+      }) => {
+        if (simulateProfileDuplicate) {
+          simulateProfileDuplicate = false;
+          throw Object.assign(new Error("Unique constraint failed"), {
+            code: "P2002",
+          });
+        }
+        const id = nextProfileId++;
+        const row: ProfileRow = {
+          id,
+          name: args.data.name,
+          minResolution: args.data.minResolution,
+          preferredSources: args.data.preferredSources,
+          preferredCodecs: args.data.preferredCodecs,
+          preferredLanguages: args.data.preferredLanguages,
+          prioritizedTrackers: args.data.prioritizedTrackers,
+          preferTrackerOverQuality: args.data.preferTrackerOverQuality,
+          maxSizeGb: args.data.maxSizeGb,
+          requireHdr: args.data.requireHdr,
+          preferHdr: args.data.preferHdr,
+          cutoffResolution: args.data.cutoffResolution,
+          minSeeders: args.data.minSeeders,
+          createdAt: EPOCH,
+          updatedAt: EPOCH,
+        };
+        profileRows.set(id, row);
+        return row;
+      },
+      findUnique: async (args: { where: { id: number } }) => {
+        return profileRows.get(args.where.id) ?? null;
+      },
+      findUniqueOrThrow: async (args: {
+        where: { id: number };
+        include?: unknown;
+      }) => {
+        const row = profileRows.get(args.where.id);
+        if (!row)
+          throw Object.assign(new Error("Not found"), { code: "P2025" });
+        return buildProfileWithFormats(row);
+      },
+      update: async (args: {
+        where: { id: number };
+        data: Partial<ProfileRow>;
+      }) => {
+        const row = profileRows.get(args.where.id);
+        if (!row)
+          throw Object.assign(new Error("Not found"), { code: "P2025" });
+        const updated = { ...row, ...args.data, updatedAt: new Date() };
+        profileRows.set(args.where.id, updated);
+        return updated;
+      },
+    },
+    qualityProfileCustomFormat: {
+      createMany: async (args: { data: AssignmentRow[] }) => {
+        if (simulateFkError) {
+          simulateFkError = false;
+          throw Object.assign(new Error("FK constraint failed"), {
+            code: "P2003",
+          });
+        }
+        for (const a of args.data) {
+          assignmentRows.push(a);
+        }
+        return { count: args.data.length };
+      },
+      deleteMany: async (args: { where: { qualityProfileId: number } }) => {
+        assignmentRows = assignmentRows.filter(
+          (a) => a.qualityProfileId !== args.where.qualityProfileId,
+        );
+        return { count: 0 };
+      },
+    },
+  };
+}
+
+// ── Prisma stub ───────────────────────────────────────────────────────────────
+
+const prismaQpStub = {
+  qualityProfile: {
+    findMany: mock(async (args?: { orderBy?: unknown; include?: unknown }) => {
+      const rows = [...profileRows.values()];
+      if (
+        args?.orderBy &&
+        typeof args.orderBy === "object" &&
+        "name" in (args.orderBy as object)
+      ) {
+        const dir =
+          (args.orderBy as { name: string }).name === "asc" ? 1 : -1;
+        rows.sort((a, b) => dir * a.name.localeCompare(b.name));
+      }
+      return rows.map(buildProfileWithFormats);
+    }),
+    findUnique: mock(async (args: { where: { id: number } }) => {
+      return profileRows.get(args.where.id) ?? null;
+    }),
+    delete: mock(async (args: { where: { id: number } }) => {
+      const row = profileRows.get(args.where.id);
+      if (!row)
+        throw Object.assign(new Error("Not found"), { code: "P2025" });
+      profileRows.delete(args.where.id);
+      return row;
+    }),
+  },
+  libraryMedia: {
+    count: mock(async () => 0),
+  },
+  user: {
+    findUnique: mock(async () => injectedDbUser),
+  },
+  $transaction: mock(
+    async (
+      cb: (tx: ReturnType<typeof buildTxStub>) => Promise<unknown>,
+    ) => {
+      return cb(buildTxStub());
+    },
+  ),
+};
+
+// ── Top-level mocks ───────────────────────────────────────────────────────────
+
+mock.module("@hously/api/db", () => ({ prisma: prismaQpStub }));
+
+mock.module("@hously/api/lib/auth", () => ({
+  auth: {
+    api: {
+      getSession: async () =>
+        injectedDbUser ? { user: { id: injectedDbUser.id } } : null,
+    },
+    handler: async () => new Response("", { status: 404 }),
+  },
+}));
+
 mock.module("@hously/api/auth", () => ({
   auth: (app: Elysia) => app,
 }));
 
-mock.module("@hously/api/middleware/auth", () => ({
-  requireUser: (app: Elysia) =>
-    app
-      .resolve(() => ({ user: injectedUser as FakeUser }))
-      .onBeforeHandle(
-        ({
-          user,
-          set,
-        }: {
-          user: FakeUser;
-          set: { status?: number | string };
-        }) => {
-          if (!user) {
-            set.status = 401;
-            return { error: "Unauthorized" };
-          }
-        },
-      ),
-}));
+// ── Lazy-import the route ─────────────────────────────────────────────────────
 
-// ── 4. Lazy-import the route (picks up the mocks above) ───────────────────────
 const { qualityProfilesRoutes } = await import("./index");
 
 const app = new Elysia().use(qualityProfilesRoutes);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const ADMIN: FakeUser = { id: "admin", is_admin: true, email: "admin@test.local" };
+
+const ADMIN_DB_USER: FakeDbUser = {
+  id: "admin-id",
+  email: "admin@test.local",
+  firstName: "Admin",
+  lastName: null,
+  isAdmin: true,
+  locale: null,
+  lastLogin: null,
+  createdAt: EPOCH,
+  lastActivity: null,
+  avatarUrl: null,
+  navPosition: null,
+};
+
+const REGULAR_DB_USER: FakeDbUser = {
+  id: "user-id",
+  email: "user@test.local",
+  firstName: "User",
+  lastName: null,
+  isAdmin: false,
+  locale: null,
+  lastLogin: null,
+  createdAt: EPOCH,
+  lastActivity: null,
+  avatarUrl: null,
+  navPosition: null,
+};
 
 const BASE_PROFILE = {
   name: "Test Profile",
@@ -82,44 +302,53 @@ function jsonReq(path: string, method: string, body: unknown) {
   });
 }
 
-async function createCustomFormat(name: string) {
-  if (!realPrisma) throw new Error("no db");
-  return realPrisma.customFormat.create({
-    data: {
-      name,
-      conditions: [{ type: "source", operator: "equals", value: "WEB-DL" }],
-    },
-  });
+function seedCustomFormat(name: string): CfRow {
+  const id = nextFormatId++;
+  const row: CfRow = {
+    id,
+    name,
+    conditions: [{ type: "source", operator: "equals", value: "WEB-DL" }],
+    createdAt: EPOCH,
+    updatedAt: EPOCH,
+  };
+  formatRows.set(id, row);
+  return row;
 }
 
 async function createProfile(overrides: Record<string, unknown> = {}) {
   const res = await app.handle(
-    jsonReq("/api/quality-profiles", "POST", { ...BASE_PROFILE, ...overrides }),
+    jsonReq("/api/quality-profiles", "POST", {
+      ...BASE_PROFILE,
+      ...overrides,
+    }),
   );
   return ((await res.json()) as any).profile as { id: number; name: string };
 }
 
 // ── Suite ─────────────────────────────────────────────────────────────────────
-describe("Quality Profiles API", () => {
-  beforeEach(async () => {
-    injectedUser = ADMIN;
-    if (!hasDb || !realPrisma) return;
-    // Delete assignments first (FK), then profiles, then custom formats
-    await realPrisma.qualityProfileCustomFormat.deleteMany({});
-    await realPrisma.qualityProfile.deleteMany({});
-    await realPrisma.customFormat.deleteMany({});
-  });
 
-  afterEach(async () => {
-    if (!hasDb || !realPrisma) return;
-    await realPrisma.qualityProfileCustomFormat.deleteMany({});
-    await realPrisma.qualityProfile.deleteMany({});
-    await realPrisma.customFormat.deleteMany({});
+describe.serial("Quality Profiles API", () => {
+  beforeEach(() => {
+    injectedDbUser = ADMIN_DB_USER;
+    nextProfileId = 1;
+    nextFormatId = 100;
+    profileRows = new Map();
+    assignmentRows = [];
+    formatRows = new Map();
+    simulateProfileDuplicate = false;
+    simulateFkError = false;
+    prismaQpStub.qualityProfile.findMany.mockClear();
+    prismaQpStub.qualityProfile.findUnique.mockClear();
+    prismaQpStub.qualityProfile.delete.mockClear();
+    prismaQpStub.libraryMedia.count.mockClear();
+    prismaQpStub.user.findUnique.mockClear();
+    prismaQpStub.$transaction.mockClear();
   });
 
   it("POST basic profile → 201 with min_seeders default 0 and empty custom_formats", async () => {
-    if (!hasDb) return;
-    const res = await app.handle(jsonReq("/api/quality-profiles", "POST", BASE_PROFILE));
+    const res = await app.handle(
+      jsonReq("/api/quality-profiles", "POST", BASE_PROFILE),
+    );
     expect(res.status).toBe(201);
     const body = (await res.json()) as any;
     const p = body.profile;
@@ -131,8 +360,7 @@ describe("Quality Profiles API", () => {
   });
 
   it("POST with min_seeders + custom_format assignment → 201, correct values in GET", async () => {
-    if (!hasDb) return;
-    const fmt = await createCustomFormat("WEB-DL Format");
+    const fmt = seedCustomFormat("WEB-DL Format");
     const res = await app.handle(
       jsonReq("/api/quality-profiles", "POST", {
         ...BASE_PROFILE,
@@ -171,7 +399,7 @@ describe("Quality Profiles API", () => {
   });
 
   it("POST with unknown custom_format_id → 400 unknown custom_format_id", async () => {
-    if (!hasDb) return;
+    simulateFkError = true;
     const res = await app.handle(
       jsonReq("/api/quality-profiles", "POST", {
         ...BASE_PROFILE,
@@ -185,16 +413,13 @@ describe("Quality Profiles API", () => {
   });
 
   it("PUT with custom_formats: [] → clears assignments, min_seeders change persists", async () => {
-    if (!hasDb) return;
-    const fmt = await createCustomFormat("ClearMe");
-    // Create with a format and min_seeders
+    const fmt = seedCustomFormat("ClearMe");
     const profile = await createProfile({
       name: "Update Profile",
       min_seeders: 5,
       custom_formats: [{ custom_format_id: fmt.id, score: 100 }],
     });
 
-    // PUT with empty custom_formats and changed min_seeders
     const putRes = await app.handle(
       jsonReq(`/api/quality-profiles/${profile.id}`, "PUT", {
         ...BASE_PROFILE,
@@ -217,8 +442,7 @@ describe("Quality Profiles API", () => {
   });
 
   it("PUT omitting custom_formats leaves assignments untouched", async () => {
-    if (!hasDb) return;
-    const fmt = await createCustomFormat("Sticky");
+    const fmt = seedCustomFormat("Sticky");
     const profile = await createProfile({
       name: "Sticky Profile",
       custom_formats: [{ custom_format_id: fmt.id, score: 50 }],
@@ -233,30 +457,31 @@ describe("Quality Profiles API", () => {
     );
     expect(putRes.status).toBe(200);
     const putBody = (await putRes.json()) as any;
-    // Assignments should be preserved
+    // Assignments should be preserved (route only touches when custom_formats is provided)
     expect(putBody.profile.custom_formats.length).toBe(1);
     expect(putBody.profile.custom_formats[0].score).toBe(50);
   });
 
   it("POST duplicate name → 409", async () => {
-    if (!hasDb) return;
     await createProfile({ name: "Dup" });
+    simulateProfileDuplicate = true;
     const res = await app.handle(
-      jsonReq("/api/quality-profiles", "POST", { ...BASE_PROFILE, name: "Dup" }),
+      jsonReq("/api/quality-profiles", "POST", {
+        ...BASE_PROFILE,
+        name: "Dup",
+      }),
     );
     expect(res.status).toBe(409);
   });
 
   it("returns 401 when unauthenticated", async () => {
-    if (!hasDb) return;
-    injectedUser = null;
+    injectedDbUser = null;
     const res = await app.handle(req("/api/quality-profiles"));
     expect(res.status).toBe(401);
   });
 
   it("POST returns 403 when non-admin", async () => {
-    if (!hasDb) return;
-    injectedUser = { id: "user1", is_admin: false, email: "user@test.local" };
+    injectedDbUser = REGULAR_DB_USER;
     const res = await app.handle(
       jsonReq("/api/quality-profiles", "POST", BASE_PROFILE),
     );
