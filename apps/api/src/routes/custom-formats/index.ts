@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import type { CustomFormat } from "@prisma/client";
+import type { CustomFormat, Prisma } from "@prisma/client";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
@@ -58,7 +58,7 @@ export const customFormatsRoutes = new Elysia({
         const row = await prisma.customFormat.create({
           data: {
             name: body.name.trim(),
-            conditions: v.conditions as unknown as import("@prisma/client").Prisma.InputJsonValue,
+            conditions: v.conditions as unknown as Prisma.InputJsonValue,
           },
         });
         set.status = 201;
@@ -98,7 +98,7 @@ export const customFormatsRoutes = new Elysia({
           where: { id },
           data: {
             name: body.name.trim(),
-            conditions: v.conditions as unknown as import("@prisma/client").Prisma.InputJsonValue,
+            conditions: v.conditions as unknown as Prisma.InputJsonValue,
           },
         });
         return { custom_format: mapCustomFormat(row) };

@@ -61,7 +61,11 @@ const app = new Elysia().use(customFormatsRoutes);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const VALID_CONDITION = { type: "source", operator: "equals", value: "WEB-DL" };
-const ADMIN: FakeUser = { id: "admin", is_admin: true, email: "admin@test.local" };
+const ADMIN: FakeUser = {
+  id: "admin",
+  is_admin: true,
+  email: "admin@test.local",
+};
 
 function req(path: string, init?: RequestInit) {
   return new Request(`http://localhost${path}`, init);
@@ -82,7 +86,10 @@ async function createFormat(name: string) {
       conditions: [VALID_CONDITION],
     }),
   );
-  return ((await res.json()) as any).custom_format as { id: number; name: string };
+  return ((await res.json()) as any).custom_format as {
+    id: number;
+    name: string;
+  };
 }
 
 // ── Suite ─────────────────────────────────────────────────────────────────────
@@ -219,5 +226,49 @@ describe("Custom Formats API", () => {
       }),
     );
     expect(res.status).toBe(409);
+  });
+
+  it("PUT returns 403 when non-admin", async () => {
+    if (!hasDb) return;
+    const created = await createFormat("Guarded");
+    injectedUser = { id: "user1", is_admin: false, email: "user@test.local" };
+    const res = await app.handle(
+      jsonReq(`/api/custom-formats/${created.id}`, "PUT", {
+        name: "Renamed",
+        conditions: [VALID_CONDITION],
+      }),
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("DELETE returns 403 when non-admin", async () => {
+    if (!hasDb) return;
+    const created = await createFormat("GuardedDel");
+    injectedUser = { id: "user1", is_admin: false, email: "user@test.local" };
+    const res = await app.handle(
+      req(`/api/custom-formats/${created.id}`, { method: "DELETE" }),
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("DELETE non-existent id → 404", async () => {
+    if (!hasDb) return;
+    const res = await app.handle(
+      req("/api/custom-formats/999999", { method: "DELETE" }),
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("PUT with invalid conditions → 400 with code", async () => {
+    if (!hasDb) return;
+    const created = await createFormat("ToBreak");
+    const res = await app.handle(
+      jsonReq(`/api/custom-formats/${created.id}`, "PUT", {
+        name: "ToBreak",
+        conditions: [{ type: "source", operator: "matches", value: "x" }],
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as any).error).toBe("operator_invalid_for_type");
   });
 });
