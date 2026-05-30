@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import type { QualityProfile } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
@@ -10,8 +10,13 @@ import {
   notFound,
   serverError,
 } from "@hously/api/errors";
+import { qualityProfileFormatsInclude } from "@hously/api/services/mediaGrabberHelpers";
 
-function mapProfile(p: QualityProfile) {
+type ProfileWithFormats = Prisma.QualityProfileGetPayload<{
+  include: typeof qualityProfileFormatsInclude;
+}>;
+
+function mapProfile(p: ProfileWithFormats) {
   return {
     id: p.id,
     name: p.name,
@@ -25,6 +30,14 @@ function mapProfile(p: QualityProfile) {
     require_hdr: p.requireHdr,
     prefer_hdr: p.preferHdr,
     cutoff_resolution: p.cutoffResolution,
+    min_seeders: p.minSeeders,
+    custom_formats: (p.customFormats ?? []).map((l) => ({
+      custom_format_id: l.customFormatId,
+      name: l.customFormat.name,
+      score: l.score,
+      required: l.required,
+      forbidden: l.forbidden,
+    })),
     created_at: p.createdAt.toISOString(),
     updated_at: p.updatedAt.toISOString(),
   };
@@ -41,6 +54,7 @@ export const qualityProfilesRoutes = new Elysia({
     try {
       const rows = await prisma.qualityProfile.findMany({
         orderBy: { name: "asc" },
+        include: qualityProfileFormatsInclude,
       });
       return { profiles: rows.map(mapProfile) };
     } catch {
@@ -67,34 +81,49 @@ export const qualityProfilesRoutes = new Elysia({
         );
       }
       try {
-        const p = await prisma.qualityProfile.create({
-          data: {
-            name: body.name.trim(),
-            minResolution: body.min_resolution,
-            preferredSources: body.preferred_sources,
-            preferredCodecs: body.preferred_codecs,
-            preferredLanguages: body.preferred_languages ?? [],
-            prioritizedTrackers: body.prioritized_trackers ?? [],
-            preferTrackerOverQuality: body.prefer_tracker_over_quality ?? false,
-            maxSizeGb: body.max_size_gb ?? null,
-            requireHdr: body.require_hdr,
-            preferHdr: body.prefer_hdr,
-            cutoffResolution: body.cutoff_resolution ?? null,
-          },
+        const created = await prisma.$transaction(async (tx) => {
+          const profile = await tx.qualityProfile.create({
+            data: {
+              name: body.name.trim(),
+              minResolution: body.min_resolution,
+              preferredSources: body.preferred_sources,
+              preferredCodecs: body.preferred_codecs,
+              preferredLanguages: body.preferred_languages ?? [],
+              prioritizedTrackers: body.prioritized_trackers ?? [],
+              preferTrackerOverQuality: body.prefer_tracker_over_quality ?? false,
+              maxSizeGb: body.max_size_gb ?? null,
+              requireHdr: body.require_hdr,
+              preferHdr: body.prefer_hdr,
+              cutoffResolution: body.cutoff_resolution ?? null,
+              minSeeders: body.min_seeders ?? 0,
+            },
+          });
+          if (body.custom_formats?.length) {
+            await tx.qualityProfileCustomFormat.createMany({
+              data: body.custom_formats.map((a) => ({
+                qualityProfileId: profile.id,
+                customFormatId: a.custom_format_id,
+                score: a.score,
+                required: a.required ?? false,
+                forbidden: a.forbidden ?? false,
+              })),
+            });
+          }
+          return tx.qualityProfile.findUniqueOrThrow({
+            where: { id: profile.id },
+            include: qualityProfileFormatsInclude,
+          });
         });
-        return { profile: mapProfile(p) };
+        set.status = 201;
+        return { profile: mapProfile(created) };
       } catch (e: unknown) {
-        const msg =
-          e &&
-          typeof e === "object" &&
-          "code" in e &&
-          (e as { code: string }).code === "P2002"
-            ? "A profile with this name already exists"
-            : "Failed to create quality profile";
-        if (msg.includes("already exists")) {
-          return conflict(set, msg);
-        }
-        return serverError(set, msg);
+        const code =
+          e && typeof e === "object" && "code" in e
+            ? (e as { code: string }).code
+            : null;
+        if (code === "P2003") return badRequest(set, "unknown custom_format_id");
+        if (code === "P2002") return conflict(set, "A profile with this name already exists");
+        return serverError(set, "Failed to create quality profile");
       }
     },
     {
@@ -110,6 +139,17 @@ export const qualityProfilesRoutes = new Elysia({
         require_hdr: t.Boolean(),
         prefer_hdr: t.Boolean(),
         cutoff_resolution: t.Optional(t.Nullable(t.Number())),
+        min_seeders: t.Optional(t.Integer({ minimum: 0 })),
+        custom_formats: t.Optional(
+          t.Array(
+            t.Object({
+              custom_format_id: t.Integer(),
+              score: t.Integer(),
+              required: t.Optional(t.Boolean()),
+              forbidden: t.Optional(t.Boolean()),
+            }),
+          ),
+        ),
       }),
     },
   )
@@ -135,35 +175,58 @@ export const qualityProfilesRoutes = new Elysia({
         );
       }
       try {
-        const existing = await prisma.qualityProfile.findUnique({
-          where: { id },
+        const updated = await prisma.$transaction(async (tx) => {
+          const existing = await tx.qualityProfile.findUnique({
+            where: { id },
+          });
+          if (!existing) return null;
+          await tx.qualityProfile.update({
+            where: { id },
+            data: {
+              name: body.name.trim(),
+              minResolution: body.min_resolution,
+              preferredSources: body.preferred_sources,
+              preferredCodecs: body.preferred_codecs,
+              preferredLanguages: body.preferred_languages ?? [],
+              prioritizedTrackers: body.prioritized_trackers ?? [],
+              preferTrackerOverQuality: body.prefer_tracker_over_quality ?? false,
+              maxSizeGb: body.max_size_gb ?? null,
+              requireHdr: body.require_hdr,
+              preferHdr: body.prefer_hdr,
+              cutoffResolution: body.cutoff_resolution ?? null,
+              minSeeders: body.min_seeders ?? existing.minSeeders,
+            },
+          });
+          if (body.custom_formats !== undefined) {
+            await tx.qualityProfileCustomFormat.deleteMany({
+              where: { qualityProfileId: id },
+            });
+            if (body.custom_formats.length > 0) {
+              await tx.qualityProfileCustomFormat.createMany({
+                data: body.custom_formats.map((a) => ({
+                  qualityProfileId: id,
+                  customFormatId: a.custom_format_id,
+                  score: a.score,
+                  required: a.required ?? false,
+                  forbidden: a.forbidden ?? false,
+                })),
+              });
+            }
+          }
+          return tx.qualityProfile.findUniqueOrThrow({
+            where: { id },
+            include: qualityProfileFormatsInclude,
+          });
         });
-        if (!existing) return notFound(set, "Quality profile not found");
-        const p = await prisma.qualityProfile.update({
-          where: { id },
-          data: {
-            name: body.name.trim(),
-            minResolution: body.min_resolution,
-            preferredSources: body.preferred_sources,
-            preferredCodecs: body.preferred_codecs,
-            preferredLanguages: body.preferred_languages ?? [],
-            prioritizedTrackers: body.prioritized_trackers ?? [],
-            preferTrackerOverQuality: body.prefer_tracker_over_quality ?? false,
-            maxSizeGb: body.max_size_gb ?? null,
-            requireHdr: body.require_hdr,
-            preferHdr: body.prefer_hdr,
-            cutoffResolution: body.cutoff_resolution ?? null,
-          },
-        });
-        return { profile: mapProfile(p) };
+        if (!updated) return notFound(set, "Quality profile not found");
+        return { profile: mapProfile(updated) };
       } catch (e: unknown) {
-        const dup =
-          e &&
-          typeof e === "object" &&
-          "code" in e &&
-          (e as { code: string }).code === "P2002";
-        if (dup)
-          return conflict(set, "A profile with this name already exists");
+        const code =
+          e && typeof e === "object" && "code" in e
+            ? (e as { code: string }).code
+            : null;
+        if (code === "P2003") return badRequest(set, "unknown custom_format_id");
+        if (code === "P2002") return conflict(set, "A profile with this name already exists");
         return serverError(set, "Failed to update quality profile");
       }
     },
@@ -180,6 +243,17 @@ export const qualityProfilesRoutes = new Elysia({
         require_hdr: t.Boolean(),
         prefer_hdr: t.Boolean(),
         cutoff_resolution: t.Optional(t.Nullable(t.Number())),
+        min_seeders: t.Optional(t.Integer({ minimum: 0 })),
+        custom_formats: t.Optional(
+          t.Array(
+            t.Object({
+              custom_format_id: t.Integer(),
+              score: t.Integer(),
+              required: t.Optional(t.Boolean()),
+              forbidden: t.Optional(t.Boolean()),
+            }),
+          ),
+        ),
       }),
     },
   )
