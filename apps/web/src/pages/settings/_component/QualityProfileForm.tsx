@@ -14,6 +14,7 @@ import type { QualityProfile } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 import { MultiSelect } from "./QualityProfileMultiSelect";
 import { TrackerPrioritySection } from "./QualityProfileTrackerSection";
+import { CustomFormatAssignmentEditor } from "./CustomFormatAssignmentEditor";
 
 // ─── Option definitions ───────────────────────────────────────────────────────
 
@@ -71,6 +72,8 @@ const emptyPayload: QualityProfileFormPayload = {
   require_hdr: false,
   prefer_hdr: false,
   cutoff_resolution: null,
+  min_seeders: 0,
+  custom_formats: [],
 };
 
 const selectClass =
@@ -265,6 +268,23 @@ export function QualityProfileForm({
             )
           }
           placeholder={t("settings.qualityProfiles.maxSizeGbPlaceholder")}
+        />
+      </div>
+
+      <FormInput
+        label={t("customFormats.minSeeders")}
+        type="number"
+        min="0"
+        value={form.min_seeders}
+        onChange={(e) => set("min_seeders", Number(e.target.value) || 0)}
+        placeholder={t("customFormats.minSeedersHelp")}
+      />
+
+      <div className="flex flex-col gap-1.5">
+        <FieldLabel>{t("customFormats.title")}</FieldLabel>
+        <CustomFormatAssignmentEditor
+          value={form.custom_formats}
+          onChange={(v) => set("custom_formats", v)}
         />
       </div>
 

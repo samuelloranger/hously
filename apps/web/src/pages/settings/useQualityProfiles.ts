@@ -34,6 +34,13 @@ export type QualityProfileFormPayload = {
   require_hdr: boolean;
   prefer_hdr: boolean;
   cutoff_resolution: number | null;
+  min_seeders: number;
+  custom_formats: {
+    custom_format_id: number;
+    score: number;
+    required: boolean;
+    forbidden: boolean;
+  }[];
 };
 
 export function useCreateQualityProfile() {
@@ -107,6 +114,15 @@ export function profileToForm(p: QualityProfile): QualityProfileFormPayload {
     require_hdr: p.require_hdr,
     prefer_hdr: p.prefer_hdr,
     cutoff_resolution: p.cutoff_resolution,
+    min_seeders: p.min_seeders ?? 0,
+    custom_formats: (p.custom_formats ?? []).map(
+      ({ custom_format_id, score, required, forbidden }) => ({
+        custom_format_id,
+        score,
+        required,
+        forbidden,
+      }),
+    ),
   };
 }
 
