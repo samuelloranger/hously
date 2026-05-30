@@ -90,7 +90,8 @@ export const qualityProfilesRoutes = new Elysia({
               preferredCodecs: body.preferred_codecs,
               preferredLanguages: body.preferred_languages ?? [],
               prioritizedTrackers: body.prioritized_trackers ?? [],
-              preferTrackerOverQuality: body.prefer_tracker_over_quality ?? false,
+              preferTrackerOverQuality:
+                body.prefer_tracker_over_quality ?? false,
               maxSizeGb: body.max_size_gb ?? null,
               requireHdr: body.require_hdr,
               preferHdr: body.prefer_hdr,
@@ -98,7 +99,10 @@ export const qualityProfilesRoutes = new Elysia({
               minSeeders: body.min_seeders ?? 0,
             },
           });
-          if (body.custom_formats?.length) {
+          if (
+            body.custom_formats !== undefined &&
+            body.custom_formats.length > 0
+          ) {
             await tx.qualityProfileCustomFormat.createMany({
               data: body.custom_formats.map((a) => ({
                 qualityProfileId: profile.id,
@@ -121,8 +125,10 @@ export const qualityProfilesRoutes = new Elysia({
           e && typeof e === "object" && "code" in e
             ? (e as { code: string }).code
             : null;
-        if (code === "P2003") return badRequest(set, "unknown custom_format_id");
-        if (code === "P2002") return conflict(set, "A profile with this name already exists");
+        if (code === "P2003")
+          return badRequest(set, "unknown custom_format_id");
+        if (code === "P2002")
+          return conflict(set, "A profile with this name already exists");
         return serverError(set, "Failed to create quality profile");
       }
     },
@@ -189,7 +195,8 @@ export const qualityProfilesRoutes = new Elysia({
               preferredCodecs: body.preferred_codecs,
               preferredLanguages: body.preferred_languages ?? [],
               prioritizedTrackers: body.prioritized_trackers ?? [],
-              preferTrackerOverQuality: body.prefer_tracker_over_quality ?? false,
+              preferTrackerOverQuality:
+                body.prefer_tracker_over_quality ?? false,
               maxSizeGb: body.max_size_gb ?? null,
               requireHdr: body.require_hdr,
               preferHdr: body.prefer_hdr,
@@ -225,8 +232,10 @@ export const qualityProfilesRoutes = new Elysia({
           e && typeof e === "object" && "code" in e
             ? (e as { code: string }).code
             : null;
-        if (code === "P2003") return badRequest(set, "unknown custom_format_id");
-        if (code === "P2002") return conflict(set, "A profile with this name already exists");
+        if (code === "P2003")
+          return badRequest(set, "unknown custom_format_id");
+        if (code === "P2002")
+          return conflict(set, "A profile with this name already exists");
         return serverError(set, "Failed to update quality profile");
       }
     },
