@@ -26,6 +26,7 @@ import { libraryMediaAdminRoutes } from "./routes/library/libraryMediaAdmin";
 import { libraryDownloadsRoutes } from "./routes/library/downloads";
 import { libraryRoutes } from "./routes/library";
 import { qualityProfilesRoutes } from "./routes/quality-profiles";
+import { customFormatsRoutes } from "./routes/custom-formats";
 import { mediasRoutes } from "./routes/medias";
 import { notificationsRoutes } from "./routes/notifications";
 import { integrationsRoutes } from "./routes/integrations";
@@ -138,6 +139,7 @@ export const app = new Elysia()
   .use(libraryDownloadsRoutes)
   .use(libraryRoutes)
   .use(qualityProfilesRoutes)
+  .use(customFormatsRoutes)
   .use(mediasRoutes)
   .use(habitsRoutes)
   .use(boardTasksRoutes)
