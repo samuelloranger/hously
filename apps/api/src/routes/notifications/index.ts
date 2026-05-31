@@ -34,64 +34,67 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     if (!user) return unauthorized(set, "Unauthorized");
     const userId = user.id;
 
-    set.headers["Content-Type"] = "text/event-stream";
-    set.headers["Cache-Control"] = "no-cache";
-    set.headers["Connection"] = "keep-alive";
-    set.headers["X-Accel-Buffering"] = "no";
+    const encoder = new TextEncoder();
+    const signal = request.signal;
 
-    const enc = new TextEncoder();
-    let closed = false;
-    let controller: ReadableStreamDefaultController<Uint8Array>;
-    let heartbeat: ReturnType<typeof setInterval> | null = null;
-
-    const onNotification = (event: NotificationStreamEvent) => {
-      if (event.userId !== userId) return;
-      send(`data: ${JSON.stringify(event)}\n\n`);
-    };
-
-    // Idempotent — runs from both ReadableStream.cancel() and the request
-    // abort signal, since runtimes/proxies may surface a disconnect via either.
-    const cleanup = () => {
-      if (closed) return;
-      closed = true;
-      notificationEventBus.off("notification", onNotification);
-      if (heartbeat) clearInterval(heartbeat);
-    };
-
+    // All setup happens INSIDE start(controller) — this mirrors the working
+    // dashboard SSE (createJsonSseResponse). Capturing the controller in start
+    // and enqueuing from outside does not flush the response under Bun/Elysia.
     const stream = new ReadableStream<Uint8Array>({
-      start(c) {
-        controller = c;
+      start(controller) {
+        let closed = false;
+        let heartbeat: ReturnType<typeof setInterval> | null = null;
+
+        const writeChunk = (chunk: string) => {
+          if (closed) return;
+          try {
+            controller.enqueue(encoder.encode(chunk));
+          } catch {
+            closeStream();
+          }
+        };
+
+        const onNotification = (event: NotificationStreamEvent) => {
+          if (event.userId !== userId) return;
+          writeChunk(`data: ${JSON.stringify(event)}\n\n`);
+        };
+
+        const closeStream = () => {
+          if (closed) return;
+          closed = true;
+          notificationEventBus.off("notification", onNotification);
+          if (heartbeat) clearInterval(heartbeat);
+          try {
+            controller.close();
+          } catch {
+            // already closed by the runtime
+          }
+        };
+
+        notificationEventBus.on("notification", onNotification);
+        heartbeat = setInterval(() => writeChunk(": ping\n\n"), 15_000);
+        signal.addEventListener("abort", closeStream);
+
+        writeChunk("retry: 3000\n\n");
+        // Handshake so the client knows the stream is live.
+        writeChunk(`data: ${JSON.stringify({ connected: true })}\n\n`);
       },
       cancel() {
-        cleanup();
+        // Cleanup is driven by the request abort signal above.
       },
     });
 
-    const send = (chunk: string) => {
-      if (closed) return;
-      try {
-        controller.enqueue(enc.encode(chunk));
-      } catch {
-        cleanup();
-      }
-    };
-
-    notificationEventBus.on("notification", onNotification);
-    heartbeat = setInterval(() => send(": ping\n\n"), 15_000);
-
-    request.signal.addEventListener("abort", () => {
-      cleanup();
-      try {
-        controller.close();
-      } catch {
-        // already closed by the runtime
-      }
+    // Headers MUST be set on the Response itself — Elysia ignores `set.headers`
+    // when a raw Response is returned. EventSource requires the
+    // `text/event-stream` content type, and Caddy only disables buffering for it.
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
     });
-
-    // Handshake so the client knows the stream is live.
-    send(`data: ${JSON.stringify({ connected: true })}\n\n`);
-
-    return new Response(stream);
   })
   // GET /api/notifications - Get notifications with pagination
   .get(
