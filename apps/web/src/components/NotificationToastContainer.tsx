@@ -63,14 +63,15 @@ export function NotificationToastContainer() {
     [dismiss],
   );
 
-  // Only open the SSE stream for authenticated users — `NotificationToastContainer`
-  // is mounted app-wide (incl. /login and other logged-out screens), and the
-  // stream 401s without a session. Gating also (re)connects right after login
-  // without a full reload, since `enabled` flips when auth resolves.
-  const { isAuthenticated } = useAuth();
+  // The in-app banner is driven by the SSE notification stream. We open it on
+  // mount (the session cookie authenticates it) and reconnect when the logged-in
+  // user changes — rather than gating on `isAuthenticated`, which is `false` on
+  // the first render at the app root even for a logged-in user and previously
+  // left the stream closed until a route navigation re-rendered the container.
+  const { user } = useAuth();
   useNotificationStream({
     onNotification: handleNotification,
-    enabled: isAuthenticated,
+    reconnectKey: user?.id ?? null,
   });
 
   if (toasts.length === 0) return null;

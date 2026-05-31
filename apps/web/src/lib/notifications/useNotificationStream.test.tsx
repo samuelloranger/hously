@@ -43,13 +43,25 @@ describe("useNotificationStream", () => {
     expect(FakeEventSource.last?.init?.withCredentials).toBe(true);
   });
 
-  it("does not open the stream when disabled (e.g. logged out)", () => {
+  it("reconnects (closes old, opens new) when reconnectKey changes, e.g. on login", () => {
     const client = new QueryClient();
-    renderHook(
-      () => useNotificationStream({ onNotification: vi.fn(), enabled: false }),
-      { wrapper: wrapper(client) },
+    const { rerender } = renderHook(
+      ({ key }: { key: string | null }) =>
+        useNotificationStream({ onNotification: vi.fn(), reconnectKey: key }),
+      {
+        wrapper: wrapper(client),
+        initialProps: { key: null } as { key: string | null },
+      },
     );
-    expect(FakeEventSource.last).toBeNull();
+    const first = FakeEventSource.last!;
+    expect(first.url).toBe("/api/notifications/stream");
+    expect(first.closed).toBe(false);
+
+    rerender({ key: "user-1" });
+
+    expect(first.closed).toBe(true); // old connection torn down
+    expect(FakeEventSource.last).not.toBe(first); // a fresh connection opened
+    expect(FakeEventSource.last?.closed).toBe(false);
   });
 
   it("calls onNotification and invalidates notification queries on an event", () => {
