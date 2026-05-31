@@ -6,11 +6,7 @@
 import { buildNotificationUrl } from "@hously/shared/utils";
 import { prisma } from "@hously/api/db";
 import { formatDateInTimezone, nowUtc, getTimezone } from "@hously/api/utils";
-import {
-  isNightTime,
-  createAndQueueNotification,
-  getAllUsers,
-} from "./notificationService";
+import { createAndQueueNotification, getAllUsers } from "./notificationService";
 
 /**
  * Check for due reminders and send notifications
@@ -23,11 +19,6 @@ import {
  */
 export async function checkAndSendReminders(): Promise<void> {
   console.log("[CRON] Running checkAndSendReminders...");
-
-  // Skip notifications during night time (23h-6h)
-  if (isNightTime()) {
-    return;
-  }
 
   const nowUtcDt = new Date();
   const repeatIntervalMinutes = 5;
@@ -128,11 +119,6 @@ export async function checkAndSendReminders(): Promise<void> {
  * Check for custom events that start within the next 15 minutes and send notifications
  */
 async function checkAndSendCustomEventNotifications(): Promise<void> {
-  // Skip notifications during night time
-  if (isNightTime()) {
-    return;
-  }
-
   const nowUtcDt = new Date();
   const windowEnd = new Date(nowUtcDt.getTime() + 15 * 60 * 1000);
 

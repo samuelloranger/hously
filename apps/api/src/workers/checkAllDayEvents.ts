@@ -10,7 +10,7 @@ import {
   addDaysInTz,
   formatDateInTimezone,
 } from "@hously/api/utils";
-import { isNightTime, createAndQueueNotification } from "./notificationService";
+import { createAndQueueNotification } from "./notificationService";
 
 /**
  * Check for all-day custom events starting tomorrow and send notifications
@@ -21,11 +21,6 @@ import { isNightTime, createAndQueueNotification } from "./notificationService";
  */
 export async function checkAndSendAllDayEventNotifications(): Promise<void> {
   console.log("[CRON] Running checkAndSendAllDayEventNotifications...");
-
-  // Skip notifications during night time (23h-6h)
-  if (isNightTime()) {
-    return;
-  }
 
   const today = todayLocal();
 

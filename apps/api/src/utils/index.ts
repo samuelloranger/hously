@@ -4,6 +4,7 @@
 
 export {
   getTimezone,
+  isNightTime,
   midnightOf,
   addDaysInTz,
   formatIso,

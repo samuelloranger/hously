@@ -1,5 +1,5 @@
 import { prisma } from "@hously/api/db";
-import { isNightTime, createAndQueueNotification } from "./notificationService";
+import { createAndQueueNotification } from "./notificationService";
 import { getTimezone, todayLocal } from "@hously/api/utils";
 
 const getHabitStatusCounts = (entries: Array<{ status: string }>) => {
@@ -19,10 +19,6 @@ const getHabitStatusCounts = (entries: Array<{ status: string }>) => {
 
 export const checkHabitReminders = async () => {
   try {
-    if (isNightTime()) {
-      return;
-    }
-
     const now = new Date();
     const tz = getTimezone();
     const formatter = new Intl.DateTimeFormat("en-US", {

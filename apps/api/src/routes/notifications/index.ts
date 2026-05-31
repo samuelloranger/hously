@@ -14,6 +14,10 @@ import {
   getAllUsers,
 } from "@hously/api/workers/notificationService";
 import {
+  notificationEventBus,
+  type NotificationStreamEvent,
+} from "@hously/api/services/notificationEvents";
+import {
   badRequest,
   notFound,
   serverError,
@@ -24,6 +28,71 @@ import { logActivity } from "@hously/api/utils/activityLogs";
 
 export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
   .use(auth)
+  // GET /api/notifications/stream - SSE stream of this user's new notifications.
+  // Drives the in-app banner regardless of push-subscription status.
+  .get("/stream", ({ user, request, set }) => {
+    if (!user) return unauthorized(set, "Unauthorized");
+    const userId = user.id;
+
+    set.headers["Content-Type"] = "text/event-stream";
+    set.headers["Cache-Control"] = "no-cache";
+    set.headers["Connection"] = "keep-alive";
+    set.headers["X-Accel-Buffering"] = "no";
+
+    const enc = new TextEncoder();
+    let closed = false;
+    let controller: ReadableStreamDefaultController<Uint8Array>;
+    let heartbeat: ReturnType<typeof setInterval> | null = null;
+
+    const onNotification = (event: NotificationStreamEvent) => {
+      if (event.userId !== userId) return;
+      send(`data: ${JSON.stringify(event)}\n\n`);
+    };
+
+    // Idempotent — runs from both ReadableStream.cancel() and the request
+    // abort signal, since runtimes/proxies may surface a disconnect via either.
+    const cleanup = () => {
+      if (closed) return;
+      closed = true;
+      notificationEventBus.off("notification", onNotification);
+      if (heartbeat) clearInterval(heartbeat);
+    };
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(c) {
+        controller = c;
+      },
+      cancel() {
+        cleanup();
+      },
+    });
+
+    const send = (chunk: string) => {
+      if (closed) return;
+      try {
+        controller.enqueue(enc.encode(chunk));
+      } catch {
+        cleanup();
+      }
+    };
+
+    notificationEventBus.on("notification", onNotification);
+    heartbeat = setInterval(() => send(": ping\n\n"), 15_000);
+
+    request.signal.addEventListener("abort", () => {
+      cleanup();
+      try {
+        controller.close();
+      } catch {
+        // already closed by the runtime
+      }
+    });
+
+    // Handshake so the client knows the stream is live.
+    send(`data: ${JSON.stringify({ connected: true })}\n\n`);
+
+    return new Response(stream);
+  })
   // GET /api/notifications - Get notifications with pagination
   .get(
     "/",
@@ -372,9 +441,12 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
         if (isNewSubscription) {
           try {
+            const fr = user.locale === "fr";
             await sendWebPushNotification(subscription as PushSubscription, {
-              title: "Notifications enabled!",
-              body: "You will now receive notifications for your tasks, bills and reminders.",
+              title: fr ? "Notifications activées !" : "Notifications enabled!",
+              body: fr
+                ? "C'est tout bon — vous recevrez désormais vos notifications Hously."
+                : "You're all set — you'll now receive your Hously notifications.",
               data: { url: "/settings?tab=notifications" },
               tag: "welcome-notification",
             });
@@ -480,10 +552,13 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         let totalSent = 0;
 
         for (const targetUser of users) {
+          const fr = targetUser.locale === "fr";
           const success = await createAndQueueNotification(
             targetUser.id,
-            "Test notification",
-            "If you see this, notifications are working! 🎉",
+            fr ? "Notification de test" : "Test notification",
+            fr
+              ? "Si vous voyez ceci, les notifications fonctionnent ! 🎉"
+              : "If you see this, notifications are working! 🎉",
             "test",
             "/settings?tab=notifications",
           );

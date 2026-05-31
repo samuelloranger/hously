@@ -11,6 +11,21 @@ export const getTimezone = (): string => {
 };
 
 /**
+ * Quiet hours: true between 23h and 6h in the configured timezone. Used to
+ * suppress the OS push (not in-app/SSE delivery or persistence) overnight.
+ */
+export function isNightTime(): boolean {
+  const tz = getTimezone();
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour: "numeric",
+    hour12: false,
+  });
+  const currentHour = parseInt(formatter.format(new Date()));
+  return currentHour >= 23 || currentHour < 6;
+}
+
+/**
  * Format a date to ISO string, handling various input types
  */
 export const formatIso = (

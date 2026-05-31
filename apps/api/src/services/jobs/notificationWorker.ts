@@ -5,6 +5,7 @@ import {
   type PushSubscription,
 } from "@hously/api/utils/webpush";
 import { dispatchToChannel } from "@hously/api/utils/notifications/channelDispatchers";
+import { isNightTime } from "@hously/api/utils";
 import { getBaseUrl } from "@hously/api/config";
 
 function toAbsoluteUrl(url: string | undefined): string | undefined {
@@ -46,10 +47,15 @@ async function processRegularNotificationJob(job: Job<NotificationJobData>) {
     `[NotificationWorker] Processing notification ${notificationId} for user ${userId}`,
   );
 
-  // Send Web Push notifications (browser subscriptions)
-  const subscriptions = await prisma.userSubscription.findMany({
-    where: { userId },
-  });
+  // Send Web Push notifications (browser subscriptions). During quiet hours
+  // (23h–6h) the notification is already persisted and delivered in-app via SSE,
+  // so we suppress only the OS push to avoid waking users — other channels and
+  // the notification center are unaffected.
+  const subscriptions = isNightTime()
+    ? []
+    : await prisma.userSubscription.findMany({
+        where: { userId },
+      });
   for (const sub of subscriptions) {
     try {
       let subscriptionInfo: PushSubscription;

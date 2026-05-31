@@ -2,7 +2,6 @@ import { sw } from "./sw";
 import { normalizeNotificationUrl } from "@hously/shared/utils/notifications";
 import { handleAppUpdate } from "./app-update";
 import { syncBadgeCount } from "./badge";
-import { broadcastNotificationEvent } from "./notification-broadcast";
 import type { PushNotificationData } from "./types";
 
 export function handlePush(event: PushEvent): void {
@@ -16,25 +15,9 @@ export function handlePush(event: PushEvent): void {
     }
   }
 
-  const messagePayload = {
-    type: "notification-received" as const,
-    notificationData: data,
-  };
-
-  // Deliver to open windows two ways so the in-app banner shows reliably:
-  // a direct postMessage to each window client, plus a persistent
-  // BroadcastChannel fallback for tabs where SW client messaging is flaky for
-  // uncontrolled windows. The channel is long-lived (never closed per push) so
-  // the message is never dropped by a close()-vs-delivery race.
-  broadcastNotificationEvent(messagePayload);
-  const broadcast_promise = sw.clients
-    .matchAll({ type: "window", includeUncontrolled: true })
-    .then((clients) => {
-      clients.forEach((client) => {
-        client.postMessage(messagePayload);
-      });
-    });
-
+  // The in-app banner is delivered separately over SSE (works without a push
+  // subscription). The service worker is responsible only for the OS-level
+  // notification + badge when a push arrives.
   const title = data.title || "Hously";
   const body = data.body || "Vous avez une nouvelle notification";
   const icon = data.icon || "/icon-192.png";
@@ -67,7 +50,6 @@ export function handlePush(event: PushEvent): void {
 
   const promises: Promise<unknown>[] = [
     sw.registration.showNotification(title, options),
-    broadcast_promise,
     syncBadgeCount(),
   ];
 

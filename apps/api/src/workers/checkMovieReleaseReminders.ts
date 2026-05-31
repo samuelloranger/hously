@@ -13,7 +13,7 @@ import {
   midnightOf,
   todayLocal,
 } from "@hously/api/utils";
-import { createAndQueueNotification, isNightTime } from "./notificationService";
+import { createAndQueueNotification } from "./notificationService";
 
 function dbDateToYmd(d: Date | null): string | null {
   if (!d) return null;
@@ -22,10 +22,6 @@ function dbDateToYmd(d: Date | null): string | null {
 
 export async function checkMovieReleaseReminders(): Promise<void> {
   console.log("[CRON] Running checkMovieReleaseReminders...");
-
-  if (isNightTime()) {
-    return;
-  }
 
   const tmdbConfig = await loadTmdbConfig();
   if (!tmdbConfig?.api_key) {
