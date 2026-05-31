@@ -1,9 +1,35 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState, startTransition } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useChores } from "@/pages/chores/useChores";
 import { useHabits } from "@/pages/habits/useHabits";
 import { CheckCircle, ChevronRight, ListChecks, Target } from "lucide-react";
+import type { Habit } from "@hously/shared/types";
+
+// ─── Completion flash ─────────────────────────────────────────────────────────
+//
+// Returns the `row-complete-flash` class only on the genuine incomplete→complete
+// transition, never on mount or subsequent re-renders of an already-complete row.
+// Mirrors the ref+state+timer gating used by CompleteCheckbox so the one-shot
+// flash animation does not re-fire on every render.
+
+function useCompletionFlash(isComplete: boolean): string {
+  const [flashing, setFlashing] = useState(false);
+  const prevComplete = useRef(isComplete);
+
+  useEffect(() => {
+    if (isComplete && !prevComplete.current) {
+      startTransition(() => setFlashing(true));
+      const timer = setTimeout(() => setFlashing(false), 800);
+      prevComplete.current = isComplete;
+      return () => clearTimeout(timer);
+    }
+    prevComplete.current = isComplete;
+    return undefined;
+  }, [isComplete]);
+
+  return flashing ? "row-complete-flash" : "";
+}
 
 // ─── Progress ring ──────────────────────────────────────────────────────────
 
@@ -89,6 +115,9 @@ export function ChoresPanel() {
   );
   const total = allChores.length;
   const completed = total - pendingChores.length;
+  const flashClass = useCompletionFlash(
+    total > 0 && pendingChores.length === 0,
+  );
 
   return (
     <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden h-full">
@@ -139,7 +168,9 @@ export function ChoresPanel() {
             ))}
           </div>
         ) : pendingChores.length === 0 ? (
-          <div className="row-complete-flash flex flex-col items-center gap-2 py-7 text-center">
+          <div
+            className={`flex flex-col items-center gap-2 py-7 text-center ${flashClass}`}
+          >
             <span className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 text-emerald-400">
               <CheckCircle size={18} />
             </span>
@@ -175,6 +206,46 @@ export function ChoresPanel() {
 }
 
 // ─── Habits panel ─────────────────────────────────────────────────────────────
+
+function HabitRow({ habit }: { habit: Habit }) {
+  const { t } = useTranslation("common");
+  const total = habit.times_per_day;
+  const done = habit.today_completions;
+  const allDone = done >= total;
+  const flashClass = useCompletionFlash(allDone);
+
+  return (
+    <div
+      className={`flex items-center gap-3 py-2.5 border-b border-neutral-800 last:border-0 ${flashClass}`}
+    >
+      <span className="text-base leading-none shrink-0">{habit.emoji}</span>
+      <span
+        className={`flex-1 text-sm font-medium truncate ${
+          allDone ? "line-through text-neutral-600" : "text-neutral-200"
+        }`}
+      >
+        {habit.name}
+      </span>
+      <div className="flex items-center gap-1 shrink-0">
+        {Array.from({ length: Math.min(total, 5) }).map((_, i) => (
+          <span
+            key={i}
+            className={`w-2.5 h-2.5 rounded-full transition-colors ${
+              i < done ? "bg-primary-400" : "bg-neutral-700"
+            }`}
+          />
+        ))}
+      </div>
+      {habit.current_streak > 1 && (
+        <span className="font-display text-xs font-semibold tabular-nums text-primary-400">
+          {t("dashboard.home.streakDays", {
+            count: habit.current_streak,
+          })}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export function HabitsPanel() {
   const { t } = useTranslation("common");
@@ -239,49 +310,7 @@ export function HabitsPanel() {
             ))}
           </div>
         ) : (
-          habits.map((habit) => {
-            const total = habit.times_per_day;
-            const done = habit.today_completions;
-            const allDone = done >= total;
-            return (
-              <div
-                key={habit.id}
-                className={`flex items-center gap-3 py-2.5 border-b border-neutral-800 last:border-0 ${
-                  allDone ? "row-complete-flash" : ""
-                }`}
-              >
-                <span className="text-base leading-none shrink-0">
-                  {habit.emoji}
-                </span>
-                <span
-                  className={`flex-1 text-sm font-medium truncate ${
-                    allDone
-                      ? "line-through text-neutral-600"
-                      : "text-neutral-200"
-                  }`}
-                >
-                  {habit.name}
-                </span>
-                <div className="flex items-center gap-1 shrink-0">
-                  {Array.from({ length: Math.min(total, 5) }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                        i < done ? "bg-primary-400" : "bg-neutral-700"
-                      }`}
-                    />
-                  ))}
-                </div>
-                {habit.current_streak > 1 && (
-                  <span className="font-display text-xs font-semibold tabular-nums text-primary-400">
-                    {t("dashboard.home.streakDays", {
-                      count: habit.current_streak,
-                    })}
-                  </span>
-                )}
-              </div>
-            );
-          })
+          habits.map((habit) => <HabitRow key={habit.id} habit={habit} />)
         )}
       </div>
     </section>
