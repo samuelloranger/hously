@@ -788,6 +788,7 @@ model AppSettings {
   upcomingLanguages          String   @default("en,fr") @map("upcoming_languages")
   dashboardWidgetVisibility  Json     @default("{\"weather\":true,\"homeassistant\":true,\"system\":true,\"downloads\":true,\"rss\":true}") @map("dashboard_widget_visibility")
   dashboardWidgetLayout      Json?    @map("dashboard_widget_layout")
+  dashboardTileLayout        Json?    @map("dashboard_tile_layout")
   quickLinks                 Json     @default("[]") @map("quick_links")
   updatedAt                  DateTime @updatedAt @map("updated_at")
 
