@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { TriangleAlert, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import type { LabeledTitleOption } from "@/lib/utils/interactive-search";
 import type { IndexerWarning } from "@hously/shared/types";
+import { SearchTitleSelect } from "./SearchTitleSelect";
 
 interface InteractiveSearchStatusStripProps {
   indexerWarnings: IndexerWarning[];
@@ -14,9 +15,10 @@ interface InteractiveSearchStatusStripProps {
   totalReleases: number;
   isSearchMode: boolean;
   searchApiQuery: string;
-  canToggleSearchTitle: boolean;
-  isOriginalTitleQuery: boolean;
-  onToggleSearchTitleVariant: () => void;
+  canSelectTitle: boolean;
+  titleOptions: LabeledTitleOption[];
+  selectedTitleQuery: string;
+  onSelectTitle: (query: string) => void;
 }
 
 export function InteractiveSearchStatusStrip({
@@ -30,9 +32,10 @@ export function InteractiveSearchStatusStrip({
   totalReleases,
   isSearchMode,
   searchApiQuery,
-  canToggleSearchTitle,
-  isOriginalTitleQuery,
-  onToggleSearchTitleVariant,
+  canSelectTitle,
+  titleOptions,
+  selectedTitleQuery,
+  onSelectTitle,
 }: InteractiveSearchStatusStripProps) {
   const { t } = useTranslation("common");
 
@@ -98,48 +101,24 @@ export function InteractiveSearchStatusStrip({
               {t("medias.interactive.resetView")}
             </button>
           )}
-          <span className="flex min-w-0 max-w-[260px] items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] dark:bg-neutral-800">
-            {canToggleSearchTitle ? (
-              <button
-                type="button"
-                onClick={onToggleSearchTitleVariant}
-                title={
-                  isOriginalTitleQuery
-                    ? t("medias.interactive.useLocalizedTitleHint")
-                    : t("medias.interactive.useOriginalTitleHint")
-                }
-                className="-mx-0.5 flex min-w-0 flex-1 items-center gap-1 rounded-md px-0.5 text-left transition-colors hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80"
-              >
-                <span className="shrink-0 text-neutral-400">Search:</span>
-                <span
-                  className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                  title={searchApiQuery}
-                >
-                  {searchApiQuery || "…"}
-                </span>
-                <span
-                  className={cn(
-                    "shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide",
-                    isOriginalTitleQuery
-                      ? "bg-amber-200/80 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100"
-                      : "bg-primary-200/70 text-primary-900 dark:bg-primary-900/40 dark:text-primary-100",
-                  )}
-                >
-                  {isOriginalTitleQuery
-                    ? t("medias.interactive.titleBadgeOriginal")
-                    : t("medias.interactive.titleBadgeLocalized")}
-                </span>
-              </button>
+          <span className="flex min-w-0 max-w-[320px] items-center gap-1.5 text-[11px]">
+            <span className="shrink-0 text-neutral-400">
+              {t("medias.interactive.searchPrefix", "Search:")}
+            </span>
+            {canSelectTitle ? (
+              <SearchTitleSelect
+                options={titleOptions}
+                value={selectedTitleQuery}
+                onSelect={onSelectTitle}
+                triggerClassName="max-w-[220px]"
+              />
             ) : (
-              <>
-                <span className="shrink-0 text-neutral-400">Search:</span>
-                <span
-                  className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                  title={searchApiQuery}
-                >
-                  {searchApiQuery || "…"}
-                </span>
-              </>
+              <span
+                className="truncate rounded-md bg-neutral-100 px-2 py-0.5 font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                title={searchApiQuery}
+              >
+                {searchApiQuery || "…"}
+              </span>
             )}
           </span>
         </div>

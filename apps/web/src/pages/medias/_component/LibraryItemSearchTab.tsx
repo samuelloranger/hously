@@ -1,5 +1,15 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import type { LibraryMedia, MediaItem } from "@hously/shared/types";
+import type {
+  LibraryMedia,
+  MediaItem,
+  TitleTranslation,
+} from "@hously/shared/types";
+import {
+  buildTitleOptions,
+  type LabeledTitleOption,
+} from "@/lib/utils/interactive-search";
+import { languageDisplayName } from "@/lib/utils/languageDisplayName";
 import { InteractiveSearchPanel } from "./InteractiveSearchPanel";
 
 function libraryToMediaItem(item: LibraryMedia): MediaItem {
@@ -40,6 +50,10 @@ type Props = {
   onClearSeasonCtx: () => void;
   /** From TMDB details — original-language title (movies + TV) */
   tmdbOriginalTitle: string | null;
+  /** ISO 639-1 code of the original language (movies + TV) */
+  tmdbOriginalLanguage: string | null;
+  /** From TMDB translations — one title per language for the search picker */
+  tmdbTitleTranslations: TitleTranslation[];
   /** When true, grabs are marked as upgrades */
   isUpgradeMode?: boolean;
   onClearUpgradeMode?: () => void;
@@ -52,11 +66,13 @@ export function LibraryItemSearchTab({
   onClearEpisodeCtx,
   onClearSeasonCtx,
   tmdbOriginalTitle,
+  tmdbOriginalLanguage,
+  tmdbTitleTranslations,
   isUpgradeMode = false,
   onClearUpgradeMode,
 }: Props) {
   const mediaItem = libraryToMediaItem(item);
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
 
   const seasonSuffix =
     !episodeSearchCtx && seasonSearchCtx !== null
@@ -71,11 +87,37 @@ export function LibraryItemSearchTab({
 
   const localizedQuery = `${item.title}${ctxSuffix}`;
 
-  const orig = tmdbOriginalTitle?.trim() || null;
-  const searchQueryOriginal =
-    orig && orig.toLowerCase() !== item.title.trim().toLowerCase()
-      ? `${orig}${ctxSuffix}`
-      : null;
+  // Build the per-language title options for the search picker. The platform's
+  // own title is the default; EN/FR are pinned, then the original language, then
+  // a few common languages — letting the user search private trackers by
+  // whichever localized title they use.
+  const platformLanguage = (i18n.language || "en").split("-")[0].toLowerCase();
+  const titleOptions = useMemo<LabeledTitleOption[]>(() => {
+    const originalTag = t("medias.interactive.originalTag", "original");
+    return buildTitleOptions({
+      localized: item.title,
+      platformLanguage,
+      original: tmdbOriginalTitle,
+      originalLanguage: tmdbOriginalLanguage,
+      translations: tmdbTitleTranslations,
+      suffix: ctxSuffix,
+    }).map((option) => {
+      const name = languageDisplayName(option.languageCode, i18n.language);
+      return {
+        ...option,
+        label: option.isOriginal ? `${name} (${originalTag})` : name,
+      };
+    });
+  }, [
+    item.title,
+    platformLanguage,
+    tmdbOriginalTitle,
+    tmdbOriginalLanguage,
+    tmdbTitleTranslations,
+    ctxSuffix,
+    i18n.language,
+    t,
+  ]);
 
   return (
     <>
@@ -133,7 +175,7 @@ export function LibraryItemSearchTab({
         media={mediaItem}
         libraryMediaId={item.id}
         defaultSearchQuery={localizedQuery}
-        searchQueryOriginal={searchQueryOriginal}
+        titleOptions={titleOptions}
         episodeId={episodeSearchCtx?.id ?? null}
         defaultSeason={seasonSearchCtx}
         isUpgradeMode={isUpgradeMode}

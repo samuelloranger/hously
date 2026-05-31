@@ -77,6 +77,7 @@ export function emptyMediaDetails(): TmdbMediaDetailsResponse {
     last_air_date: null,
     status: null,
     original_title: null,
+    title_translations: [],
     original_language: null,
     original_language_label: null,
     production_countries: [],

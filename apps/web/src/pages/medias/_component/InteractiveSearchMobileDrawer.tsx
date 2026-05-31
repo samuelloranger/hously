@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from "motion/react";
 import { ArrowDownAZ, ArrowUpZA, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-import type {
-  InteractiveSortKey,
-  InteractiveSortDir,
+import {
+  type InteractiveSortKey,
+  type InteractiveSortDir,
+  type LabeledTitleOption,
 } from "@/lib/utils/interactive-search";
+import { SearchTitleSelect } from "./SearchTitleSelect";
 import {
   Toggle,
   ChipMultiSelect,
@@ -28,9 +30,10 @@ interface InteractiveSearchMobileDrawerProps {
   totalReleases: number;
   hiddenCount: number;
   searchApiQuery: string;
-  canToggleSearchTitle: boolean;
-  isOriginalTitleQuery: boolean;
-  onToggleSearchTitle: () => void;
+  canSelectTitle: boolean;
+  titleOptions: LabeledTitleOption[];
+  selectedTitleQuery: string;
+  onSelectTitle: (query: string) => void;
 
   hideRejected: boolean;
   onHideRejectedChange: (v: boolean) => void;
@@ -72,9 +75,10 @@ export function InteractiveSearchMobileDrawer({
   totalReleases,
   hiddenCount,
   searchApiQuery,
-  canToggleSearchTitle,
-  isOriginalTitleQuery,
-  onToggleSearchTitle,
+  canSelectTitle,
+  titleOptions,
+  selectedTitleQuery,
+  onSelectTitle,
   hideRejected,
   onHideRejectedChange,
   showPacksOnly,
@@ -227,52 +231,24 @@ export function InteractiveSearchMobileDrawer({
                       })}
                     </span>
                   )}
-                  <div className="flex min-w-0 max-w-full items-center gap-1 rounded-md bg-neutral-100 px-2 py-1 text-xs dark:bg-neutral-800">
-                    {canToggleSearchTitle ? (
-                      <button
-                        type="button"
-                        onClick={onToggleSearchTitle}
-                        title={
-                          isOriginalTitleQuery
-                            ? t("medias.interactive.useLocalizedTitleHint")
-                            : t("medias.interactive.useOriginalTitleHint")
-                        }
-                        className="-mx-0.5 flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-0.5 text-left"
-                      >
-                        <span className="shrink-0 text-neutral-400">
-                          Search:
-                        </span>
-                        <span
-                          className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                          title={searchApiQuery}
-                        >
-                          {searchApiQuery || "…"}
-                        </span>
-                        <span
-                          className={cn(
-                            "shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide",
-                            isOriginalTitleQuery
-                              ? "bg-amber-200/80 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100"
-                              : "bg-primary-200/70 text-primary-900 dark:bg-primary-900/40 dark:text-primary-100",
-                          )}
-                        >
-                          {isOriginalTitleQuery
-                            ? t("medias.interactive.titleBadgeOriginal")
-                            : t("medias.interactive.titleBadgeLocalized")}
-                        </span>
-                      </button>
+                  <div className="flex min-w-0 max-w-full items-center gap-1.5 text-xs">
+                    <span className="shrink-0 text-neutral-400">
+                      {t("medias.interactive.searchPrefix", "Search:")}
+                    </span>
+                    {canSelectTitle ? (
+                      <SearchTitleSelect
+                        options={titleOptions}
+                        value={selectedTitleQuery}
+                        onSelect={onSelectTitle}
+                        triggerClassName="h-8 flex-1 text-xs"
+                      />
                     ) : (
-                      <>
-                        <span className="shrink-0 text-neutral-400">
-                          Search:
-                        </span>
-                        <span
-                          className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                          title={searchApiQuery}
-                        >
-                          {searchApiQuery || "…"}
-                        </span>
-                      </>
+                      <span
+                        className="truncate rounded-md bg-neutral-100 px-2 py-1 font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                        title={searchApiQuery}
+                      >
+                        {searchApiQuery || "…"}
+                      </span>
                     )}
                   </div>
                 </section>
