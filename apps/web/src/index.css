@@ -37,7 +37,8 @@
   --breakpoint-mobile-max: 945px;
 
   /* Typography */
-  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
   --font-mono: "Fira Code", ui-monospace, monospace;
 }
 

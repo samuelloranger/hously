@@ -1,3 +1,5 @@
+import "@fontsource-variable/fraunces/index.css";
+import "@fontsource-variable/hanken-grotesk/index.css";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
