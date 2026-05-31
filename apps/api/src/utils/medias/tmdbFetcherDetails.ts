@@ -10,6 +10,7 @@ import type {
   TmdbProductionCountry,
   TmdbSeasonSummary,
   TmdbSpokenLanguage,
+  TitleTranslation,
 } from "@hously/shared/types";
 import { toNumberOrNull, toRecord, toStringOrNull } from "./mappers";
 import { makeTmdbFetch, toTmdbLanguage } from "./tmdbFetcherCore";
@@ -169,6 +170,67 @@ function parseTvFields(data: Record<string, unknown>): TvFields {
   };
 }
 
+/**
+ * Preferred region per language when TMDB returns several regional variants of
+ * the same language (e.g. fr-FR vs fr-CA). We pick the first listed region that
+ * is present, falling back to whatever region TMDB returned first.
+ */
+const PRIMARY_REGIONS: Record<string, string[]> = {
+  en: ["US", "GB"],
+  fr: ["FR", "CA"],
+  pt: ["PT", "BR"],
+  es: ["ES", "MX"],
+  zh: ["CN", "TW"],
+};
+
+/**
+ * Flattens a TMDB `translations` payload into one title per language, so the
+ * interactive search can offer a multi-language title picker regardless of the
+ * platform's UI/TMDB language. Movies expose the title as `data.title`, TV
+ * shows as `data.name`.
+ */
+export function extractTitleTranslations(
+  translationsData: unknown,
+  mediaType: "movie" | "tv",
+): TitleTranslation[] {
+  const root = toRecord(translationsData);
+  if (!root) return [];
+  const list = root.translations;
+  if (!Array.isArray(list)) return [];
+
+  const titleField = mediaType === "movie" ? "title" : "name";
+  // language code -> (region -> title), preserving TMDB insertion order.
+  const byLanguage = new Map<string, Map<string, string>>();
+
+  for (const entry of list as unknown[]) {
+    const rec = toRecord(entry);
+    if (!rec) continue;
+    const language = toStringOrNull(rec.iso_639_1)?.toLowerCase();
+    if (!language) continue;
+    const data = toRecord(rec.data);
+    const title = toStringOrNull(data?.[titleField])?.trim();
+    if (!title) continue;
+    const region = (toStringOrNull(rec.iso_3166_1) ?? "").toUpperCase();
+    if (!byLanguage.has(language)) byLanguage.set(language, new Map());
+    const regions = byLanguage.get(language)!;
+    if (!regions.has(region)) regions.set(region, title);
+  }
+
+  const result: TitleTranslation[] = [];
+  for (const [language, regions] of byLanguage) {
+    let title: string | undefined;
+    for (const region of PRIMARY_REGIONS[language] ?? []) {
+      if (regions.has(region)) {
+        title = regions.get(region);
+        break;
+      }
+    }
+    if (!title) title = regions.values().next().value;
+    if (title) result.push({ language_code: language, title });
+  }
+  return result;
+}
+
 export async function fetchMediaDetails(
   apiKey: string,
   mediaType: "movie" | "tv",
@@ -185,7 +247,7 @@ export async function fetchMediaDetails(
 
   try {
     const data = await tmdbFetch(`${mediaType}/${tmdbId}`, {
-      append_to_response: "external_ids,images",
+      append_to_response: "external_ids,images,translations",
     });
     if (!data) return empty;
 
@@ -216,6 +278,10 @@ export async function fetchMediaDetails(
         ? toStringOrNull(data.original_title)
         : toStringOrNull(data.original_name ?? data.original_title);
     const original_language = toStringOrNull(data.original_language);
+    const title_translations = extractTitleTranslations(
+      data.translations,
+      mediaType,
+    );
 
     const production_countries: TmdbProductionCountry[] = Array.isArray(
       data.production_countries,
@@ -329,6 +395,7 @@ export async function fetchMediaDetails(
       last_air_date: tvFields?.last_air_date ?? null,
       status,
       original_title,
+      title_translations,
       original_language,
       original_language_label,
       production_countries,

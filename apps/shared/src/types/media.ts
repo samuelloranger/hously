@@ -270,6 +270,12 @@ export interface TmdbSeasonSummary {
   episode_count: number | null;
 }
 
+export interface TitleTranslation {
+  /** ISO 639-1 language code (e.g. "en", "fr", "ja") */
+  language_code: string;
+  title: string;
+}
+
 export interface TmdbMediaDetailsResponse {
   runtime: number | null;
   belongs_to_collection: TmdbCollection | null;
@@ -288,6 +294,8 @@ export interface TmdbMediaDetailsResponse {
   status: string | null;
 
   original_title: string | null;
+  /** One title per language from TMDB translations; powers the search title picker */
+  title_translations: TitleTranslation[];
   /** ISO 639-1 code */
   original_language: string | null;
   /** Best-effort display name for original language */

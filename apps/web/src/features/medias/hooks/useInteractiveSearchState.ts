@@ -14,6 +14,7 @@ import {
   UNKNOWN_LANGUAGE_KEY,
   type InteractiveSortKey,
   type InteractiveSortDir,
+  type LabeledTitleOption,
 } from "@/lib/utils/interactive-search";
 export type FilterOption = { key: string; label: string };
 
@@ -23,7 +24,8 @@ export interface UseInteractiveSearchStateProps {
   mode?: "arr" | "search";
   libraryMediaId?: number | null;
   defaultSearchQuery?: string | null;
-  searchQueryOriginal?: string | null;
+  /** Per-language title options for the search-title picker (labels included) */
+  titleOptions?: LabeledTitleOption[];
   episodeId?: number | null;
   defaultSeason?: number | "complete" | null;
   isUpgradeMode?: boolean;
@@ -51,7 +53,7 @@ export function useInteractiveSearchState({
   mode = "search",
   libraryMediaId = null,
   defaultSearchQuery = null,
-  searchQueryOriginal = null,
+  titleOptions = [],
   episodeId = null,
   defaultSeason = null,
   isUpgradeMode = false,
@@ -66,11 +68,7 @@ export function useInteractiveSearchState({
   const canRenderBody = isSearchMode || (media != null && sourceId != null);
 
   const localizedQuery = defaultSearchQuery?.trim() ?? "";
-  const originalQuery = searchQueryOriginal?.trim() ?? "";
-  const canToggleSearchTitle =
-    isSearchMode &&
-    originalQuery.length >= 2 &&
-    originalQuery !== localizedQuery;
+  const canSelectTitle = isSearchMode && titleOptions.length > 1;
 
   const buildInitialFilters = (): FilterState => ({
     filterQuery: "",
@@ -146,14 +144,7 @@ export function useInteractiveSearchState({
     setFilters(buildInitialFilters());
     setPendingReleaseKey(null);
     // buildInitialFilters reads defaultSearchQuery, defaultSeason, libId from closure
-  }, [
-    isActive,
-    media?.id,
-    defaultSearchQuery,
-    searchQueryOriginal,
-    defaultSeason,
-    libId,
-  ]);
+  }, [isActive, media?.id, defaultSearchQuery, defaultSeason, libId]);
 
   useEffect(() => {
     if (!isActive) return;
@@ -161,19 +152,11 @@ export function useInteractiveSearchState({
       searchInputRef.current?.focus();
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [isActive, media?.id, defaultSearchQuery, searchQueryOriginal, libId]);
+  }, [isActive, media?.id, defaultSearchQuery, libId]);
 
-  const toggleSearchTitleVariant = () => {
-    if (!canToggleSearchTitle) return;
-    setFilters((prev) => ({
-      ...prev,
-      searchApiQuery:
-        prev.searchApiQuery === originalQuery ? localizedQuery : originalQuery,
-    }));
+  const selectSearchTitle = (query: string) => {
+    setFilters((prev) => ({ ...prev, searchApiQuery: query }));
   };
-
-  const isOriginalTitleQuery =
-    canToggleSearchTitle && searchApiQuery === originalQuery;
 
   const trackerOptions = useMemo<FilterOption[]>(() => {
     const options = new Map<string, string>();
@@ -385,8 +368,9 @@ export function useInteractiveSearchState({
     isShow,
     isSearchMode,
     canRenderBody,
-    canToggleSearchTitle,
-    isOriginalTitleQuery,
+    canSelectTitle,
+    titleOptions,
+    selectedTitleQuery: searchApiQuery,
     trackerOptions,
     languageOptions,
     releases,
@@ -405,7 +389,7 @@ export function useInteractiveSearchState({
     // query
     activeQuery,
     // handlers
-    toggleSearchTitleVariant,
+    selectSearchTitle,
     downloadRelease,
     resetView,
     handleIncludedTrackersChange,

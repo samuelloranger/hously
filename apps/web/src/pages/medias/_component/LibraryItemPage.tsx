@@ -233,6 +233,8 @@ export function LibraryItemPage() {
                 onClearEpisodeCtx={() => setEpisodeSearchCtx(null)}
                 onClearSeasonCtx={() => setSeasonSearchCtx(null)}
                 tmdbOriginalTitle={detailsData?.original_title ?? null}
+                tmdbOriginalLanguage={detailsData?.original_language ?? null}
+                tmdbTitleTranslations={detailsData?.title_translations ?? []}
                 isUpgradeMode={upgradeSearchMode}
                 onClearUpgradeMode={() => setUpgradeSearchMode(false)}
               />

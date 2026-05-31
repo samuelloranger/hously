@@ -11,6 +11,111 @@ export type InteractiveSortDir = "asc" | "desc";
 export const UNKNOWN_TRACKER_KEY = "__unknown_tracker__";
 export const UNKNOWN_LANGUAGE_KEY = "__unknown_language__";
 
+export interface TitleOption {
+  /** ISO 639-1 language code (e.g. "en", "fr", "ja") */
+  languageCode: string;
+  /** The full search query for this language (title + any season/episode suffix) */
+  query: string;
+  /** True when this language is the media's original language */
+  isOriginal: boolean;
+}
+
+/** A title option enriched with a display label, ready to render in the picker. */
+export interface LabeledTitleOption extends TitleOption {
+  label: string;
+}
+
+/**
+ * Languages shown in the search-title picker (beyond the platform language,
+ * English, French, and the original language) when TMDB has a title for them.
+ */
+export const COMMON_TITLE_LANGUAGES = [
+  "es",
+  "de",
+  "it",
+  "pt",
+  "ja",
+  "ko",
+  "zh",
+  "ru",
+] as const;
+
+/**
+ * Builds the ordered list of search-title options for the interactive-search
+ * language picker. Private trackers name releases with different localized
+ * titles, so the user can pick which language's title to search by.
+ *
+ * Order: the platform language first (the default query), then English and
+ * French pinned, then the original-language title, then the common allowlist —
+ * each included only when a non-empty title exists. Options are deduped by
+ * query (case-insensitive) so the same title never appears twice.
+ */
+export function buildTitleOptions(input: {
+  localized: string;
+  platformLanguage: string;
+  original?: string | null;
+  originalLanguage?: string | null;
+  translations?: { language_code: string; title: string }[];
+  suffix?: string;
+}): TitleOption[] {
+  const suffix = input.suffix ?? "";
+  const platform = (input.platformLanguage || "").toLowerCase();
+  const originalLanguage = (input.originalLanguage || "").toLowerCase();
+
+  const translationByLang = new Map<string, string>();
+  for (const entry of input.translations ?? []) {
+    const code = entry.language_code?.toLowerCase();
+    const title = entry.title?.trim();
+    if (code && title && !translationByLang.has(code)) {
+      translationByLang.set(code, title);
+    }
+  }
+
+  // The base title (no suffix) to use for a given language.
+  const baseTitleFor = (code: string): string | null => {
+    if (code === platform) {
+      return input.localized?.trim() || translationByLang.get(code) || null;
+    }
+    if (code === originalLanguage && input.original?.trim()) {
+      return input.original.trim();
+    }
+    return translationByLang.get(code) ?? null;
+  };
+
+  const orderedCodes: string[] = [];
+  const pushCode = (code: string) => {
+    const normalized = code.toLowerCase();
+    if (normalized && !orderedCodes.includes(normalized)) {
+      orderedCodes.push(normalized);
+    }
+  };
+  pushCode(platform);
+  pushCode("en");
+  pushCode("fr");
+  if (originalLanguage) pushCode(originalLanguage);
+  for (const code of COMMON_TITLE_LANGUAGES) pushCode(code);
+
+  const options: TitleOption[] = [];
+  const seenQueries = new Set<string>();
+  for (const code of orderedCodes) {
+    const base = baseTitleFor(code);
+    // The platform title is always kept; secondary titles need 2+ chars to
+    // avoid noisy single-letter indexer queries.
+    const minLength = code === platform ? 1 : 2;
+    if (!base || base.length < minLength) continue;
+    const query = `${base}${suffix}`;
+    const dedupeKey = query.toLocaleLowerCase();
+    if (seenQueries.has(dedupeKey)) continue;
+    seenQueries.add(dedupeKey);
+    options.push({
+      languageCode: code,
+      query,
+      isOriginal: code === originalLanguage,
+    });
+  }
+  return options;
+}
+
 export const normalizeFilterKey = (value: string): string =>
   value
     .normalize("NFD")

@@ -1699,10 +1699,9 @@
       "minQuery": "Tapez au moins 2 caractères pour interroger Prowlarr.",
       "resultsVisible": "{{visible}} sur {{total}} releases",
       "hiddenCount": "{{count}} masquées",
-      "useOriginalTitleHint": "Cliquer pour chercher avec le titre dans la langue d’origine",
-      "useLocalizedTitleHint": "Cliquer pour chercher avec le titre localisé (anglais ou français)",
-      "titleBadgeOriginal": "Original",
-      "titleBadgeLocalized": "Loc.",
+      "searchPrefix": "Recherche :",
+      "searchTitleLabel": "Langue du titre de recherche",
+      "originalTag": "original",
       "resetView": "Réinitialiser la vue",
       "sortLabel": "Trier par",
       "sortOptions": {

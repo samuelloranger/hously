@@ -10,6 +10,7 @@ import { InteractiveSearchStatusStrip } from "./InteractiveSearchStatusStrip";
 import { InteractiveSearchResultsList } from "./InteractiveSearchResultsList";
 import { InteractiveSearchMobileDrawer } from "./InteractiveSearchMobileDrawer";
 import type { MediaItem } from "@hously/shared/types";
+import type { LabeledTitleOption } from "@/lib/utils/interactive-search";
 
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
@@ -19,8 +20,8 @@ export interface InteractiveSearchPanelProps {
   libraryMediaId?: number | null;
   /** Prefill search query when opening (e.g. media title) — localized EN/FR (UI) title */
   defaultSearchQuery?: string | null;
-  /** Same query shape but using TMDB original-language title; enables title toggle */
-  searchQueryOriginal?: string | null;
+  /** Per-language title options for the search-title picker (labels included) */
+  titleOptions?: LabeledTitleOption[];
   /** Episode to link the grab to (shows only) */
   episodeId?: number | null;
   /** Pre-select a season (number) or complete series ("complete") when opening */
@@ -123,9 +124,10 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
         totalReleases={state.totalReleases}
         hiddenCount={state.hiddenCount}
         searchApiQuery={state.searchApiQuery}
-        canToggleSearchTitle={state.canToggleSearchTitle}
-        isOriginalTitleQuery={state.isOriginalTitleQuery}
-        onToggleSearchTitle={state.toggleSearchTitleVariant}
+        canSelectTitle={state.canSelectTitle}
+        titleOptions={state.titleOptions}
+        selectedTitleQuery={state.selectedTitleQuery}
+        onSelectTitle={state.selectSearchTitle}
         hideRejected={state.hideRejected}
         onHideRejectedChange={(v) =>
           state.setFilters((prev) => ({ ...prev, hideRejected: v }))
@@ -181,9 +183,10 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
           totalReleases={state.totalReleases}
           isSearchMode={state.isSearchMode}
           searchApiQuery={state.searchApiQuery}
-          canToggleSearchTitle={state.canToggleSearchTitle}
-          isOriginalTitleQuery={state.isOriginalTitleQuery}
-          onToggleSearchTitleVariant={state.toggleSearchTitleVariant}
+          canSelectTitle={state.canSelectTitle}
+          titleOptions={state.titleOptions}
+          selectedTitleQuery={state.selectedTitleQuery}
+          onSelectTitle={state.selectSearchTitle}
         />
 
         {!aiDismissed && aiEnabled && (
