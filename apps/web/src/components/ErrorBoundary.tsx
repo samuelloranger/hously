@@ -34,10 +34,10 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <div className="max-w-md w-full space-y-4 text-center">
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+            <h1 className="text-2xl font-bold text-neutral-100">
               {i18next.t("common.somethingWentWrong")}
             </h1>
-            <p className="text-neutral-600 dark:text-neutral-400">
+            <p className="text-neutral-400">
               {this.state.error?.message || i18next.t("common.unexpectedError")}
             </p>
             <button
@@ -76,8 +76,8 @@ export class CardErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="relative overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-700/60 bg-neutral-50 dark:bg-neutral-800/60 p-4 shadow-sm flex items-center justify-center min-h-[80px]">
-          <p className="text-xs text-neutral-400 dark:text-neutral-500">
+        <div className="relative overflow-hidden rounded-3xl border border-neutral-700/60 bg-neutral-800/60 p-4 shadow-sm flex items-center justify-center min-h-[80px]">
+          <p className="text-xs text-neutral-500">
             {i18next.t("common.failedToLoad")}
           </p>
         </div>

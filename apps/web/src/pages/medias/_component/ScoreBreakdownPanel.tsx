@@ -13,13 +13,13 @@ export function ScoreBreakdownPanel({ breakdown }: Props) {
   if (breakdown.rejected) return null;
 
   return (
-    <div className="mt-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2.5 dark:border-violet-700/40 dark:bg-violet-950/20">
+    <div className="mt-2 rounded-xl border px-3 py-2.5 border-violet-700/40 bg-violet-950/20">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-violet-400">
           {t("customFormats.scoreBreakdown")}
         </p>
         {breakdown.total != null && (
-          <span className="text-sm font-bold text-violet-700 dark:text-violet-300">
+          <span className="text-sm font-bold text-violet-300">
             {breakdown.total > 0 ? `+${breakdown.total}` : breakdown.total}
           </span>
         )}
@@ -32,14 +32,14 @@ export function ScoreBreakdownPanel({ breakdown }: Props) {
               key={i}
               className="flex items-center justify-between gap-2 text-xs"
             >
-              <span className="text-neutral-600 dark:text-neutral-400">
+              <span className="text-neutral-400">
                 {t(codeKey(COMPONENT_CODE_KEYS, c.code), c.params ?? {})}
               </span>
               <span
                 className={
                   c.value >= 0
-                    ? "font-medium text-emerald-600 dark:text-emerald-400"
-                    : "font-medium text-red-500 dark:text-red-400"
+                    ? "font-medium text-emerald-400"
+                    : "font-medium text-red-400"
                 }
               >
                 {c.value >= 0 ? `+${c.value}` : c.value}
@@ -54,7 +54,7 @@ export function ScoreBreakdownPanel({ breakdown }: Props) {
           {breakdown.matched_formats.map((fmt) => (
             <span
               key={fmt}
-              className="inline-flex items-center rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
+              className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium bg-violet-500/20 text-violet-300"
             >
               {fmt}
             </span>

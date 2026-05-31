@@ -184,7 +184,7 @@ export function ExploreCardDetailDialog({
               aria-busy="true"
               aria-label={t("common.loading")}
             >
-              <div className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-200 border-t-primary-600 dark:border-neutral-600 dark:border-t-primary-400" />
+              <div className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-600 border-t-primary-400" />
             </div>
           ) : (
             <div

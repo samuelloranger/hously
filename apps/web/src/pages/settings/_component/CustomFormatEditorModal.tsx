@@ -50,7 +50,7 @@ export function CustomFormatEditorModal({
       panelClassName="max-w-3xl"
     >
       <div className="flex min-h-0 flex-1 flex-col gap-4 pt-2 overflow-hidden">
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 shrink-0">
+        <p className="text-xs text-neutral-400 shrink-0">
           {t("customFormats.formDescription")}
         </p>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 -mr-1">

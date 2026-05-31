@@ -44,14 +44,14 @@ export function InteractiveSearchStatusStrip({
       {indexerWarnings.length > 0 && !dismissed && (
         <div
           role="alert"
-          className="mb-3 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-700/40 dark:bg-amber-950/20"
+          className="mb-3 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm border-amber-700/40 bg-amber-950/20"
         >
           <TriangleAlert
             size={15}
-            className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+            className="mt-0.5 shrink-0 text-amber-400"
           />
           <div className="min-w-0 flex-1">
-            <span className="font-medium text-amber-900 dark:text-amber-200">
+            <span className="font-medium text-amber-200">
               {indexerWarnings.length === 1
                 ? t("medias.interactive.indexerWarning.single", {
                     name: indexerWarnings[0].name,
@@ -61,14 +61,14 @@ export function InteractiveSearchStatusStrip({
                     names: indexerWarnings.map((w) => w.name).join(", "),
                   })}
             </span>
-            <span className="ml-1 text-amber-700 dark:text-amber-300">
+            <span className="ml-1 text-amber-300">
               {t("medias.interactive.indexerWarning.hint")}
             </span>
           </div>
           <button
             type="button"
             onClick={onDismiss}
-            className="shrink-0 text-amber-500 transition-colors hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-200"
+            className="shrink-0 transition-colors text-amber-400 hover:text-amber-200"
             aria-label={t("medias.interactive.indexerWarning.dismiss")}
           >
             <X size={14} />
@@ -79,14 +79,14 @@ export function InteractiveSearchStatusStrip({
       {/* Desktop results count + query pill — hidden on mobile (mobile uses drawer) */}
       {isSearchMode && searchApiQuery.length >= 2 && (
         <div className="mb-3 hidden flex-wrap items-center gap-x-2.5 gap-y-1 sm:flex">
-          <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+          <span className="text-xs font-semibold text-neutral-200">
             {t("medias.interactive.resultsVisible", {
               visible: visibleCount,
               total: totalReleases,
             })}
           </span>
           {hiddenCount > 0 && (
-            <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+            <span className="rounded-md px-2 py-0.5 text-[11px] bg-neutral-800 text-neutral-400">
               {t("medias.interactive.hiddenCount", {
                 count: hiddenCount,
               })}
@@ -96,7 +96,7 @@ export function InteractiveSearchStatusStrip({
             <button
               type="button"
               onClick={onResetView}
-              className="text-xs font-medium text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
+              className="text-xs font-medium transition-colors text-primary-400 hover:text-primary-200"
             >
               {t("medias.interactive.resetView")}
             </button>
@@ -114,7 +114,7 @@ export function InteractiveSearchStatusStrip({
               />
             ) : (
               <span
-                className="truncate rounded-md bg-neutral-100 px-2 py-0.5 font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                className="truncate rounded-md px-2 py-0.5 font-medium bg-neutral-800 text-neutral-200"
                 title={searchApiQuery}
               >
                 {searchApiQuery || "…"}

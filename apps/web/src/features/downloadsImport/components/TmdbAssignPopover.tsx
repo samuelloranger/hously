@@ -53,7 +53,7 @@ function TmdbSearchPanel({
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder={t("downloadsImport.search.placeholder")}
-        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-sm"
+        className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 text-sm"
       />
       <div className="max-h-64 overflow-y-auto space-y-1 pr-1">
         {enabled && q.isLoading && (
@@ -68,7 +68,7 @@ function TmdbSearchPanel({
               key={`${item.media_type}-${item.tmdb_id}`}
               type="button"
               onClick={() => onPick(item)}
-              className="flex w-full items-start gap-2 rounded-lg p-2 text-left hover:bg-neutral-50 dark:hover:bg-white/10"
+              className="flex w-full items-start gap-2 rounded-lg p-2 text-left hover:bg-white/10"
             >
               {item.poster_url ? (
                 <img
@@ -77,14 +77,14 @@ function TmdbSearchPanel({
                   className="mt-0.5 h-12 w-8 shrink-0 rounded object-cover"
                 />
               ) : (
-                <div className="mt-0.5 flex h-12 w-8 shrink-0 items-center justify-center rounded bg-neutral-200 text-[10px] text-neutral-500 dark:bg-white/10">
+                <div className="mt-0.5 flex h-12 w-8 shrink-0 items-center justify-center rounded text-[10px] text-neutral-500 bg-white/10">
                   —
                 </div>
               )}
               <span className="min-w-0">
-                <span className="block text-sm font-medium text-neutral-900 dark:text-neutral-50">
+                <span className="block text-sm font-medium text-neutral-50">
                   {item.title}{" "}
-                  <span className="font-normal text-neutral-500 dark:text-neutral-400">
+                  <span className="font-normal text-neutral-400">
                     {item.release_year ? `(${item.release_year})` : ""} ·{" "}
                     <span className="uppercase text-[11px]">
                       {item.media_type}
@@ -92,7 +92,7 @@ function TmdbSearchPanel({
                   </span>
                 </span>
                 {item.overview ? (
-                  <span className="mt-1 line-clamp-2 block text-[12px] text-neutral-500 dark:text-neutral-400">
+                  <span className="mt-1 line-clamp-2 block text-[12px] text-neutral-400">
                     {item.overview}
                   </span>
                 ) : null}
@@ -134,7 +134,7 @@ export function TmdbAssignPopover({
           aria-label={t("downloadsImport.search.trigger")}
           disabled={row.is_imported}
           className={cn(
-            "rounded-lg p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10",
+            "rounded-lg p-1.5 hover:bg-white/10",
             row.is_imported &&
               "pointer-events-none cursor-not-allowed opacity-35",
           )}

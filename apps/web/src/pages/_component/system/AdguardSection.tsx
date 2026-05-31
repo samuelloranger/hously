@@ -22,7 +22,7 @@ export function AdguardSection() {
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
           <Shield
-            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            className="w-4 h-4 shrink-0 text-neutral-400"
             strokeWidth={2}
           />
           <SectionTitle>{t("dashboard.home.adguardHeading")}</SectionTitle>
@@ -34,8 +34,8 @@ export function AdguardSection() {
             disabled={setProtection.isPending}
             className={`text-xs font-semibold rounded-full px-3 py-1 transition-colors border ${
               protOn
-                ? "border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
-                : "border-rose-200 dark:border-rose-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30"
+                ? "border-emerald-700 text-emerald-300 hover:bg-emerald-900/30"
+                : "border-rose-700 text-rose-400 hover:bg-rose-900/30"
             } disabled:opacity-50`}
           >
             {setProtection.isPending

@@ -57,7 +57,7 @@ function tvLabel(item: LibraryAttentionItem): string | null {
 
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">
+    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
       {children}
     </span>
   );
@@ -65,12 +65,12 @@ function Kicker({ children }: { children: React.ReactNode }) {
 
 function SkeletonRow() {
   return (
-    <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+    <div className="px-4 py-3 border-b border-neutral-800 last:border-0">
       <div className="flex items-start gap-2.5">
-        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-200 dark:bg-zinc-700" />
+        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-700" />
         <div className="flex-1 space-y-2">
-          <div className="h-3 w-24 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-          <div className="h-4 w-3/5 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+          <div className="h-3 w-24 rounded bg-neutral-800 animate-pulse" />
+          <div className="h-4 w-3/5 rounded bg-neutral-800 animate-pulse" />
         </div>
       </div>
     </div>
@@ -145,7 +145,7 @@ function AttentionRow({
         : null;
 
   return (
-    <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+    <div className="px-4 py-3 border-b border-neutral-800 last:border-0">
       <div className="flex items-start gap-2.5">
         <span
           className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${SEVERITY_DOT[severity]}`}
@@ -155,7 +155,7 @@ function AttentionRow({
           <div className="flex items-center gap-2">
             <Kicker>{t(KIND_LABEL_KEY[item.kind])}</Kicker>
             {tv ? (
-              <span className="text-[10px] font-semibold tracking-wide text-zinc-400 dark:text-zinc-500">
+              <span className="text-[10px] font-semibold tracking-wide text-neutral-500">
                 {tv}
               </span>
             ) : null}
@@ -164,16 +164,16 @@ function AttentionRow({
             to="/library/$libraryId"
             params={{ libraryId: String(item.media_id) }}
             search={{ tab: linkTab }}
-            className="block mt-0.5 text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+            className="block mt-0.5 text-sm font-medium text-neutral-100 truncate hover:text-neutral-300 transition-colors"
           >
             {item.media_title}
           </Link>
           {item.detail ? (
-            <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 break-words">
+            <p className="mt-1 text-[11px] text-neutral-400 line-clamp-2 break-words">
               {item.detail}
             </p>
           ) : item.search_attempts != null && item.search_attempts > 0 ? (
-            <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-[11px] text-neutral-400">
               {t("dashboard.libraryAttention.autoAttempts", {
                 count: item.search_attempts,
               })}
@@ -186,7 +186,7 @@ function AttentionRow({
               type="button"
               disabled={primary.busy}
               onClick={primary.onClick}
-              className="inline-flex items-center gap-1 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-[11px] font-medium text-neutral-200 hover:bg-neutral-800 disabled:opacity-50"
             >
               {primary.busy ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -199,7 +199,7 @@ function AttentionRow({
             disabled={dismissLoadingId === item.id}
             onClick={() => onDismiss(item.id)}
             aria-label={t("dashboard.libraryAttention.dismiss")}
-            className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 disabled:opacity-50"
+            className="p-1 rounded-md text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 disabled:opacity-50"
           >
             {dismissLoadingId === item.id ? (
               <Loader2 size={14} className="animate-spin" />
@@ -238,8 +238,8 @@ export function LibraryAttentionPanel() {
     : null;
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
         <div className="flex items-center gap-2">
           <AlertTriangle
             size={14}
@@ -248,7 +248,7 @@ export function LibraryAttentionPanel() {
           />
           <Kicker>{t("dashboard.libraryAttention.title")}</Kicker>
           {!isLoading && items.length > 0 ? (
-            <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 tabular-nums">
+            <span className="text-[10px] font-semibold text-neutral-400 tabular-nums">
               {items.length}
             </span>
           ) : null}
@@ -257,7 +257,7 @@ export function LibraryAttentionPanel() {
           type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+          className="p-1.5 rounded-md text-neutral-500 hover:bg-neutral-800 disabled:opacity-50"
           aria-label={t("dashboard.libraryAttention.refresh")}
         >
           <RefreshCw size={14} className={isFetching ? "animate-spin" : ""} />
@@ -265,7 +265,7 @@ export function LibraryAttentionPanel() {
       </div>
 
       {isError ? (
-        <div className="px-4 py-3 flex items-center gap-2 text-xs text-rose-700 dark:text-rose-300">
+        <div className="px-4 py-3 flex items-center gap-2 text-xs text-rose-300">
           <AlertTriangle size={14} className="shrink-0" />
           {t("dashboard.libraryAttention.loadError")}
           <button
@@ -283,7 +283,7 @@ export function LibraryAttentionPanel() {
           <SkeletonRow />
         </div>
       ) : items.length === 0 ? (
-        <div className="px-4 py-5 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className="px-4 py-5 flex items-center gap-2 text-xs text-neutral-400">
           <CheckCircle2 size={14} className="shrink-0 text-emerald-500" />
           {t("dashboard.libraryAttention.emptyState")}
         </div>

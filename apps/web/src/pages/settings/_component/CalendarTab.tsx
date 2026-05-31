@@ -70,16 +70,16 @@ export function CalendarTab() {
       />
 
       {/* iCal Subscription Section */}
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+      <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         <div className="flex items-center gap-3 mb-1.5">
-          <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center">
-            <Link className="w-4.5 h-4.5 text-primary-600 dark:text-primary-400" />
+          <div className="w-9 h-9 rounded-xl bg-primary-500/10 flex items-center justify-center">
+            <Link className="w-4.5 h-4.5 text-primary-400" />
           </div>
-          <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+          <h2 className="text-base font-semibold text-neutral-100">
             {t("settings.calendar.subscription.title")}
           </h2>
         </div>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-5">
+        <p className="text-sm text-neutral-400 mb-5">
           {t("settings.calendar.subscription.description")}
         </p>
 
@@ -91,17 +91,17 @@ export function CalendarTab() {
           <div className="space-y-4">
             {/* URL Display */}
             <div>
-              <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">
+              <label className="block text-xs font-medium text-neutral-400 mb-1.5">
                 {t("settings.calendar.subscription.urlLabel")}
               </label>
               <div className="flex items-center gap-2">
-                <div className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-neutral-50 dark:bg-neutral-700/50 border border-neutral-200 dark:border-neutral-600 text-sm text-neutral-700 dark:text-neutral-300 font-mono truncate">
+                <div className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-neutral-700/50 border border-neutral-600 text-sm text-neutral-300 font-mono truncate">
                   {tokenData.url}
                 </div>
                 <Button
                   type="button"
                   onClick={handleCopy}
-                  className="gap-1.5 shrink-0 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-500/20"
+                  className="gap-1.5 shrink-0 bg-primary-500/10 text-primary-400 hover:bg-primary-500/20"
                 >
                   {copied ? (
                     <>
@@ -118,7 +118,7 @@ export function CalendarTab() {
               </div>
             </div>
 
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs text-neutral-400">
               {t("settings.calendar.subscription.instructions")}
             </p>
 
@@ -136,14 +136,14 @@ export function CalendarTab() {
 
               {confirmRegenerate ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-amber-600 dark:text-amber-400">
+                  <span className="text-xs text-amber-400">
                     {t("settings.calendar.subscription.regenerateConfirm")}
                   </span>
                   <Button
                     type="button"
                     onClick={handleGenerate}
                     disabled={generateToken.isPending}
-                    className="bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-500/20"
+                    className="bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
                   >
                     {t("settings.calendar.subscription.regenerate")}
                   </Button>
@@ -170,7 +170,7 @@ export function CalendarTab() {
 
               {confirmRevoke ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-red-600 dark:text-red-400">
+                  <span className="text-xs text-red-400">
                     {t("settings.calendar.subscription.revokeConfirm")}
                   </span>
                   <Button
@@ -205,10 +205,10 @@ export function CalendarTab() {
           </div>
         ) : (
           <div className="flex flex-col items-center py-6 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center mb-3">
-              <Calendar className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            <div className="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center mb-3">
+              <Calendar className="w-6 h-6 text-primary-400" />
             </div>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mb-4">
+            <p className="text-sm text-neutral-400 max-w-sm mb-4">
               {t("settings.calendar.subscription.description")}
             </p>
             <Button
@@ -225,19 +225,19 @@ export function CalendarTab() {
       </div>
 
       {/* Coming Soon Section */}
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+      <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         <div className="flex flex-col items-center py-4 text-center">
-          <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+          <h3 className="text-base font-semibold text-neutral-100 mb-2">
             {t("settings.calendar.comingSoon")}
           </h3>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mb-4">
+          <p className="text-sm text-neutral-400 max-w-sm mb-4">
             {t("settings.calendar.comingSoonDescription")}
           </p>
           <div className="flex flex-col gap-2 w-full max-w-xs">
             {upcomingFeatures.map(({ icon: Icon, label }) => (
               <div
                 key={label}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-neutral-50 dark:bg-neutral-700/50 text-sm text-neutral-600 dark:text-neutral-400"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-neutral-700/50 text-sm text-neutral-400"
               >
                 <Icon className="w-4 h-4 text-primary-500 flex-shrink-0" />
                 {label}

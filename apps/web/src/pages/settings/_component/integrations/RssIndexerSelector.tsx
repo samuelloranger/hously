@@ -26,10 +26,10 @@ export function RssIndexerSelector({
 
   return (
     <div>
-      <p className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+      <p className="mb-2 block text-sm font-medium text-neutral-300">
         {t("settings.integrations.rssPolling.label")}
       </p>
-      <p className="mb-3 text-xs text-neutral-500 dark:text-neutral-400">
+      <p className="mb-3 text-xs text-neutral-400">
         {t("settings.integrations.rssPolling.help")}
       </p>
 
@@ -38,12 +38,12 @@ export function RssIndexerSelector({
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-9 rounded-lg bg-neutral-100 dark:bg-neutral-700 animate-pulse"
+              className="h-9 rounded-lg bg-neutral-700 animate-pulse"
             />
           ))}
         </div>
       ) : !indexers?.length ? (
-        <p className="text-sm text-neutral-400 dark:text-neutral-500 italic">
+        <p className="text-sm text-neutral-500 italic">
           {t("settings.integrations.rssPolling.noIndexers")}
         </p>
       ) : (
@@ -53,7 +53,7 @@ export function RssIndexerSelector({
             return (
               <label
                 key={indexer.slug}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-750 cursor-pointer transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg border border-neutral-700 hover:bg-neutral-750 cursor-pointer transition-colors"
               >
                 <input
                   type="checkbox"
@@ -61,11 +61,11 @@ export function RssIndexerSelector({
                   onChange={() => toggle(indexer.slug)}
                   className="w-4 h-4 rounded accent-primary-600"
                 />
-                <span className="text-sm text-neutral-800 dark:text-neutral-200 flex-1">
+                <span className="text-sm text-neutral-200 flex-1">
                   {indexer.name}
                 </span>
                 {!indexer.enabled && (
-                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <span className="text-xs text-neutral-500">
                     {t("settings.integrations.rssPolling.offline")}
                   </span>
                 )}

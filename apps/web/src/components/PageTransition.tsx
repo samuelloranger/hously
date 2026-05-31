@@ -11,7 +11,7 @@ export function PageTransition() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-neutral-900">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-neutral-900">
           <HouseLoader size="lg" />
         </div>
       }

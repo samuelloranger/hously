@@ -57,10 +57,10 @@ function SummaryPill({
   const { t } = useTranslation("common");
   const classes =
     status === "degraded"
-      ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
+      ? "bg-rose-950/40 text-rose-300"
       : status === "pending"
-        ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
-        : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300";
+        ? "bg-amber-950/40 text-amber-300"
+        : "bg-emerald-950/40 text-emerald-300";
   return (
     <span
       className={`shrink-0 px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums ${classes}`}
@@ -80,11 +80,11 @@ function MonitorRow({ monitor }: { monitor: UptimekumaMonitor }) {
         status={monitor.status}
         pulse={monitor.status === "down"}
       />
-      <span className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-800 dark:text-zinc-100">
+      <span className="min-w-0 flex-1 truncate text-xs font-medium text-neutral-100">
         {monitor.name}
       </span>
       {monitor.type && (
-        <span className="shrink-0 text-[10px] font-mono uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+        <span className="shrink-0 text-[10px] font-mono uppercase tracking-wide text-neutral-500">
           {monitor.type}
         </span>
       )}
@@ -129,7 +129,7 @@ export function UptimekumaSection() {
           <div className="flex items-center gap-2.5">
             <span className={`w-1 h-4 rounded-full shrink-0 ${accentColor}`} />
             <Activity
-              className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+              className="w-4 h-4 shrink-0 text-neutral-400"
               strokeWidth={2}
             />
             <SectionTitle>{t("dashboard.uptimekuma.title")}</SectionTitle>
@@ -138,7 +138,7 @@ export function UptimekumaSection() {
         </div>
 
         {unhealthy.length > 0 ? (
-          <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+          <div className="divide-y divide-neutral-800/60">
             {visible.map((m) => (
               <MonitorRow key={m.id} monitor={m} />
             ))}
@@ -146,9 +146,9 @@ export function UptimekumaSection() {
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                className="w-full flex items-center gap-2.5 py-1.5 text-left text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+                className="w-full flex items-center gap-2.5 py-1.5 text-left text-xs font-medium text-neutral-400 hover:text-neutral-100 transition-colors"
               >
-                <span className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-600 shrink-0" />
+                <span className="w-2 h-2 rounded-full bg-neutral-600 shrink-0" />
                 {t("dashboard.uptimekuma.plusMore", { count: overflow })}
               </button>
             )}
@@ -156,7 +156,7 @@ export function UptimekumaSection() {
         ) : (
           <div className="flex items-center gap-2">
             <MonitorStatusDot status="up" />
-            <span className="text-xs text-zinc-600 dark:text-zinc-300">
+            <span className="text-xs text-neutral-300">
               {t("dashboard.uptimekuma.allHealthy")}
             </span>
           </div>
@@ -165,7 +165,7 @@ export function UptimekumaSection() {
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="mt-2 flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 transition-colors font-medium"
+          className="mt-2 flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-100 transition-colors font-medium"
         >
           <ChevronRight size={12} />
           {t("dashboard.uptimekuma.viewAll")}

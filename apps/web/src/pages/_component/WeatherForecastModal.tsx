@@ -83,8 +83,8 @@ function DayWeatherIcon({
       className={cn(
         "size-7 shrink-0",
         isToday
-          ? "text-sky-500 dark:text-sky-400"
-          : "text-neutral-400 dark:text-neutral-500",
+          ? "text-sky-400"
+          : "text-neutral-500",
       )}
       strokeWidth={1.5}
       aria-hidden
@@ -123,14 +123,14 @@ function DayColumn({
       className={cn(
         "flex flex-col items-center gap-2 px-2 py-3 rounded-xl transition-colors flex-1 min-w-0",
         isToday
-          ? "bg-sky-50 dark:bg-sky-950/40 ring-1 ring-sky-200 dark:ring-sky-800"
-          : "hover:bg-neutral-50 dark:hover:bg-neutral-800/60",
+          ? "bg-sky-950/40 ring-1 ring-sky-800"
+          : "hover:bg-neutral-800/60",
       )}
       style={{ animationDelay: `${index * 40}ms` }}
     >
       <DayWeatherIcon icon={icon} isToday={isToday} />
 
-      <div className="relative h-16 w-1.5 rounded-full bg-neutral-100 dark:bg-neutral-700/60 overflow-hidden flex-shrink-0">
+      <div className="relative h-16 w-1.5 rounded-full bg-neutral-700/60 overflow-hidden flex-shrink-0">
         <div
           className={cn(
             "absolute w-full rounded-full bg-gradient-to-t",
@@ -147,21 +147,21 @@ function DayColumn({
         className={cn(
           "text-sm font-semibold tabular-nums leading-none",
           isToday
-            ? "text-neutral-900 dark:text-neutral-50"
-            : "text-neutral-700 dark:text-neutral-300",
+            ? "text-neutral-50"
+            : "text-neutral-300",
         )}
       >
         {maxDisplay}°
       </span>
 
-      <span className="text-xs tabular-nums leading-none text-neutral-400 dark:text-neutral-500">
+      <span className="text-xs tabular-nums leading-none text-neutral-500">
         {minDisplay}°
       </span>
 
       {day.precipitation_probability_max >= 20 ? (
         <div className="flex items-center gap-0.5 mt-0.5">
           <Droplets className="size-2.5 text-sky-400" strokeWidth={2} />
-          <span className="text-[10px] font-medium tabular-nums text-sky-500 dark:text-sky-400">
+          <span className="text-[10px] font-medium tabular-nums text-sky-400">
             {day.precipitation_probability_max}%
           </span>
         </div>
@@ -207,11 +207,11 @@ export function WeatherForecastModal({
           condKey === "freezingRain"
         ? "from-slate-500 via-slate-600 to-slate-800"
         : condKey === "thunderstorm"
-          ? "from-zinc-700 via-slate-800 to-zinc-900"
+          ? "from-neutral-700 via-slate-800 to-neutral-900"
           : condKey === "snow"
             ? "from-sky-200 via-blue-300 to-slate-400"
             : condKey === "foggy"
-              ? "from-zinc-400 via-zinc-500 to-zinc-600"
+              ? "from-neutral-400 via-neutral-500 to-neutral-600"
               : "from-sky-500 via-blue-600 to-primary-700";
 
   return (
@@ -258,16 +258,16 @@ export function WeatherForecastModal({
         </p>
       </div>
 
-      <div className="bg-white dark:bg-neutral-900 px-4 pt-4 pb-5">
+      <div className="bg-neutral-900 px-4 pt-4 pb-5">
         {forecastQuery.isLoading ? (
           <div className="flex items-center justify-center h-32">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">
+            <span className="text-xs text-neutral-500 animate-pulse">
               {t("common.loading")}
             </span>
           </div>
         ) : forecastQuery.isError || days.length === 0 ? (
           <div className="flex items-center justify-center h-32">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">
+            <span className="text-xs text-neutral-500">
               {t("dashboard.weather.forecast.unavailable")}
             </span>
           </div>
@@ -284,8 +284,8 @@ export function WeatherForecastModal({
                     className={cn(
                       "text-[10px] font-bold uppercase tracking-widest mb-1",
                       isToday
-                        ? "text-sky-500 dark:text-sky-400"
-                        : "text-neutral-400 dark:text-neutral-500",
+                        ? "text-sky-400"
+                        : "text-neutral-500",
                     )}
                   >
                     {isToday ? t("dashboard.weather.forecast.today") : short}
@@ -306,17 +306,17 @@ export function WeatherForecastModal({
         )}
 
         {days.length > 0 && !forecastQuery.isLoading && (
-          <div className="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex gap-1">
+          <div className="mt-3 pt-3 border-t border-neutral-800 flex gap-1">
             {days.map((day) => (
               <div
                 key={day.date}
                 className="flex-1 flex flex-col items-center gap-0.5"
               >
                 <Wind
-                  className="size-2.5 text-neutral-300 dark:text-neutral-600"
+                  className="size-2.5 text-neutral-600"
                   strokeWidth={2}
                 />
-                <span className="text-[9px] tabular-nums text-neutral-400 dark:text-neutral-500">
+                <span className="text-[9px] tabular-nums text-neutral-500">
                   {Math.round(day.wind_speed_max_kmh)}
                 </span>
               </div>
@@ -325,7 +325,7 @@ export function WeatherForecastModal({
         )}
 
         {days.length > 0 && !forecastQuery.isLoading && (
-          <p className="mt-2 text-center text-[9px] text-neutral-300 dark:text-neutral-600">
+          <p className="mt-2 text-center text-[9px] text-neutral-600">
             {t("dashboard.weather.forecast.windKmh")}
           </p>
         )}

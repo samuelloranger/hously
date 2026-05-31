@@ -71,11 +71,11 @@ export function JobsTab() {
         title={t("settings.jobs.title")}
         description={t("settings.jobs.description")}
       />
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+      <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         {isLoading ? (
           <LoadingState />
         ) : error ? (
-          <div className="text-red-600 dark:text-red-400">
+          <div className="text-red-400">
             {t("settings.jobs.loadError")}
           </div>
         ) : (
@@ -88,7 +88,7 @@ export function JobsTab() {
             {/* Queue Overview */}
             {scheduledJobsData?.queues && (
               <section>
-                <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+                <h3 className="text-sm font-semibold text-neutral-100 mb-3">
                   {t("settings.jobs.queues.title")}
                 </h3>
                 <div className="space-y-2">
@@ -102,7 +102,7 @@ export function JobsTab() {
             {/* Scheduled Jobs */}
             {scheduledJobsData?.jobs?.length ? (
               <section>
-                <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+                <h3 className="text-sm font-semibold text-neutral-100 mb-3">
                   Scheduled Jobs
                 </h3>
                 <div className="space-y-3">
@@ -122,13 +122,13 @@ export function JobsTab() {
                     return (
                       <div
                         key={job.id}
-                        className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-neutral-50 dark:bg-neutral-900/50"
+                        className="border border-neutral-700 rounded-lg p-4 bg-neutral-900/50"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1.5">
-                              <JobIcon className="w-5 h-5 text-neutral-600 dark:text-neutral-400 shrink-0" />
-                              <h4 className="font-medium text-neutral-900 dark:text-neutral-100">
+                              <JobIcon className="w-5 h-5 text-neutral-400 shrink-0" />
+                              <h4 className="font-medium text-neutral-100">
                                 {title}
                               </h4>
                               {job.status && (
@@ -139,19 +139,19 @@ export function JobsTab() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1.5">
+                            <p className="text-sm text-neutral-400 mb-1.5">
                               {description}
                             </p>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500 dark:text-neutral-400">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-400">
                               <span className="flex items-center gap-1.5">
-                                <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+                                <span className="font-semibold text-neutral-300">
                                   {t("settings.jobs.schedule")}
                                 </span>
                                 {formatCronTrigger(job.trigger, i18n.language)}
                               </span>
                               {job.next_run_time && (
                                 <span className="flex items-center gap-1.5">
-                                  <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+                                  <span className="font-semibold text-neutral-300">
                                     {t("settings.jobs.next")}
                                   </span>
                                   {new Date(job.next_run_time).toLocaleString()}
@@ -185,7 +185,7 @@ export function JobsTab() {
                 </div>
               </section>
             ) : (
-              <div className="text-neutral-600 dark:text-neutral-400">
+              <div className="text-neutral-400">
                 {t("settings.jobs.noJobs")}
               </div>
             )}
@@ -195,25 +195,25 @@ export function JobsTab() {
 
       {/* Job History */}
       {historyData?.jobs && historyData.jobs.length > 0 && (
-        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
+          <h3 className="text-sm font-semibold text-neutral-100 mb-1">
             {t("settings.jobs.history.title")}
           </h3>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+          <p className="text-xs text-neutral-400 mb-4">
             {t("settings.jobs.history.description")}
           </p>
           <div className="space-y-1.5 max-h-96 overflow-y-auto">
             {historyData.jobs.map((entry) => (
               <div
                 key={`${entry.queue}-${entry.id}`}
-                className="flex items-center gap-3 px-3 py-2 rounded-md bg-neutral-50 dark:bg-neutral-900/50 text-xs"
+                className="flex items-center gap-3 px-3 py-2 rounded-md bg-neutral-900/50 text-xs"
               >
                 {entry.status === "completed" ? (
                   <CheckCircle2 className="size-3.5 text-green-500 shrink-0" />
                 ) : (
                   <AlertCircle className="size-3.5 text-red-500 shrink-0" />
                 )}
-                <span className="font-medium text-neutral-900 dark:text-neutral-100 truncate min-w-0 flex-1">
+                <span className="font-medium text-neutral-100 truncate min-w-0 flex-1">
                   {entry.name}
                 </span>
                 <span className="text-neutral-400 shrink-0">{entry.queue}</span>
@@ -221,7 +221,7 @@ export function JobsTab() {
                   <span
                     className={`shrink-0 font-mono ${
                       entry.duration > 5000
-                        ? "text-amber-600 dark:text-amber-400"
+                        ? "text-amber-400"
                         : "text-neutral-500"
                     }`}
                   >

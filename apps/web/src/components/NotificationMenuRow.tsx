@@ -16,35 +16,35 @@ import type { NotificationType } from "@hously/shared/types";
 const typeConfig: Record<NotificationType, { icon: ReactNode; bg: string }> = {
   reminder: {
     icon: <Clock size={16} />,
-    bg: "bg-amber-100 dark:bg-amber-900/30",
+    bg: "bg-amber-900/30",
   },
   external: {
     icon: <Radio size={16} />,
-    bg: "bg-blue-100 dark:bg-blue-900/30",
+    bg: "bg-blue-900/30",
   },
   "app-update": {
     icon: <Sparkles size={16} />,
-    bg: "bg-violet-100 dark:bg-violet-900/30",
+    bg: "bg-violet-900/30",
   },
   service_monitor: {
     icon: <Monitor size={16} />,
-    bg: "bg-primary-100 dark:bg-primary-900/30",
+    bg: "bg-primary-900/30",
   },
   chore: {
     icon: <CheckCircle size={16} />,
-    bg: "bg-emerald-100 dark:bg-emerald-900/30",
+    bg: "bg-emerald-900/30",
   },
   event: {
     icon: <Calendar size={16} />,
-    bg: "bg-rose-100 dark:bg-rose-900/30",
+    bg: "bg-rose-900/30",
   },
   system: {
     icon: <Settings size={16} />,
-    bg: "bg-neutral-100 dark:bg-neutral-700/60",
+    bg: "bg-neutral-700/60",
   },
   habit: {
     icon: <Target size={16} />,
-    bg: "bg-orange-100 dark:bg-orange-900/30",
+    bg: "bg-orange-900/30",
   },
 };
 
@@ -57,7 +57,7 @@ export function getTypeStyle(notification: {
     if (serviceName === "cross-seed") {
       return {
         icon: <Leaf size={16} />,
-        bg: "bg-emerald-100 dark:bg-emerald-900/30",
+        bg: "bg-emerald-900/30",
       };
     }
     if (serviceName === "jellyfin") {
@@ -69,7 +69,7 @@ export function getTypeStyle(notification: {
             alt="Jellyfin"
           />
         ),
-        bg: "bg-violet-100 dark:bg-violet-900/30",
+        bg: "bg-violet-900/30",
       };
     }
     if (serviceName === "kopia") {
@@ -81,7 +81,7 @@ export function getTypeStyle(notification: {
             alt="Kopia"
           />
         ),
-        bg: "bg-green-100 dark:bg-green-900/30",
+        bg: "bg-green-900/30",
       };
     }
   }
@@ -115,8 +115,8 @@ export function NotificationMenuRow({
       className={cn(
         "relative flex items-start gap-3 w-full text-left px-4 py-3 transition-colors",
         isUnread
-          ? "bg-primary-50/50 dark:bg-primary-500/10 hover:bg-primary-100/50 dark:hover:bg-primary-500/20"
-          : "hover:bg-neutral-50 dark:hover:bg-white/[0.05]",
+          ? "bg-primary-500/10 hover:bg-primary-500/20"
+          : "hover:bg-white/[0.05]",
       )}
     >
       {isUnread && (
@@ -137,8 +137,8 @@ export function NotificationMenuRow({
           className={cn(
             "text-[13px] leading-snug",
             isUnread
-              ? "font-semibold text-neutral-900 dark:text-white"
-              : "font-medium text-neutral-700 dark:text-neutral-300",
+              ? "font-semibold text-white"
+              : "font-medium text-neutral-300",
           )}
         >
           {title}
@@ -148,8 +148,8 @@ export function NotificationMenuRow({
             className={cn(
               "text-xs mt-0.5 line-clamp-2 leading-relaxed",
               isUnread
-                ? "text-neutral-600 dark:text-neutral-300"
-                : "text-neutral-500 dark:text-neutral-400",
+                ? "text-neutral-300"
+                : "text-neutral-400",
             )}
           >
             {body}
@@ -160,8 +160,8 @@ export function NotificationMenuRow({
             className={cn(
               "text-[11px] mt-1",
               isUnread
-                ? "text-neutral-500 dark:text-neutral-400"
-                : "text-neutral-400 dark:text-neutral-500",
+                ? "text-neutral-400"
+                : "text-neutral-500",
             )}
           >
             {relativeTime}

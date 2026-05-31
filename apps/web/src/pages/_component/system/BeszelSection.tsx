@@ -23,7 +23,7 @@ function SysTooltip({
 >) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">
+    <div className="rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">
       {payload.map((p, i) => (
         <p
           key={i}
@@ -118,7 +118,7 @@ export function BeszelSection() {
       <div className="flex items-center gap-2.5 mb-3">
         <span className="w-1 h-4 rounded-full bg-violet-500 shrink-0" />
         <Server
-          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          className="w-4 h-4 shrink-0 text-neutral-400"
           strokeWidth={2}
         />
         <SectionTitle>{t("dashboard.home.systemHeading")}</SectionTitle>
@@ -144,7 +144,7 @@ export function BeszelSection() {
             gradientId="cpuGradient"
           />
           {s.cpu_name && (
-            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate -mt-0.5 mb-1">
+            <p className="text-[11px] text-neutral-500 truncate -mt-0.5 mb-1">
               {s.cpu_name}
             </p>
           )}
@@ -186,7 +186,7 @@ export function BeszelSection() {
           <button
             type="button"
             onClick={() => setShowDisks((v) => !v)}
-            className="mt-2 flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors font-medium"
+            className="mt-2 flex items-center gap-1 text-xs text-neutral-400 hover:text-violet-400 transition-colors font-medium"
           >
             {showDisks ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             {showDisks
@@ -203,16 +203,16 @@ export function BeszelSection() {
                   <div key={disk.mount_point}>
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[160px]">
+                        <span className="text-xs font-medium text-neutral-300 truncate max-w-[160px]">
                           {disk.mount_point}
                         </span>
                         {disk.model && (
-                          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate max-w-[160px]">
+                          <span className="text-[10px] text-neutral-500 truncate max-w-[160px]">
                             {disk.model}
                           </span>
                         )}
                       </div>
-                      <span className="font-mono text-xs text-zinc-600 dark:text-zinc-300 tabular-nums shrink-0 ml-2">
+                      <span className="font-mono text-xs text-neutral-300 tabular-nums shrink-0 ml-2">
                         {pctFmt(safe)} · {disk.used_gib.toFixed(0)}/
                         {total.toFixed(0)} GiB
                       </span>

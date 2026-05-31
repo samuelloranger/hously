@@ -113,7 +113,7 @@ function QbittorrentIntegrationSectionImpl({
       />
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {t("settings.integrations.qbittorrent.username")}
         </label>
         <input
@@ -121,12 +121,12 @@ function QbittorrentIntegrationSectionImpl({
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           placeholder="admin"
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {t("settings.integrations.qbittorrent.password")}
         </label>
         <input
@@ -136,18 +136,18 @@ function QbittorrentIntegrationSectionImpl({
           placeholder={t(
             "settings.integrations.qbittorrent.passwordPlaceholder",
           )}
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
+          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono"
         />
       </div>
 
-      <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400 space-y-3">
+      <div className="rounded-lg bg-neutral-900 border border-neutral-700 px-4 py-3 text-sm text-neutral-400 space-y-3">
         <p>{t("settings.integrations.qbittorrent.setupNote")}</p>
         {canConfigureWebhooks && (
           <button
             type="button"
             onClick={handleConfigureWebhooks}
             disabled={autorunMutation.isPending}
-            className="inline-flex items-center rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50"
+            className="inline-flex items-center rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-100 hover:bg-neutral-800 disabled:opacity-50"
           >
             {autorunMutation.isPending
               ? t("settings.integrations.qbittorrent.configureWebhooksPending")

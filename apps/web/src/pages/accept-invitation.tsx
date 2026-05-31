@@ -93,10 +93,10 @@ function AcceptInvitationPage() {
     return (
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
-          <h2 className="text-3xl font-extrabold text-neutral-900 dark:text-white">
+          <h2 className="text-3xl font-extrabold text-white">
             {t("acceptInvitation.invalidTokenTitle")}
           </h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-sm text-neutral-400">
             {t("acceptInvitation.invalidTokenMessage")}
           </p>
         </div>
@@ -109,7 +109,7 @@ function AcceptInvitationPage() {
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full mx-auto" />
-          <p className="text-neutral-600 dark:text-neutral-400">
+          <p className="text-neutral-400">
             {t("common.loading")}
           </p>
         </div>
@@ -121,10 +121,10 @@ function AcceptInvitationPage() {
     return (
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
-          <h2 className="text-3xl font-extrabold text-neutral-900 dark:text-white">
+          <h2 className="text-3xl font-extrabold text-white">
             {t("acceptInvitation.invalidTokenTitle")}
           </h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-sm text-neutral-400">
             {t("acceptInvitation.invalidTokenMessage")}
           </p>
         </div>
@@ -139,10 +139,10 @@ function AcceptInvitationPage() {
           <div className="mx-auto h-12 w-12 flex items-center justify-center">
             <img src="/icon-192.png" alt="Hously" className="h-12 w-12" />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             {t("acceptInvitation.title")}
           </h2>
-          <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mt-2 text-center text-sm text-neutral-400">
             {t("acceptInvitation.description")}
           </p>
         </div>
@@ -157,7 +157,7 @@ function AcceptInvitationPage() {
                 type="email"
                 value={validation.email}
                 disabled
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-700 rounded-t-md sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 text-neutral-400 bg-neutral-700 rounded-t-md sm:text-sm"
               />
             </div>
             <div>
@@ -169,7 +169,7 @@ function AcceptInvitationPage() {
                 type="text"
                 autoComplete="given-name"
                 {...register("firstName")}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder={t("acceptInvitation.firstName")}
               />
             </div>
@@ -182,7 +182,7 @@ function AcceptInvitationPage() {
                 type="text"
                 autoComplete="family-name"
                 {...register("lastName")}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder={t("acceptInvitation.lastName")}
               />
             </div>
@@ -204,11 +204,11 @@ function AcceptInvitationPage() {
                   },
                   validate: (value) => validatePasswordComplexity(value, t),
                 })}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder={t("acceptInvitation.password")}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-1 text-sm text-red-400">
                   {errors.password.message || t("login.passwordRequired")}
                 </p>
               )}
@@ -227,11 +227,11 @@ function AcceptInvitationPage() {
                     value === password ||
                     t("acceptInvitation.passwordsDoNotMatch"),
                 })}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder={t("acceptInvitation.confirmPassword")}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-1 text-sm text-red-400">
                   {errors.confirmPassword.message ||
                     t("acceptInvitation.confirmPasswordRequired")}
                 </p>
@@ -242,7 +242,7 @@ function AcceptInvitationPage() {
             <button
               type="submit"
               disabled={acceptMutation.isPending}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {acceptMutation.isPending
                 ? t("acceptInvitation.creating")

@@ -91,7 +91,7 @@ export function LibraryQualityProfileSection({
                   });
               }}
               disabled={updateProfile.isPending || !mediaRow}
-              className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/80 px-2.5 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+              className="w-full rounded-lg border border-neutral-700 bg-neutral-800/80 px-2.5 py-1.5 text-xs text-neutral-100 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
             >
               <option value="">
                 {t("library.management.qualityProfileNone")}

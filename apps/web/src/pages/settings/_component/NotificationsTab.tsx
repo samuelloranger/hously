@@ -209,9 +209,9 @@ export function NotificationsTab() {
         title={t("settings.notifications.title")}
         description={t("settings.notifications.description")}
       />
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+      <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         {!isSupported ? (
-          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded-lg">
+          <div className="p-4 bg-yellow-900/20 text-yellow-200 rounded-lg">
             {t("settings.notifications.notSupported")}
           </div>
         ) : (
@@ -219,7 +219,7 @@ export function NotificationsTab() {
             {/* Test Notification Button */}
             {user?.is_admin && (
               <div>
-                <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                <h3 className="text-sm font-medium text-neutral-300 mb-2">
                   {t("settings.notifications.testNotificationTitle")}
                 </h3>
                 <Button
@@ -229,7 +229,7 @@ export function NotificationsTab() {
                 >
                   {t("settings.notifications.sendTestNotification")}
                 </Button>
-                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <p className="mt-2 text-sm text-neutral-400">
                   {t("settings.notifications.testNotificationDescription")}
                 </p>
               </div>
@@ -237,11 +237,11 @@ export function NotificationsTab() {
 
             {/* Permission Status */}
             <div>
-              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+              <h3 className="text-sm font-medium text-neutral-300 mb-2">
                 {t("settings.notifications.permission")}
               </h3>
-              <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg">
-                <span className="text-neutral-900 dark:text-neutral-100">
+              <div className="flex items-center justify-between p-4 bg-neutral-700/50 rounded-lg">
+                <span className="text-neutral-100">
                   {t(`settings.notifications.status.${permission}`)}
                 </span>
                 {permission !== "granted" && (
@@ -254,7 +254,7 @@ export function NotificationsTab() {
                 )}
               </div>
               {permission === "denied" && (
-                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <p className="mt-2 text-sm text-neutral-400">
                   {t("settings.notifications.permissionDenied")}
                 </p>
               )}
@@ -264,11 +264,11 @@ export function NotificationsTab() {
             {permission === "granted" && (
               <>
                 <div>
-                  <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  <h3 className="text-sm font-medium text-neutral-300 mb-2">
                     {t("settings.notifications.subscription")}
                   </h3>
-                  <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg">
-                    <span className="text-neutral-900 dark:text-neutral-100">
+                  <div className="flex items-center justify-between p-4 bg-neutral-700/50 rounded-lg">
+                    <span className="text-neutral-100">
                       {subscription
                         ? t("settings.notifications.subscribed")
                         : t("settings.notifications.notSubscribed")}
@@ -294,15 +294,15 @@ export function NotificationsTab() {
 
                 {/* Devices List */}
                 <div>
-                  <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  <h3 className="text-sm font-medium text-neutral-300 mb-2">
                     {t("settings.notifications.devices")}
                   </h3>
                   {devicesLoading ? (
-                    <div className="p-4 text-center text-neutral-600 dark:text-neutral-400">
+                    <div className="p-4 text-center text-neutral-400">
                       {t("settings.notifications.loadingDevices")}
                     </div>
                   ) : devices.length === 0 ? (
-                    <div className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg text-neutral-600 dark:text-neutral-400 text-sm">
+                    <div className="p-4 bg-neutral-700/50 rounded-lg text-neutral-400 text-sm">
                       {t("settings.notifications.noDevices")}
                     </div>
                   ) : (
@@ -310,11 +310,11 @@ export function NotificationsTab() {
                       {devices.map((device) => (
                         <div
                           key={device.id}
-                          className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg"
+                          className="flex items-center justify-between p-4 bg-neutral-700/50 rounded-lg"
                         >
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                              <span className="text-sm font-medium text-neutral-100">
                                 {getDeviceDisplayName(device)}
                               </span>
                               {subscription &&
@@ -323,17 +323,17 @@ export function NotificationsTab() {
                                     endpoint: string;
                                   }
                                 ).endpoint === device.endpoint && (
-                                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 uppercase tracking-wide flex-shrink-0">
+                                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-primary-500/20 text-primary-400 uppercase tracking-wide flex-shrink-0">
                                     {t("settings.notifications.thisDevice")}
                                   </span>
                                 )}
                             </div>
-                            <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                            <div className="text-xs text-neutral-400 mt-1">
                               {t("settings.notifications.addedOn")}{" "}
                               {formatDate(device.created_at)}
                             </div>
                             {(device.browser_name || device.os_name) && (
-                              <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
+                              <div className="text-xs text-neutral-500 mt-1">
                                 {device.browser_name &&
                                   device.browser_version && (
                                     <span>

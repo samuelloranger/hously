@@ -54,11 +54,11 @@ function QueueJobRow({
       : null;
 
   return (
-    <div className="border border-neutral-200 dark:border-neutral-700 rounded-md p-3 bg-white dark:bg-neutral-800/50 text-xs">
+    <div className="border border-neutral-700 rounded-md p-3 bg-neutral-800/50 text-xs">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium text-neutral-900 dark:text-neutral-100 truncate">
+            <span className="font-medium text-neutral-100 truncate">
               {job.name}
             </span>
             <span
@@ -67,7 +67,7 @@ function QueueJobRow({
               {job.status}
             </span>
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-neutral-500 dark:text-neutral-400">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-neutral-400">
             {job.timestamp && (
               <span>
                 {timeAgo(job.timestamp)} {t("settings.jobs.history.ago")}
@@ -86,19 +86,19 @@ function QueueJobRow({
           </div>
           {job.failedReason && (
             <div className="mt-1.5">
-              <p className="text-red-600 dark:text-red-400 break-all">
+              <p className="text-red-400 break-all">
                 {t("settings.jobs.queues.failedReason")} {job.failedReason}
               </p>
               {job.stacktrace?.length > 0 && (
                 <button
                   onClick={() => setShowTrace(!showTrace)}
-                  className="mt-1 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 underline"
+                  className="mt-1 text-neutral-500 hover:text-neutral-300 underline"
                 >
                   {t("settings.jobs.queues.stacktrace")}
                 </button>
               )}
               {showTrace && (
-                <pre className="mt-1 p-2 bg-neutral-100 dark:bg-neutral-900 rounded text-[10px] overflow-x-auto max-h-40 overflow-y-auto whitespace-pre-wrap">
+                <pre className="mt-1 p-2 bg-neutral-900 rounded text-[10px] overflow-x-auto max-h-40 overflow-y-auto whitespace-pre-wrap">
                   {job.stacktrace.join("\n")}
                 </pre>
               )}
@@ -108,7 +108,7 @@ function QueueJobRow({
         {job.status === "failed" && (
           <button
             onClick={() => onRetry(job.id)}
-            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors shrink-0"
+            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-400 bg-blue-900/20 border border-blue-800 rounded hover:bg-blue-900/30 transition-colors shrink-0"
           >
             <RotateCcw className="size-3" />
             {t("settings.jobs.queues.retryJob")}
@@ -216,11 +216,11 @@ export function QueueCard({
   ];
 
   return (
-    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-900/50 overflow-hidden">
+    <div className="border border-neutral-700 rounded-lg bg-neutral-900/50 overflow-hidden">
       {/* Card header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800/50 transition-colors"
+        className="w-full flex items-center justify-between p-4 text-left hover:bg-neutral-800/50 transition-colors"
       >
         <div className="flex items-center gap-3">
           {expanded ? (
@@ -229,7 +229,7 @@ export function QueueCard({
             <ChevronRight className="size-4 text-neutral-500" />
           )}
           <div>
-            <h4 className="font-medium text-neutral-900 dark:text-neutral-100">
+            <h4 className="font-medium text-neutral-100">
               {stat.name}
             </h4>
             <p className="text-xs text-neutral-500 mt-0.5">
@@ -240,31 +240,31 @@ export function QueueCard({
 
         <div className="flex items-center gap-3">
           {stat.active > 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
+            <span className="flex items-center gap-1 text-xs font-medium text-blue-400">
               <Loader2 className="size-3 animate-spin" />
               {stat.active}
             </span>
           )}
           {stat.waiting > 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+            <span className="flex items-center gap-1 text-xs font-medium text-amber-400">
               <Clock className="size-3" />
               {stat.waiting}
             </span>
           )}
           {stat.failed > 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
+            <span className="flex items-center gap-1 text-xs font-medium text-red-400">
               <AlertCircle className="size-3" />
               {stat.failed}
             </span>
           )}
           {stat.completed > 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
+            <span className="flex items-center gap-1 text-xs font-medium text-green-400">
               <CheckCircle2 className="size-3" />
               {stat.completed}
             </span>
           )}
           {stat.delayed > 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium text-purple-600 dark:text-purple-400">
+            <span className="flex items-center gap-1 text-xs font-medium text-purple-400">
               <Timer className="size-3" />
               {stat.delayed}
             </span>
@@ -274,14 +274,14 @@ export function QueueCard({
 
       {/* Expanded content */}
       {expanded && (
-        <div className="border-t border-neutral-200 dark:border-neutral-700 p-4 space-y-3">
+        <div className="border-t border-neutral-700 p-4 space-y-3">
           {/* Action buttons */}
           <div className="flex flex-wrap gap-2">
             {stat.failed > 0 && (
               <button
                 onClick={handleRetryAll}
                 disabled={retryingAll}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 bg-red-900/20 border border-red-800 rounded-md hover:bg-red-900/30 disabled:opacity-50 transition-colors"
               >
                 <RotateCcw className="size-3" />
                 {t("settings.jobs.queues.retryAll")}
@@ -291,7 +291,7 @@ export function QueueCard({
               <button
                 onClick={() => handleClean("completed")}
                 disabled={cleaning}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 bg-neutral-800 border border-neutral-700 rounded-md hover:bg-neutral-700 disabled:opacity-50 transition-colors"
               >
                 <Trash2 className="size-3" />
                 {t("settings.jobs.queues.cleanCompleted")}
@@ -301,7 +301,7 @@ export function QueueCard({
               <button
                 onClick={() => handleClean("failed")}
                 disabled={cleaning}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 bg-neutral-800 border border-neutral-700 rounded-md hover:bg-neutral-700 disabled:opacity-50 transition-colors"
               >
                 <Trash2 className="size-3" />
                 {t("settings.jobs.queues.cleanFailed")}
@@ -310,15 +310,15 @@ export function QueueCard({
           </div>
 
           {/* Status filter tabs */}
-          <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-md p-0.5">
+          <div className="flex gap-1 bg-neutral-800 rounded-md p-0.5">
             {statusFilters.map((f) => (
               <button
                 key={f.key}
                 onClick={() => setStatusFilter(f.key)}
                 className={`flex-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
                   statusFilter === f.key
-                    ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                    ? "bg-neutral-700 text-neutral-100 shadow-sm"
+                    : "text-neutral-500 hover:text-neutral-300"
                 }`}
               >
                 {f.label}

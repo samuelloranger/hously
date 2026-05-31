@@ -28,7 +28,7 @@ function CredentialInput({
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+      <label className="text-[11px] font-medium text-neutral-400">
         {label}
       </label>
       <input
@@ -37,7 +37,7 @@ function CredentialInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
-        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
       />
     </div>
   );
@@ -90,15 +90,15 @@ export function ArrLibraryImportPanel() {
   }, [status.state, queryClient]);
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-      <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700">
+    <div className="bg-neutral-800 rounded-xl border border-neutral-700 overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-neutral-700">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+            <p className="text-sm font-semibold text-white flex items-center gap-2">
               <Download size={14} className="text-primary-500" />
               {t("settings.arrImport.title")}
             </p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            <p className="text-xs text-neutral-400 mt-0.5">
               {t("settings.arrImport.description")}
             </p>
           </div>
@@ -122,10 +122,10 @@ export function ArrLibraryImportPanel() {
           <div className="space-y-3">
             {/* Source picker */}
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+              <p className="text-xs font-medium text-neutral-400">
                 {t("settings.arrImport.sourceLabel")}
               </p>
-              <div className="flex rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+              <div className="flex rounded-xl border border-neutral-700 overflow-hidden">
                 {(["both", "radarr", "sonarr"] as const).map((s) => (
                   <Button
                     key={s}
@@ -136,7 +136,7 @@ export function ArrLibraryImportPanel() {
                       "flex-1 rounded-none text-xs capitalize",
                       source === s
                         ? "bg-primary-600 text-white hover:bg-primary-700"
-                        : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
+                        : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800",
                     )}
                   >
                     {s === "both"
@@ -151,8 +151,8 @@ export function ArrLibraryImportPanel() {
 
             {/* Radarr credentials */}
             {needsRadarr && (
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 p-3 space-y-2">
-                <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+              <div className="rounded-xl border border-neutral-700 p-3 space-y-2">
+                <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide">
                   {t("settings.arrImport.serviceRadarr")}
                 </p>
                 <CredentialInput
@@ -173,8 +173,8 @@ export function ArrLibraryImportPanel() {
 
             {/* Sonarr credentials */}
             {needsSonarr && (
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 p-3 space-y-2">
-                <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+              <div className="rounded-xl border border-neutral-700 p-3 space-y-2">
+                <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide">
                   {t("settings.arrImport.serviceSonarr")}
                 </p>
                 <CredentialInput
@@ -219,7 +219,7 @@ export function ArrLibraryImportPanel() {
 
         {isFailed && (
           <div className="space-y-2">
-            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 px-3 py-2 text-xs text-red-700 dark:text-red-400">
+            <div className="rounded-lg bg-red-900/20 border border-red-800/40 px-3 py-2 text-xs text-red-400">
               {status.error ?? t("settings.arrImport.importFailedUnknown")}
             </div>
             <Button
@@ -233,7 +233,7 @@ export function ArrLibraryImportPanel() {
         )}
 
         {status.state === "unknown" && !startMigration.isPending && (
-          <p className="text-[10px] text-neutral-400 dark:text-neutral-500 text-center">
+          <p className="text-[10px] text-neutral-500 text-center">
             {t("settings.arrImport.noPreviousJob")}
           </p>
         )}

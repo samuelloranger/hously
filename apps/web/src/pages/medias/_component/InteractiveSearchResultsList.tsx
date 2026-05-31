@@ -41,26 +41,26 @@ export function InteractiveSearchResultsList({
     <div className="pt-4">
       {needsSearchQuery ? (
         <div className="flex h-full items-center justify-center py-8">
-          <div className="max-w-md text-center text-sm text-neutral-500 dark:text-neutral-400">
+          <div className="max-w-md text-center text-sm text-neutral-400">
             {t("medias.interactive.minQuery")}
           </div>
         </div>
       ) : isLoading ? (
         <div className="flex h-full items-center justify-center py-8">
-          <div className="text-sm text-neutral-500 dark:text-neutral-400">
+          <div className="text-sm text-neutral-400">
             {t("medias.interactive.loading")}
           </div>
         </div>
       ) : isError ? (
         <div className="flex h-full items-center justify-center py-8">
-          <div className="max-w-md rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center dark:border-amber-700/40 dark:bg-amber-950/20">
-            <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+          <div className="max-w-md rounded-2xl border p-5 text-center border-amber-700/40 bg-amber-950/20">
+            <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-900/40 text-amber-300">
               <TriangleAlert size={18} />
             </div>
-            <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            <p className="text-sm font-semibold text-neutral-100">
               {t("medias.interactive.errorTitle")}
             </p>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="mt-1 text-sm text-neutral-400">
               {errorMessage ?? t("medias.interactive.errorDescription")}
             </p>
             <Button type="button" onClick={onRefetch} className="mt-4 gap-2">
@@ -72,7 +72,7 @@ export function InteractiveSearchResultsList({
       ) : releases.length === 0 ? (
         <div className="flex h-full items-center justify-center py-8">
           <div className="max-w-md text-center">
-            <p className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+            <p className="text-sm font-medium text-neutral-200">
               {totalReleases > 0
                 ? t("medias.interactive.noMatches")
                 : t("medias.interactive.empty")}
@@ -81,7 +81,7 @@ export function InteractiveSearchResultsList({
               <button
                 type="button"
                 onClick={onResetView}
-                className="mt-3 text-sm font-medium text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
+                className="mt-3 text-sm font-medium transition-colors text-primary-400 hover:text-primary-200"
               >
                 {t("medias.interactive.resetView")}
               </button>

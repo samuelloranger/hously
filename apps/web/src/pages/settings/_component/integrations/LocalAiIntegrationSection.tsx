@@ -92,7 +92,7 @@ function LocalAiIntegrationSectionImpl({
           placeholder="http://homelab:11434"
         />
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          <label className="block text-sm font-medium text-neutral-300">
             Model
           </label>
           <Input
@@ -114,13 +114,13 @@ function LocalAiIntegrationSectionImpl({
             {t("settings.integrations.testConnection")}
           </Button>
           {testState === "ok" && (
-            <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+            <span className="flex items-center gap-1 text-sm text-green-400">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Connected
             </span>
           )}
           {testState === "model-not-found" && (
-            <span className="flex items-center gap-1 text-sm text-yellow-600 dark:text-yellow-400">
+            <span className="flex items-center gap-1 text-sm text-yellow-400">
               <AlertTriangle className="h-3.5 w-3.5" />
               Model not found on server
             </span>

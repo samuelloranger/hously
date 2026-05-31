@@ -19,15 +19,15 @@ export function ServiceNotifyAdminsOnly({
   }
 
   return (
-    <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-200 dark:border-neutral-700">
+    <div className="flex items-center justify-between p-4 bg-neutral-800/50 rounded-lg border border-neutral-700">
       <div className="flex-1">
         <label
           htmlFor={`notify-admins-only-${service.id}`}
-          className="text-sm font-medium text-neutral-900 dark:text-neutral-100 cursor-pointer"
+          className="text-sm font-medium text-neutral-100 cursor-pointer"
         >
           {t("settings.externalNotifications.notifyAdminsOnly")}
         </label>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+        <p className="text-xs text-neutral-400 mt-1">
           {t("settings.externalNotifications.notifyAdminsOnlyDescription")}
         </p>
       </div>

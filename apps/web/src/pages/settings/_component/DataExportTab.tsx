@@ -89,14 +89,14 @@ export function DataExportTab() {
           description={t("settings.dataExport.description")}
         />
 
-        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
           <div className="space-y-4">
             {/* Export Section */}
-            <div className="border-b border-neutral-200 dark:border-neutral-700 pb-4">
-              <h3 className="text-lg font-medium mb-2 text-neutral-900 dark:text-neutral-100">
+            <div className="border-b border-neutral-700 pb-4">
+              <h3 className="text-lg font-medium mb-2 text-neutral-100">
                 {t("settings.dataExport.exportTitle")}
               </h3>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+              <p className="text-sm text-neutral-400 mb-4">
                 {t("settings.dataExport.exportDescription")}
               </p>
               <Button onClick={handleExport} disabled={isExporting}>
@@ -108,10 +108,10 @@ export function DataExportTab() {
 
             {/* Import Section */}
             <div>
-              <h3 className="text-lg font-medium mb-2 text-neutral-900 dark:text-neutral-100">
+              <h3 className="text-lg font-medium mb-2 text-neutral-100">
                 {t("settings.dataExport.importTitle")}
               </h3>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+              <p className="text-sm text-neutral-400 mb-4">
                 {t("settings.dataExport.importDescription")}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -123,7 +123,7 @@ export function DataExportTab() {
                     setImportFile(event.currentTarget.files?.[0] ?? null)
                   }
                   disabled={isImporting}
-                  className="w-full text-sm text-neutral-700 dark:text-neutral-200 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 dark:file:bg-neutral-700/50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-neutral-800 dark:file:text-neutral-100"
+                  className="w-full text-sm text-neutral-200 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-700/50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-neutral-100"
                 />
                 <Button
                   type="button"

@@ -64,7 +64,7 @@ export function ImageModal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black bg-opacity-75 dark:bg-opacity-90 ${
+      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black bg-opacity-90 ${
         isClosing ? "image-modal-backdrop-closing" : "image-modal-backdrop"
       }`}
       onClick={onClose}

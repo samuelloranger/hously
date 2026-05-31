@@ -71,7 +71,7 @@ function WeatherIntegrationSectionImpl({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.integrations.weather.address")}
           </label>
           <input
@@ -79,12 +79,12 @@ function WeatherIntegrationSectionImpl({
             value={address}
             onChange={(event) => setAddress(event.target.value)}
             placeholder={t("settings.integrations.weather.addressPlaceholder")}
-            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+            className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.integrations.weather.temperatureUnit")}
           </label>
           <select
@@ -92,7 +92,7 @@ function WeatherIntegrationSectionImpl({
             onChange={(event) =>
               setTemperatureUnit(event.target.value as TemperatureUnit)
             }
-            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+            className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white"
           >
             <option value="fahrenheit">
               {t("settings.integrations.weather.fahrenheit")}

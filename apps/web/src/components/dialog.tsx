@@ -46,7 +46,7 @@ export function Dialog({
             <RadixDialog.Content
               onOpenAutoFocus={(e) => e.preventDefault()}
               className={cn(
-                "pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl outline-none dark:border-neutral-700 dark:bg-neutral-800",
+                "pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col rounded-2xl border p-6 text-left align-middle shadow-xl outline-none border-neutral-700 bg-neutral-800",
                 "data-[state=open]:animate-in data-[state=closed]:animate-out",
                 "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
                 "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
@@ -61,7 +61,7 @@ export function Dialog({
                   hideTitle
                     ? "sr-only"
                     : cn(
-                        "pb-2 shrink-0 text-lg font-medium leading-6 text-neutral-900 dark:text-white",
+                        "pb-2 shrink-0 text-lg font-medium leading-6 text-white",
                         panelClassName?.includes("p-0") ? "pt-4 px-6" : "",
                       ),
                 )}
@@ -76,7 +76,7 @@ export function Dialog({
                 <RadixDialog.Close
                   aria-label="Close dialog"
                   className={cn(
-                    "pointer-events-auto absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors",
+                    "pointer-events-auto absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700/60 transition-colors",
                     hideTitle ? "top-4 right-4 z-20" : "top-5 right-5 z-20",
                   )}
                 >

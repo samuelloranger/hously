@@ -26,12 +26,12 @@ export function MediasExplore() {
           onClick={openSearch}
           className="md:hidden w-full text-left"
         >
-          <section className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800">
-              <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+          <section className="rounded-2xl border border-neutral-700/60 bg-neutral-900 overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-neutral-800">
+              <p className="text-sm font-semibold text-white">
                 {t("medias.tmdb.title")}
               </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              <p className="text-xs text-neutral-400 mt-0.5">
                 {t("medias.tmdb.subtitle")}
               </p>
             </div>
@@ -41,7 +41,7 @@ export function MediasExplore() {
                   size={13}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
                 />
-                <div className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-400 dark:text-neutral-500">
+                <div className="w-full rounded-xl border border-neutral-700 bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-500">
                   {t("medias.tmdb.placeholder")}
                 </div>
               </div>

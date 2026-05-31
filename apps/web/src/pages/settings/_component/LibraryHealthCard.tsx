@@ -31,23 +31,23 @@ export function LibraryHealthCard({
 
   const shieldTone =
     latest?.status === "failed"
-      ? "text-red-600 dark:text-red-400"
+      ? "text-red-400"
       : latest?.status === "skipped"
-        ? "text-amber-600 dark:text-amber-400"
+        ? "text-amber-400"
         : issueCount > 0
-          ? "text-amber-600 dark:text-amber-400"
-          : "text-green-600 dark:text-green-400";
+          ? "text-amber-400"
+          : "text-green-400";
 
   return (
-    <section className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-neutral-50 dark:bg-neutral-900/50">
+    <section className="border border-neutral-700 rounded-lg p-4 bg-neutral-900/50">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <ShieldAlert className={`size-5 mt-0.5 ${shieldTone}`} />
           <div>
-            <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            <h3 className="text-sm font-semibold text-neutral-100">
               {t("settings.jobs.libraryHealth.title")}
             </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+            <p className="text-sm text-neutral-400 mt-1">
               {latest
                 ? t("settings.jobs.libraryHealth.lastRun", {
                     count: issueCount,
@@ -56,7 +56,7 @@ export function LibraryHealthCard({
                 : t("settings.jobs.libraryHealth.noRuns")}
             </p>
             {latest?.error && (
-              <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+              <p className="text-sm text-red-400 mt-2">
                 {latest.error}
               </p>
             )}
@@ -81,12 +81,12 @@ export function LibraryHealthCard({
             {metrics.map(([key, value]) => (
               <div
                 key={key}
-                className="rounded-md bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3"
+                className="rounded-md bg-neutral-800 border border-neutral-700 p-3"
               >
-                <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                <div className="text-lg font-semibold text-neutral-100">
                   {value}
                 </div>
-                <div className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-tight">
+                <div className="text-[11px] text-neutral-400 leading-tight">
                   {t(`settings.jobs.libraryHealth.metrics.${key}`)}
                 </div>
               </div>
@@ -94,7 +94,7 @@ export function LibraryHealthCard({
           </div>
 
           {latest.warnings.length > 0 && (
-            <div className="rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+            <div className="rounded-md bg-amber-900/20 border border-amber-800 p-3 text-xs text-amber-300 space-y-1">
               {latest.warnings.map((warning, i) => (
                 <p key={i}>{warning}</p>
               ))}
@@ -107,7 +107,7 @@ export function LibraryHealthCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => setExpanded(!expanded)}
-                className="text-xs text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white px-0"
+                className="text-xs text-neutral-300 hover:text-white px-0"
               >
                 {expanded
                   ? t("settings.jobs.libraryHealth.hideIssues")
@@ -121,19 +121,19 @@ export function LibraryHealthCard({
                     {latest.issues.slice(0, 100).map((issue, index) => (
                       <div
                         key={`${issue.kind}-${issue.media_id ?? ""}-${issue.episode_id ?? ""}-${issue.media_file_id ?? ""}-${index}`}
-                        className="rounded-md bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-xs"
+                        className="rounded-md bg-neutral-800 border border-neutral-700 px-3 py-2 text-xs"
                       >
-                        <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                        <div className="font-medium text-neutral-100">
                           {t(`settings.jobs.libraryHealth.kinds.${issue.kind}`)}
                         </div>
-                        <div className="text-neutral-600 dark:text-neutral-400 mt-0.5 break-words">
+                        <div className="text-neutral-400 mt-0.5 break-words">
                           {issue.detail}
                         </div>
                       </div>
                     ))}
                   </div>
                   {latest.issues.length > 100 && (
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 pt-1">
+                    <p className="text-xs text-neutral-400 pt-1">
                       Showing 100 of {latest.issues.length} issues.
                     </p>
                   )}

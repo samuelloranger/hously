@@ -32,12 +32,12 @@ export function LibraryActionsSection({
 
   if (deleteConfirm === "confirm") {
     return (
-      <Card className="border-red-200 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/10">
+      <Card className="border-red-800/60 bg-red-950/10">
         <div className="px-4 py-3 space-y-3">
-          <p className="text-xs font-semibold text-red-700 dark:text-red-300">
+          <p className="text-xs font-semibold text-red-300">
             {t("library.management.deleteConfirmTitle")}
           </p>
-          <label className="flex items-center gap-2 text-xs text-red-700 dark:text-red-300 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-red-300 cursor-pointer">
             <input
               type="checkbox"
               checked={deleteFiles}
@@ -99,7 +99,7 @@ export function LibraryActionsSection({
             .mutateAsync({ id: libraryId, monitored: !itemMonitored })
             .catch(() => toast.error(t("library.management.grabFailed")));
         }}
-        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-400 hover:bg-neutral-800 disabled:opacity-50 transition-colors"
       >
         {itemMonitored ? <Eye size={11} /> : <EyeOff size={11} />}
         {itemMonitored
@@ -119,7 +119,7 @@ export function LibraryActionsSection({
               )
               .catch(() => toast.error(t("library.management.grabFailed")));
           }}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-400 hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
         >
           <RefreshCw size={11} />
           {t("library.management.retrySearch")}
@@ -128,7 +128,7 @@ export function LibraryActionsSection({
       <button
         type="button"
         onClick={() => setDeleteConfirm("confirm")}
-        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-950/30 transition-colors"
       >
         <Trash2 size={11} />
         {t("library.management.delete")}

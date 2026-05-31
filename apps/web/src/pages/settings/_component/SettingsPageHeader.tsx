@@ -19,14 +19,14 @@ export function SettingsPageHeader({
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {Icon && (
-            <Icon className="h-5 w-5 shrink-0 text-primary-600 dark:text-primary-400" />
+            <Icon className="h-5 w-5 shrink-0 text-primary-400" />
           )}
-          <h2 className="break-words text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+          <h2 className="break-words text-xl font-semibold tracking-tight text-neutral-100">
             {title}
           </h2>
         </div>
         {description && (
-          <p className="mt-1 max-w-2xl break-words text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mt-1 max-w-2xl break-words text-sm text-neutral-400">
             {description}
           </p>
         )}

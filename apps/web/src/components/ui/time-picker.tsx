@@ -78,8 +78,8 @@ export function TimePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <div className="flex p-2">
           {/* Hours */}
-          <div className="flex flex-col items-center border-r border-neutral-200 dark:border-neutral-700 pr-2">
-            <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 px-2">
+          <div className="flex flex-col items-center border-r border-neutral-700 pr-2">
+            <div className="text-xs font-medium text-neutral-400 mb-1 px-2">
               {t("common.hours")}
             </div>
             <div
@@ -98,7 +98,7 @@ export function TimePicker({
                     "w-12 h-8 rounded-md text-sm transition-colors flex items-center justify-center",
                     hours === hour
                       ? "bg-primary-600 text-neutral-950 hover:bg-primary-500"
-                      : "hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-900 dark:text-neutral-50",
+                      : "hover:bg-neutral-800 text-neutral-50",
                   )}
                 >
                   {String(hour).padStart(2, "0")}
@@ -108,7 +108,7 @@ export function TimePicker({
           </div>
           {/* Minutes */}
           <div className="flex flex-col items-center pl-2">
-            <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 px-2">
+            <div className="text-xs font-medium text-neutral-400 mb-1 px-2">
               {t("common.minutes")}
             </div>
             <div
@@ -128,7 +128,7 @@ export function TimePicker({
                     "w-12 h-8 rounded-md text-sm transition-colors flex items-center justify-center",
                     minutes === minute
                       ? "bg-primary-600 text-neutral-950 hover:bg-primary-500"
-                      : "hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-900 dark:text-neutral-50",
+                      : "hover:bg-neutral-800 text-neutral-50",
                   )}
                 >
                   {String(minute).padStart(2, "0")}

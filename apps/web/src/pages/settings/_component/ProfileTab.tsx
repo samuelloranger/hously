@@ -20,17 +20,17 @@ export function ProfileTab() {
         title={t("settings.profile.title")}
         description={t("settings.profile.description")}
       />
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+      <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         <ProfileForm />
       </div>
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+      <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Monitor size={16} className="text-neutral-500" />
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          <h3 className="text-sm font-semibold text-neutral-100">
             Navigation
           </h3>
         </div>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
+        <p className="text-sm text-neutral-400 mb-4">
           Choose where the navigation rail appears on desktop.
         </p>
         <NavPositionPicker value={position} onChange={setPosition} />

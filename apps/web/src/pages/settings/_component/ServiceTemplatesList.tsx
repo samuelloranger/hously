@@ -20,7 +20,7 @@ export function ServiceTemplatesList({
 
   if (eventTypes.length === 0) {
     return (
-      <div className="text-center py-4 text-neutral-500 dark:text-neutral-400 text-sm">
+      <div className="text-center py-4 text-neutral-400 text-sm">
         {t("settings.externalNotifications.noTemplates")}
       </div>
     );

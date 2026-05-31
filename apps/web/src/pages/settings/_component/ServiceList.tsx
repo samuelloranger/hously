@@ -142,7 +142,7 @@ export function ServiceList({
 
   if (isLoading) {
     return (
-      <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+      <div className="text-center py-8 text-neutral-400">
         {t("common.loading")}
       </div>
     );
@@ -150,7 +150,7 @@ export function ServiceList({
 
   if (services.length === 0) {
     return (
-      <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+      <div className="text-center py-8 text-neutral-400">
         {t("settings.externalNotifications.noServices")}
       </div>
     );

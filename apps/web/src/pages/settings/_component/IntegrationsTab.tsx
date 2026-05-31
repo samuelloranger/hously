@@ -52,7 +52,7 @@ export function IntegrationsTab() {
       {subTab === "integrations" ? (
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 px-1">
               {t("settings.integrations.groups.media")}
             </h3>
             <div className="space-y-3">
@@ -61,7 +61,7 @@ export function IntegrationsTab() {
             </div>
           </div>
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 px-1">
               {t("settings.integrations.indexers")}
             </h3>
             <div className="space-y-3">
@@ -70,7 +70,7 @@ export function IntegrationsTab() {
             </div>
           </div>
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 px-1">
               {t("settings.integrations.groups.infrastructure")}
             </h3>
             <div className="space-y-3">
@@ -82,7 +82,7 @@ export function IntegrationsTab() {
             </div>
           </div>
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 px-1">
               {t("settings.integrations.groups.other")}
             </h3>
             <div className="space-y-3">

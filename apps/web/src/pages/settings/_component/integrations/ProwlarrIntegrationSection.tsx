@@ -96,7 +96,7 @@ function ProwlarrIntegrationSectionImpl({
       />
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+        <label className="mb-2 block text-sm font-medium text-neutral-300">
           {t("settings.integrations.prowlarr.apiKey")}
         </label>
         <input
@@ -104,7 +104,7 @@ function ProwlarrIntegrationSectionImpl({
           value={apiKey}
           onChange={(event) => setApiKey(event.target.value)}
           placeholder={t("settings.integrations.prowlarr.apiKeyPlaceholder")}
-          className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 font-mono text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+          className="w-full rounded-lg border px-4 py-2 font-mono border-neutral-600 bg-neutral-900 text-white"
         />
       </div>
 

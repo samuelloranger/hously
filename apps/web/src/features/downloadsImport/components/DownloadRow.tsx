@@ -89,7 +89,7 @@ function DownloadRowImpl({
   return (
     <div
       className={cn(
-        "border-t border-neutral-100 dark:border-white/[0.06]",
+        "border-t border-white/[0.06]",
         isGrey && "opacity-55",
       )}
     >
@@ -102,7 +102,7 @@ function DownloadRowImpl({
         <div>
           <button
             type="button"
-            className="p-1 hover:bg-neutral-100 dark:hover:bg-white/10 rounded"
+            className="p-1 hover:bg-white/10 rounded"
             onClick={handleToggleExpand}
             aria-label={
               expanded
@@ -113,10 +113,10 @@ function DownloadRowImpl({
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
         </div>
-        <div className="font-medium text-neutral-900 dark:text-white truncate">
+        <div className="font-medium text-white truncate">
           {row.file_name}
         </div>
-        <div className="text-neutral-600 dark:text-neutral-300 whitespace-nowrap text-xs sm:text-sm">
+        <div className="text-neutral-300 whitespace-nowrap text-xs sm:text-sm">
           {formatBytes(row.size_bytes)}
         </div>
         <div className="text-neutral-500 text-xs">{parsed.quality ?? "—"}</div>

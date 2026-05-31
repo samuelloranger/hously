@@ -117,7 +117,7 @@ export function GeneralSettingsTab() {
 
   if (error || !data?.settings) {
     return (
-      <p className="text-sm text-red-600 dark:text-red-400">
+      <p className="text-sm text-red-400">
         {t("settings.general.loadError")}
       </p>
     );
@@ -169,13 +169,13 @@ export function GeneralSettingsTab() {
       />
 
       {/* Location Settings */}
-      <section className="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-800">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+      <section className="space-y-4 rounded-xl border p-6 border-neutral-700 bg-neutral-800">
+        <h3 className="text-sm font-semibold text-neutral-100">
           Location & Calendar
         </h3>
         <div className="max-w-md space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
               {t("settings.general.countryCode")}
             </label>
             <Select
@@ -199,7 +199,7 @@ export function GeneralSettingsTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
               {t("settings.general.subdivisionCode")}
             </label>
             <Select
@@ -234,20 +234,20 @@ export function GeneralSettingsTab() {
             </Select>
           </div>
 
-          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-xs text-neutral-400">
             {t("settings.general.countryCodeHint")}
           </p>
         </div>
       </section>
 
       {/* Upcoming Media Settings */}
-      <section className="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-800">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+      <section className="space-y-4 rounded-xl border p-6 border-neutral-700 bg-neutral-800">
+        <h3 className="text-sm font-semibold text-neutral-100">
           Upcoming Releases
         </h3>
         <div className="max-w-md space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
               Look-ahead window
             </label>
             <Select
@@ -272,32 +272,32 @@ export function GeneralSettingsTab() {
                 ))}
               </SelectContent>
             </Select>
-            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="mt-1 text-xs text-neutral-400">
               How far ahead to show upcoming movies and TV releases
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+            <label className="block text-sm font-medium text-neutral-300 mb-3">
               Languages to include
             </label>
             <div className="space-y-2">
               {LANGUAGE_OPTIONS.map((lang) => (
                 <label
                   key={lang.code}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 p-2 rounded-md"
+                  className="flex items-center gap-2 cursor-pointer hover:bg-neutral-700/50 p-2 rounded-md"
                 >
                   <Checkbox
                     checked={selectedLanguages.has(lang.code)}
                     onChange={() => toggleLanguage(lang.code)}
                   />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <span className="text-sm text-neutral-300">
                     {lang.label}
                   </span>
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="mt-2 text-xs text-neutral-400">
               Select which languages to include in release searches
             </p>
           </div>
@@ -305,10 +305,10 @@ export function GeneralSettingsTab() {
       </section>
 
       {/* Dashboard Widgets */}
-      <section className="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-800">
+      <section className="space-y-4 rounded-xl border p-6 border-neutral-700 bg-neutral-800">
         <div className="flex items-center gap-2">
-          <Tv2 className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          <Tv2 className="w-4 h-4 text-neutral-400" />
+          <h3 className="text-sm font-semibold text-neutral-100">
             Dashboard Widgets
           </h3>
         </div>
@@ -316,19 +316,19 @@ export function GeneralSettingsTab() {
           {WIDGETS.map((w) => (
             <label
               key={w.id}
-              className="flex items-center gap-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 p-2 rounded-md"
+              className="flex items-center gap-2 cursor-pointer hover:bg-neutral-700/50 p-2 rounded-md"
             >
               <Checkbox
                 checked={widgetVisibility[w.id] ?? w.defaultVisible}
                 onChange={() => toggleWidget(w.id)}
               />
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+              <span className="text-sm text-neutral-300">
                 {t(`widgets.${w.id}`)}
               </span>
             </label>
           ))}
         </div>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="text-xs text-neutral-400">
           Show or hide dashboard panels
         </p>
       </section>

@@ -20,12 +20,12 @@ export function Toggle({
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className="inline-flex items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+      className="inline-flex items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-neutral-800"
       style={{ touchAction: "manipulation" }}
     >
       <span
         className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-          checked ? "bg-primary-600" : "bg-neutral-200 dark:bg-neutral-700"
+          checked ? "bg-primary-600" : "bg-neutral-700"
         }`}
       >
         <span
@@ -34,7 +34,7 @@ export function Toggle({
           }`}
         />
       </span>
-      <span className="text-xs text-neutral-600 dark:text-neutral-300">
+      <span className="text-xs text-neutral-300">
         {label}
       </span>
     </button>
@@ -62,7 +62,7 @@ export function ChipMultiSelect({
 
   if (options.length === 0) {
     return (
-      <span className="text-[11px] italic text-neutral-400 dark:text-neutral-500">
+      <span className="text-[11px] italic text-neutral-500">
         {emptyText}
       </span>
     );
@@ -81,7 +81,7 @@ export function ChipMultiSelect({
             className={`inline-flex appearance-none items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-150 ${
               active
                 ? "bg-primary-600 text-white shadow-sm"
-                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
+                : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
             }`}
           >
             {option.label}
@@ -112,7 +112,7 @@ export function FilterSection({
         className="group flex w-full items-center justify-between py-1"
         style={{ touchAction: "manipulation" }}
       >
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
           {title}
           {badge != null && badge > 0 && (
             <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-[9px] font-bold text-white">

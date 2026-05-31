@@ -122,8 +122,8 @@ export function LibraryItemSearchTab({
   return (
     <>
       {episodeSearchCtx && (
-        <div className="mb-3 flex items-center justify-between rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-950/30 px-3 py-2">
-          <span className="text-xs font-medium text-primary-700 dark:text-primary-300">
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-primary-800 bg-primary-950/30 px-3 py-2">
+          <span className="text-xs font-medium text-primary-300">
             {t("medias.detail.searchingEpisode", "Searching for")} S
             {String(episodeSearchCtx.season).padStart(2, "0")}E
             {String(episodeSearchCtx.episode).padStart(2, "0")}
@@ -132,30 +132,30 @@ export function LibraryItemSearchTab({
           <button
             type="button"
             onClick={onClearEpisodeCtx}
-            className="text-xs text-primary-500 hover:text-primary-700 dark:hover:text-primary-300"
+            className="text-xs text-primary-500 hover:text-primary-300"
           >
             {t("common.clear", "Clear")}
           </button>
         </div>
       )}
       {seasonSearchCtx !== null && !episodeSearchCtx && (
-        <div className="mb-3 flex items-center justify-between rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-3 py-2">
-          <span className="text-xs font-medium text-violet-700 dark:text-violet-300">
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-violet-800 bg-violet-950/30 px-3 py-2">
+          <span className="text-xs font-medium text-violet-300">
             {t("medias.detail.searchingSeasonPack", "Searching season pack")} S
             {String(seasonSearchCtx).padStart(2, "0")}
           </span>
           <button
             type="button"
             onClick={onClearSeasonCtx}
-            className="text-xs text-violet-500 hover:text-violet-700 dark:hover:text-violet-300"
+            className="text-xs text-violet-500 hover:text-violet-300"
           >
             {t("common.clear", "Clear")}
           </button>
         </div>
       )}
       {isUpgradeMode && (
-        <div className="mb-3 flex items-center justify-between rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-2">
-          <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-amber-800 bg-amber-950/30 px-3 py-2">
+          <span className="text-xs font-medium text-amber-300">
             {t(
               "medias.detail.upgradeMode",
               "Upgrade mode — grab will replace the existing file",
@@ -164,7 +164,7 @@ export function LibraryItemSearchTab({
           <button
             type="button"
             onClick={onClearUpgradeMode}
-            className="text-xs text-amber-500 hover:text-amber-700 dark:hover:text-amber-300"
+            className="text-xs text-amber-500 hover:text-amber-300"
           >
             {t("common.clear", "Clear")}
           </button>

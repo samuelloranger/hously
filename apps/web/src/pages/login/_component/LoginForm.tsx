@@ -81,11 +81,11 @@ export function LoginForm() {
                 message: t("login.invalidEmail") || "Invalid email address",
               },
             })}
-            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
             placeholder={t("login.emailAddress")}
           />
           {errors.email && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-red-400">
               {errors.email.message || t("login.emailRequired")}
             </p>
           )}
@@ -100,11 +100,11 @@ export function LoginForm() {
             type="password"
             autoComplete="current-password"
             {...register("password", { required: true })}
-            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
             placeholder={t("login.password")}
           />
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-red-400">
               {errors.password.message || t("login.passwordRequired")}
             </p>
           )}
@@ -114,7 +114,7 @@ export function LoginForm() {
       <div className="flex justify-end">
         <Link
           to="/forgot-password"
-          className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+          className="text-sm text-primary-400 hover:text-primary-300"
         >
           {t("login.forgotPassword")}
         </Link>
@@ -124,7 +124,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={loginMutation.isPending}
-          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loginMutation.isPending
             ? t("login.loading")
@@ -134,11 +134,11 @@ export function LoginForm() {
         {(browserSupportsWebAuthn() ||
           (ssoProviders?.providers?.length ?? 0) > 0) && (
           <div className="relative flex items-center">
-            <div className="flex-1 border-t border-neutral-300 dark:border-neutral-600" />
-            <span className="px-3 text-xs text-neutral-500 dark:text-neutral-400">
+            <div className="flex-1 border-t border-neutral-600" />
+            <span className="px-3 text-xs text-neutral-400">
               {t("login.or")}
             </span>
-            <div className="flex-1 border-t border-neutral-300 dark:border-neutral-600" />
+            <div className="flex-1 border-t border-neutral-600" />
           </div>
         )}
 
@@ -147,7 +147,7 @@ export function LoginForm() {
             type="button"
             onClick={onPasskeyLogin}
             disabled={passkeyMutation.isPending}
-            className="group relative w-full flex justify-center items-center gap-2 py-2 px-4 border border-neutral-300 dark:border-neutral-600 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="group relative w-full flex justify-center items-center gap-2 py-2 px-4 border border-neutral-600 text-sm font-medium rounded-md text-neutral-300 bg-neutral-800 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <KeyRound className="w-4 h-4" />
             {passkeyMutation.isPending
@@ -166,7 +166,7 @@ export function LoginForm() {
                 callbackURL: "/",
               })
             }
-            className="group relative w-full flex justify-center items-center gap-2.5 py-2 px-4 border border-neutral-300 dark:border-neutral-600 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 transition-colors"
+            className="group relative w-full flex justify-center items-center gap-2.5 py-2 px-4 border border-neutral-600 text-sm font-medium rounded-md text-neutral-300 bg-neutral-800 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-neutral-900 transition-colors"
           >
             <img
               src={oidcProviderIconUrl(provider.slug, provider.icon_url)}

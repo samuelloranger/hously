@@ -37,12 +37,12 @@ export function LibraryUpgradeModal({
       title={t("medias.library.upgradeModal.title")}
     >
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm text-neutral-400">
           {description}
         </p>
 
         {mediaType === "show" && (
-          <p className="text-xs text-neutral-500 dark:text-neutral-500">
+          <p className="text-xs text-neutral-500">
             {t("medias.library.upgradeModal.showManualNote")}
           </p>
         )}

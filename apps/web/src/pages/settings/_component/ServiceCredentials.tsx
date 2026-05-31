@@ -40,10 +40,10 @@ export function ServiceCredentials({
   }
 
   return (
-    <div className="space-y-3 pb-4 border-b border-neutral-200 dark:border-neutral-600">
+    <div className="space-y-3 pb-4 border-b border-neutral-600">
       {/* Token */}
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {t("settings.externalNotifications.token")}
         </label>
         <div className="flex items-center space-x-2">
@@ -51,7 +51,7 @@ export function ServiceCredentials({
             type="text"
             value={service.token}
             readOnly
-            className="flex-1 px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 font-mono text-sm"
+            className="flex-1 px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-100 font-mono text-sm"
           />
           <Button
             variant="secondary"
@@ -66,8 +66,8 @@ export function ServiceCredentials({
           >
             {copied === "token" ? (
               <>
-                <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                <span className="text-green-600 dark:text-green-400">
+                <Check className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-green-400">
                   {t("common.copied")}
                 </span>
               </>
@@ -84,7 +84,7 @@ export function ServiceCredentials({
       {/* Webhook URL */}
       {service.webhook_url && (
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.externalNotifications.webhookUrl")}
           </label>
           <div className="flex items-center space-x-2">
@@ -92,7 +92,7 @@ export function ServiceCredentials({
               type="text"
               value={service.webhook_url}
               readOnly
-              className="flex-1 px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 font-mono text-sm"
+              className="flex-1 px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-100 font-mono text-sm"
             />
             <Button
               variant="secondary"
@@ -107,8 +107,8 @@ export function ServiceCredentials({
             >
               {copied === "url" ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                  <span className="text-green-600 dark:text-green-400">
+                  <Check className="w-3.5 h-3.5 text-green-400" />
+                  <span className="text-green-400">
                     {t("common.copied")}
                   </span>
                 </>

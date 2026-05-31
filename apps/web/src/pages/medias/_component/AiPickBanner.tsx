@@ -40,21 +40,21 @@ export function AiPickBanner({
       className={cn(
         "mb-3 rounded-xl border px-4 py-3 text-sm",
         isError
-          ? "border-red-200 bg-red-50 dark:border-red-800/40 dark:bg-red-950/20"
-          : "border-violet-200 bg-violet-50 dark:border-violet-700/40 dark:bg-violet-950/20",
+          ? "border-red-800/40 bg-red-950/20"
+          : "border-violet-700/40 bg-violet-950/20",
       )}
     >
       {isLoading && (
-        <div className="flex items-center gap-2 text-violet-600 dark:text-violet-400">
+        <div className="flex items-center gap-2 text-violet-400">
           <Sparkles className="h-3.5 w-3.5 shrink-0 animate-pulse" />
-          <span className="text-xs animate-pulse text-neutral-500 dark:text-neutral-400">
+          <span className="text-xs animate-pulse text-neutral-400">
             AI is picking the best release…
           </span>
         </div>
       )}
 
       {isError && (
-        <div className="flex items-center justify-between gap-2 text-red-600 dark:text-red-400">
+        <div className="flex items-center justify-between gap-2 text-red-400">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span className="text-xs">Could not get a response from AI</span>
@@ -74,7 +74,7 @@ export function AiPickBanner({
       {!isLoading && !isError && release && (
         <>
           {grabbed ? (
-            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+            <div className="flex items-center gap-2 text-green-400">
               <Check className="h-3.5 w-3.5 shrink-0" />
               <span className="text-xs font-medium">Grabbed!</span>
             </div>
@@ -82,14 +82,14 @@ export function AiPickBanner({
             <div className="flex min-w-0 items-start gap-2">
               <Sparkles className="mt-px h-3.5 w-3.5 shrink-0 text-violet-500" />
               <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-xs font-semibold text-violet-700 dark:text-violet-300">
+                <p className="text-xs font-semibold text-violet-300">
                   AI Pick
                 </p>
-                <p className="break-words text-xs leading-snug text-neutral-700 dark:text-neutral-300">
+                <p className="break-words text-xs leading-snug text-neutral-300">
                   {release.title}
                 </p>
                 {reasoning && (
-                  <p className="text-xs italic leading-snug text-neutral-500 dark:text-neutral-400">
+                  <p className="text-xs italic leading-snug text-neutral-400">
                     {reasoning}
                   </p>
                 )}
@@ -106,7 +106,7 @@ export function AiPickBanner({
                   <button
                     type="button"
                     onClick={onDismiss}
-                    className="flex h-7 w-7 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-violet-100 hover:text-neutral-600 dark:hover:bg-violet-900/30 dark:hover:text-neutral-300"
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-violet-900/30 hover:text-neutral-300"
                     aria-label="Dismiss"
                   >
                     <X className="h-3.5 w-3.5" />

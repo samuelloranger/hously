@@ -81,7 +81,7 @@ export function NotificationToastContainer() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200/80 dark:border-neutral-700/60 overflow-hidden"
+          className="pointer-events-auto bg-neutral-800 rounded-xl shadow-lg border border-neutral-700/60 overflow-hidden"
           style={{
             animation: toast.leaving
               ? `slideOutToLeft ${EXIT_DURATION}ms ease-in forwards`
@@ -89,12 +89,12 @@ export function NotificationToastContainer() {
           }}
         >
           <div className="flex items-center justify-between px-3 pt-2 pb-0.5">
-            <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">
               Hously
             </span>
             <button
               onClick={() => dismiss(toast.id)}
-              className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors p-0.5 rounded"
+              className="text-neutral-400 hover:text-neutral-200 transition-colors p-0.5 rounded"
             >
               <X className="h-3 w-3" />
             </button>
@@ -110,7 +110,7 @@ export function NotificationToastContainer() {
               dismiss(toast.id);
             }}
           />
-          <div className="h-0.5 bg-neutral-100 dark:bg-neutral-700/60">
+          <div className="h-0.5 bg-neutral-700/60">
             <div
               className="h-full bg-primary-500 origin-left"
               style={{

@@ -52,12 +52,12 @@ export function BoardKanban({
       <div className="flex gap-4 overflow-x-auto pb-4 [-webkit-overflow-scrolling:touch]">
         {BOARD_KANBAN_STATUSES.map((status) => (
           <BoardColumn key={status} status={status}>
-            <div className="border-b border-neutral-200/80 px-3 py-2.5 dark:border-neutral-700/50">
+            <div className="border-b px-3 py-2.5 border-neutral-700/50">
               <div className="flex items-center gap-2">
-                <h3 className="text-[13px] font-semibold text-neutral-800 dark:text-neutral-100">
+                <h3 className="text-[13px] font-semibold text-neutral-100">
                   {statusLabel(status)}
                 </h3>
-                <span className="rounded-full bg-neutral-200/60 px-1.5 py-px text-[10px] font-medium text-neutral-500 dark:bg-neutral-700/60 dark:text-neutral-400">
+                <span className="rounded-full px-1.5 py-px text-[10px] font-medium bg-neutral-700/60 text-neutral-400">
                   {columns[status].length}
                   {hasActiveFilters &&
                     unfilteredColumns[status].length !==
@@ -82,7 +82,7 @@ export function BoardKanban({
                 />
               ))}
               {columns[status].length === 0 && (
-                <p className="py-8 text-center text-xs text-neutral-400 dark:text-neutral-500">
+                <p className="py-8 text-center text-xs text-neutral-500">
                   {hasActiveFilters
                     ? "No matching tasks"
                     : t("board.emptyColumn")}

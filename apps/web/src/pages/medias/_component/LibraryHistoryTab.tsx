@@ -20,7 +20,7 @@ import {
 } from "./LibraryHistoryRow";
 
 const panelClassName =
-  "rounded-lg border border-neutral-100 bg-neutral-50/70 dark:border-neutral-700/60 dark:bg-neutral-900/50";
+  "rounded-lg border border-neutral-700/60 bg-neutral-900/50";
 
 // ─── Main export ───────────────────────────────────────────────────────────────
 
@@ -59,12 +59,12 @@ export function LibraryHistoryTab() {
   };
 
   return (
-    <Card className="animate-in fade-in slide-in-from-right-4 duration-300 border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800">
-      <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-700/60">
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+    <Card className="animate-in fade-in slide-in-from-right-4 duration-300 border-neutral-700 bg-neutral-800">
+      <div className="px-6 py-4 border-b border-neutral-700/60">
+        <h2 className="text-sm font-semibold text-neutral-100">
           {t("settings.mediaHistory.title")}
         </h2>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+        <p className="text-xs text-neutral-400 mt-0.5">
           {t("settings.mediaHistory.description")}
         </p>
       </div>
@@ -107,7 +107,7 @@ export function LibraryHistoryTab() {
         <Card
           className={cn(
             panelClassName,
-            "overflow-hidden divide-y divide-neutral-100 dark:divide-neutral-800",
+            "overflow-hidden divide-y divide-neutral-800",
           )}
         >
           {isLoading ? (
@@ -115,19 +115,19 @@ export function LibraryHistoryTab() {
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="px-4 py-3 flex items-center gap-3">
                   <div className="flex-1 space-y-1.5">
-                    <div className="h-3 w-32 rounded bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
-                    <div className="h-2.5 w-56 rounded bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+                    <div className="h-3 w-32 rounded bg-neutral-800 animate-pulse" />
+                    <div className="h-2.5 w-56 rounded bg-neutral-800 animate-pulse" />
                   </div>
-                  <div className="h-5 w-14 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+                  <div className="h-5 w-14 rounded-full bg-neutral-800 animate-pulse" />
                 </div>
               ))}
             </div>
           ) : items.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+            <div className="px-4 py-10 text-center text-sm text-neutral-400">
               {t("medias.history.empty")}
             </div>
           ) : (
-            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+            <div className="divide-y divide-neutral-800">
               {items.map((item) => (
                 <HistoryRow key={item.id} item={item} />
               ))}
@@ -137,7 +137,7 @@ export function LibraryHistoryTab() {
 
         {totalPages > 1 && (
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs text-neutral-400">
               {t("medias.history.paginationRange", {
                 start: (page - 1) * limit + 1,
                 end: Math.min(page * limit, total),
@@ -149,18 +149,18 @@ export function LibraryHistoryTab() {
                 type="button"
                 onClick={() => setPage((p) => p - 1)}
                 disabled={page <= 1}
-                className="rounded-lg p-1.5 text-neutral-500 transition-colors hover:text-neutral-700 disabled:opacity-40 dark:hover:text-neutral-300"
+                className="rounded-lg p-1.5 text-neutral-500 transition-colors disabled:opacity-40 hover:text-neutral-300"
               >
                 <ChevronLeft size={15} />
               </button>
-              <span className="min-w-[60px] text-center text-xs text-neutral-600 dark:text-neutral-400">
+              <span className="min-w-[60px] text-center text-xs text-neutral-400">
                 {page} / {totalPages}
               </span>
               <button
                 type="button"
                 onClick={() => setPage((p) => p + 1)}
                 disabled={!hasMore}
-                className="rounded-lg p-1.5 text-neutral-500 transition-colors hover:text-neutral-700 disabled:opacity-40 dark:hover:text-neutral-300"
+                className="rounded-lg p-1.5 text-neutral-500 transition-colors disabled:opacity-40 hover:text-neutral-300"
               >
                 <ChevronRight size={15} />
               </button>

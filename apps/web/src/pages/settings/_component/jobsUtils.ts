@@ -5,28 +5,28 @@
 export const getStatusColor = (status: string | null) => {
   switch (status) {
     case "active":
-      return "text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30";
+      return "text-blue-400 bg-blue-900/30";
     case "waiting":
-      return "text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30";
+      return "text-amber-400 bg-amber-900/30";
     case "failed":
-      return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30";
+      return "text-red-400 bg-red-900/30";
     case "completed":
-      return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
+      return "text-green-400 bg-green-900/30";
     default:
-      return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/30";
+      return "text-gray-400 bg-gray-900/30";
   }
 };
 
 export function getLibraryHealthRunStatusColor(status: string) {
   switch (status) {
     case "success":
-      return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
+      return "text-green-400 bg-green-900/30";
     case "failed":
-      return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30";
+      return "text-red-400 bg-red-900/30";
     case "skipped":
-      return "text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30";
+      return "text-amber-400 bg-amber-900/30";
     default:
-      return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/30";
+      return "text-gray-400 bg-gray-900/30";
   }
 }
 

@@ -50,11 +50,11 @@ export function IntegrationUrlInput({
 
   return (
     <div className={className}>
-      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+      <label className="block text-sm font-medium text-neutral-300 mb-2">
         {label}
       </label>
       {description && (
-        <p className="mb-2 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="mb-2 text-xs text-neutral-400">
           {description}
         </p>
       )}
@@ -65,14 +65,14 @@ export function IntegrationUrlInput({
         onBlur={handleBlur}
         placeholder={placeholder}
         className={cn(
-          "w-full px-4 py-2 border rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white transition-colors",
+          "w-full px-4 py-2 border rounded-lg bg-neutral-900 text-white transition-colors",
           error
-            ? "border-red-400 dark:border-red-500 focus:ring-red-400"
-            : "border-neutral-300 dark:border-neutral-600 focus:ring-primary-500",
+            ? "border-red-500 focus:ring-red-400"
+            : "border-neutral-600 focus:ring-primary-500",
         )}
       />
       {error && (
-        <p className="mt-1 text-xs text-red-500 dark:text-red-400">{error}</p>
+        <p className="mt-1 text-xs text-red-400">{error}</p>
       )}
     </div>
   );

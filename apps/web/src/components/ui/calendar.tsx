@@ -164,7 +164,7 @@ export function Calendar({
   return (
     <div
       className={cn(
-        "rounded-md border border-neutral-200 dark:border-neutral-800 p-3",
+        "rounded-md border border-neutral-800 p-3",
         className,
       )}
     >
@@ -173,7 +173,7 @@ export function Calendar({
         <button
           type="button"
           onClick={previousMonth}
-          className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 opacity-50 hover:opacity-100"
+          className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-neutral-800 opacity-50 hover:opacity-100"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -183,7 +183,7 @@ export function Calendar({
         <button
           type="button"
           onClick={nextMonth}
-          className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 opacity-50 hover:opacity-100"
+          className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-neutral-800 opacity-50 hover:opacity-100"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -194,7 +194,7 @@ export function Calendar({
         {weekDays.map((day, index) => (
           <div
             key={index}
-            className="flex-1 text-center text-xs font-normal text-neutral-500 dark:text-neutral-400"
+            className="flex-1 text-center text-xs font-normal text-neutral-400"
           >
             {day.slice(0, 2)}
           </div>
@@ -239,10 +239,10 @@ export function Calendar({
               className={cn(
                 "h-9 w-full aspect-square p-0 font-normal rounded-md transition-colors",
                 !isCurrentMonth &&
-                  "text-neutral-400 dark:text-neutral-600 opacity-50",
+                  "text-neutral-600 opacity-50",
                 isToday && "font-semibold",
                 isDisabled &&
-                  "text-neutral-400 dark:text-neutral-600 opacity-50 cursor-not-allowed",
+                  "text-neutral-600 opacity-50 cursor-not-allowed",
                 // Single mode selected
                 isSelected &&
                   "bg-primary-600 text-neutral-950 hover:bg-primary-500",
@@ -258,7 +258,7 @@ export function Calendar({
                   isRangeEndDate &&
                   "rounded-md bg-primary-600 text-neutral-950",
                 // Range mode - hover preview
-                isInHoverRange && "bg-blue-100 dark:bg-blue-900",
+                isInHoverRange && "bg-blue-900",
                 hoverRange &&
                   isRangeStart(day, hoverRange.from) &&
                   !isRangeEnd(day, hoverRange.to) &&

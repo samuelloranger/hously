@@ -52,7 +52,7 @@ export const LANGUAGE_OPTIONS = [
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+    <label className="text-sm font-medium text-neutral-300">
       {children}
     </label>
   );
@@ -77,7 +77,7 @@ const emptyPayload: QualityProfileFormPayload = {
 };
 
 const selectClass =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
+  "w-full rounded-lg border px-3 py-2 text-sm border-neutral-700 bg-neutral-900 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
 
 // ─── Form (remounted via key when editing target / server row changes) ─────────
 
@@ -216,8 +216,8 @@ export function QualityProfileForm({
                 className={cn(
                   "flex h-4 w-4 items-center justify-center rounded border transition-colors",
                   form.prefer_hdr
-                    ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
-                    : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
+                    ? "text-white border-primary-400 bg-primary-400"
+                    : "border-neutral-600 group-hover:border-neutral-400",
                 )}
               >
                 {form.prefer_hdr && <Check size={10} strokeWidth={3} />}
@@ -228,7 +228,7 @@ export function QualityProfileForm({
                 checked={form.prefer_hdr}
                 onChange={(e) => set("prefer_hdr", e.target.checked)}
               />
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+              <span className="text-sm text-neutral-300">
                 {t("settings.qualityProfiles.preferHdr")}
               </span>
             </label>
@@ -237,8 +237,8 @@ export function QualityProfileForm({
                 className={cn(
                   "flex h-4 w-4 items-center justify-center rounded border transition-colors",
                   form.require_hdr
-                    ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
-                    : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
+                    ? "text-white border-primary-400 bg-primary-400"
+                    : "border-neutral-600 group-hover:border-neutral-400",
                 )}
               >
                 {form.require_hdr && <Check size={10} strokeWidth={3} />}
@@ -249,7 +249,7 @@ export function QualityProfileForm({
                 checked={form.require_hdr}
                 onChange={(e) => set("require_hdr", e.target.checked)}
               />
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+              <span className="text-sm text-neutral-300">
                 {t("settings.qualityProfiles.requireHdr")}
               </span>
             </label>
@@ -288,7 +288,7 @@ export function QualityProfileForm({
         />
       </div>
 
-      <div className="flex items-center gap-2 pt-1 border-t border-neutral-100 dark:border-neutral-700/60">
+      <div className="flex items-center gap-2 pt-1 border-t border-neutral-700/60">
         <Button type="submit" disabled={busy}>
           {isEditing
             ? t("settings.qualityProfiles.save")

@@ -15,12 +15,12 @@ export function ArrMigrationResult({
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+      <p className="text-xs font-semibold text-emerald-400">
         {t("settings.arrImport.importComplete")}
       </p>
       {result.radarr && (
-        <div className="rounded-lg bg-neutral-50 dark:bg-neutral-800/60 px-3 py-2 text-[10px] text-neutral-600 dark:text-neutral-400">
-          <span className="font-medium text-neutral-700 dark:text-neutral-300">
+        <div className="rounded-lg bg-neutral-800/60 px-3 py-2 text-[10px] text-neutral-400">
+          <span className="font-medium text-neutral-300">
             {t("settings.arrImport.serviceRadarr")}:{" "}
           </span>
           {t("settings.arrImport.radarrResultLine", {
@@ -40,8 +40,8 @@ export function ArrMigrationResult({
         </div>
       )}
       {result.sonarr && (
-        <div className="rounded-lg bg-neutral-50 dark:bg-neutral-800/60 px-3 py-2 text-[10px] text-neutral-600 dark:text-neutral-400">
-          <span className="font-medium text-neutral-700 dark:text-neutral-300">
+        <div className="rounded-lg bg-neutral-800/60 px-3 py-2 text-[10px] text-neutral-400">
+          <span className="font-medium text-neutral-300">
             {t("settings.arrImport.serviceSonarr")}:{" "}
           </span>
           {t("settings.arrImport.sonarrResultLine", {

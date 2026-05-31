@@ -94,7 +94,7 @@ export function LibraryToolbar({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t("medias.library.searchPlaceholder")}
-            className="w-full sm:w-80 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
+            className="w-full sm:w-80 rounded-xl border border-neutral-700 bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition"
           />
         </div>
 
@@ -104,7 +104,7 @@ export function LibraryToolbar({
             value={sortBy}
             onValueChange={(value) => onSortByChange(value as SortKey)}
           >
-            <SelectTrigger className="h-8 w-auto rounded-xl border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300">
+            <SelectTrigger className="h-8 w-auto rounded-xl border-neutral-700 bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-300">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -118,7 +118,7 @@ export function LibraryToolbar({
           <button
             type="button"
             onClick={onSortDirToggle}
-            className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+            className="rounded-xl border border-neutral-700 bg-neutral-900 p-1.5 text-neutral-500 hover:text-neutral-300 transition-colors"
             title={
               sortDir === "asc"
                 ? t("medias.sortDirectionAsc")
@@ -133,7 +133,7 @@ export function LibraryToolbar({
           </button>
 
           {/* View mode toggle */}
-          <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
+          <div className="flex items-center rounded-xl border border-neutral-700 bg-neutral-900 overflow-hidden">
             {(
               [
                 {
@@ -157,8 +157,8 @@ export function LibraryToolbar({
                 className={cn(
                   "p-1.5 transition-colors",
                   viewMode === mode
-                    ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200"
-                    : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300",
+                    ? "bg-neutral-800 text-neutral-200"
+                    : "text-neutral-400 hover:text-neutral-300",
                 )}
               >
                 <Icon size={14} />
@@ -175,7 +175,7 @@ export function LibraryToolbar({
           <button
             type="button"
             onClick={onOpenMobileSheet}
-            className="relative flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+            className="relative flex h-9 items-center gap-1.5 rounded-xl border px-3 text-sm font-medium transition-colors border-neutral-700 bg-neutral-900 text-neutral-300"
           >
             <SlidersHorizontal size={13} />
             {t("medias.library.filtersButton")}
@@ -190,7 +190,7 @@ export function LibraryToolbar({
           <button
             type="button"
             onClick={onOpenMobileSheet}
-            className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs text-neutral-500 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            className="flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs transition-colors border-neutral-700 bg-neutral-900 text-neutral-400"
           >
             {sortDir === "asc" ? (
               <ArrowUpAZ size={12} />
@@ -203,7 +203,7 @@ export function LibraryToolbar({
           <div className="flex-1" />
 
           {/* View mode toggle */}
-          <div className="flex overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+          <div className="flex overflow-hidden rounded-xl border border-neutral-700 bg-neutral-900">
             {(
               [
                 { mode: "grid" as ViewMode, Icon: LayoutGrid },
@@ -218,8 +218,8 @@ export function LibraryToolbar({
                 className={cn(
                   "flex h-9 w-9 items-center justify-center transition-colors",
                   viewMode === mode
-                    ? "bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
-                    : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300",
+                    ? "bg-neutral-800 text-neutral-200"
+                    : "text-neutral-400 hover:text-neutral-300",
                 )}
               >
                 <Icon size={14} />
@@ -235,7 +235,7 @@ export function LibraryToolbar({
               <button
                 type="button"
                 onClick={() => onTypeChange("all")}
-                className="flex shrink-0 items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 dark:border-primary-800 dark:bg-primary-900/30 dark:text-primary-300"
+                className="flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium border-primary-800 bg-primary-900/30 text-primary-300"
               >
                 {typeItems.find((i) => i.id === typeFilter)?.label}
                 <X size={10} />
@@ -245,7 +245,7 @@ export function LibraryToolbar({
               <button
                 type="button"
                 onClick={() => onStatusChange("all")}
-                className="flex shrink-0 items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 dark:border-primary-800 dark:bg-primary-900/30 dark:text-primary-300"
+                className="flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium border-primary-800 bg-primary-900/30 text-primary-300"
               >
                 {statusItems.find((i) => i.id === statusFilter)?.label}
                 <X size={10} />
@@ -255,7 +255,7 @@ export function LibraryToolbar({
               <button
                 type="button"
                 onClick={() => onLanguageChange("all")}
-                className="flex shrink-0 items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 dark:border-primary-800 dark:bg-primary-900/30 dark:text-primary-300"
+                className="flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium border-primary-800 bg-primary-900/30 text-primary-300"
               >
                 {languageFilter}
                 <X size={10} />
@@ -274,7 +274,7 @@ export function LibraryToolbar({
           value={typeFilter}
           onChange={onTypeChange}
         />
-        <div className="h-4 w-px shrink-0 bg-neutral-200 dark:bg-neutral-700" />
+        <div className="h-4 w-px shrink-0 bg-neutral-700" />
         <SegmentedTabs<FilterStatus>
           variant="chips"
           containerClassName="w-auto shrink-0"
@@ -285,11 +285,11 @@ export function LibraryToolbar({
         />
         {languageTags.length > 0 && (
           <>
-            <div className="h-4 w-px shrink-0 bg-neutral-200 dark:bg-neutral-700" />
+            <div className="h-4 w-px shrink-0 bg-neutral-700" />
             <Select value={languageFilter} onValueChange={onLanguageChange}>
               <SelectTrigger
                 aria-label={t("medias.library.languageAll")}
-                className="h-8 w-auto rounded-lg border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs"
+                className="h-8 w-auto rounded-lg border-neutral-700 bg-neutral-900 px-3 py-1.5 text-xs"
               >
                 <SelectValue />
               </SelectTrigger>

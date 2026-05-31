@@ -93,10 +93,10 @@ export function BoardTaskCard({
         if (e.key === "Enter") onCardClick(task, e);
       }}
       className={cn(
-        "group cursor-pointer rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:bg-neutral-800",
+        "group cursor-pointer rounded-lg border p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing bg-neutral-800",
         isSelected
-          ? "border-primary-400 ring-1 ring-primary-300/80 dark:border-primary-500 dark:ring-primary-600/50"
-          : "border-neutral-200/90 dark:border-neutral-600/60 dark:hover:border-neutral-500/60",
+          ? "ring-1 border-primary-500 ring-primary-600/50"
+          : "border-neutral-600/60 hover:border-neutral-500/60",
       )}
     >
       {/* Top row: checkbox + slug + priority dot */}
@@ -111,10 +111,10 @@ export function BoardTaskCard({
             }}
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-            className="h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-primary-600 focus:ring-primary-500 dark:border-neutral-600"
+            className="h-3.5 w-3.5 shrink-0 rounded text-primary-600 focus:ring-primary-500 border-neutral-600"
             aria-label={t("board.bulk.selectTask")}
           />
-          <span className="truncate font-mono text-[10px] font-semibold text-neutral-400 dark:text-neutral-500">
+          <span className="truncate font-mono text-[10px] font-semibold text-neutral-500">
             {task.slug}
           </span>
         </div>
@@ -128,7 +128,7 @@ export function BoardTaskCard({
       </div>
 
       {/* Title */}
-      <p className="text-sm font-medium leading-snug text-neutral-900 dark:text-white">
+      <p className="text-sm font-medium leading-snug text-white">
         {task.title}
       </p>
 
@@ -138,7 +138,7 @@ export function BoardTaskCard({
           {task.tags.slice(0, 3).map((tag) => (
             <span
               key={tag.id}
-              className="flex items-center gap-1 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+              className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-neutral-700 text-neutral-400"
             >
               {tag.color && (
                 <span
@@ -150,7 +150,7 @@ export function BoardTaskCard({
             </span>
           ))}
           {task.tags.length > 3 && (
-            <span className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-400 dark:bg-neutral-700 dark:text-neutral-500">
+            <span className="rounded-full px-1.5 py-0.5 text-[10px] bg-neutral-700 text-neutral-500">
               +{task.tags.length - 3}
             </span>
           )}
@@ -159,7 +159,7 @@ export function BoardTaskCard({
 
       {/* Blocked indicator */}
       {task.blocked_by.some((d) => !d.is_resolved) && (
-        <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-orange-500 dark:text-orange-400">
+        <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-orange-400">
           <Lock className="h-3 w-3" />
           Blocked
         </div>
@@ -174,7 +174,7 @@ export function BoardTaskCard({
               {formatMinutes(task.estimated_minutes)}
             </span>
           </div>
-          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-700">
+          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-neutral-700">
             <div
               className={`h-full rounded-full transition-all ${
                 task.logged_minutes >= task.estimated_minutes
@@ -199,12 +199,12 @@ export function BoardTaskCard({
               className={cn(
                 "flex items-center gap-1 text-[11px] font-medium",
                 isOverdue
-                  ? "text-red-500 dark:text-red-400"
+                  ? "text-red-400"
                   : isDueToday
-                    ? "text-orange-500 dark:text-orange-400"
+                    ? "text-orange-400"
                     : isDueSoon
-                      ? "text-amber-600 dark:text-amber-400"
-                      : "text-neutral-400 dark:text-neutral-500",
+                      ? "text-amber-400"
+                      : "text-neutral-500",
               )}
             >
               {isOverdue ? (
@@ -221,12 +221,12 @@ export function BoardTaskCard({
               src={task.assignee_avatar}
               alt={task.assignee_name ?? ""}
               title={task.assignee_name ?? ""}
-              className="h-5 w-5 rounded-full object-cover ring-1 ring-white dark:ring-neutral-800"
+              className="h-5 w-5 rounded-full object-cover ring-1 ring-neutral-800"
             />
           ) : initials ? (
             <span
               title={task.assignee_name ?? ""}
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-600 ring-1 ring-white dark:bg-primary-900/40 dark:text-primary-400 dark:ring-neutral-800"
+              className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold ring-1 bg-primary-900/40 text-primary-400 ring-neutral-800"
             >
               {initials}
             </span>

@@ -30,8 +30,8 @@ export function DiscoverFilterChip({
       className={[
         "flex min-w-0 w-full max-w-full items-center rounded-full border text-xs font-medium transition-colors",
         active
-          ? "border-primary-500/50 bg-primary-500/10 text-primary-700 dark:text-primary-200"
-          : "border-neutral-200 dark:border-white/[0.09] bg-white dark:bg-white/[0.03] text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-white/20",
+          ? "border-primary-500/50 bg-primary-500/10 text-primary-200"
+          : "border-white/[0.09] bg-white/[0.03] text-neutral-300 hover:border-white/20",
       ].join(" ")}
     >
       <div className="min-w-0 flex-1">
@@ -88,7 +88,7 @@ export function DiscoverFilterChip({
             onClear();
           }}
           aria-label="Clear filter"
-          className="mr-1 flex h-5 w-5 items-center justify-center rounded-full text-neutral-400 hover:bg-black/5 hover:text-neutral-700 dark:hover:bg-white/10 dark:hover:text-neutral-200"
+          className="mr-1 flex h-5 w-5 items-center justify-center rounded-full text-neutral-400 hover:bg-white/10 hover:text-neutral-200"
         >
           <X size={12} />
         </button>

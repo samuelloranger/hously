@@ -18,10 +18,10 @@ export const HabitProgress: React.FC<HabitProgressProps> = ({ statuses }) => {
           className={cn(
             "h-2.5 w-2.5 rounded-full transition-all duration-300",
             s.status === "done" &&
-              "bg-primary-500 dark:bg-primary-400 shadow-[0_0_8px_rgba(59,130,246,0.3)]",
+              "bg-primary-400 shadow-[0_0_8px_rgba(59,130,246,0.3)]",
             s.status === "skipped" &&
-              "bg-rose-400 dark:bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.25)]",
-            s.status === "pending" && "bg-neutral-200 dark:bg-neutral-700",
+              "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.25)]",
+            s.status === "pending" && "bg-neutral-700",
           )}
         />
       ))}

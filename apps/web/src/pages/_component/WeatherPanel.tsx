@@ -23,7 +23,7 @@ const toCelsius = (fahrenheit: number): number => (fahrenheit - 32) * (5 / 9);
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+    <h3 className="text-sm font-semibold text-neutral-100">
       {children}
     </h3>
   );
@@ -31,7 +31,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">
+    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
       {children}
     </span>
   );
@@ -40,7 +40,7 @@ function Kicker({ children }: { children: React.ReactNode }) {
 function WeatherIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
     <Icon
-      className="size-9 shrink-0 text-sky-600 dark:text-sky-400"
+      className="size-9 shrink-0 text-sky-400"
       strokeWidth={1.75}
       aria-hidden
     />
@@ -77,22 +77,22 @@ function weatherStatusIcon(weather: WeatherData): LucideIcon {
 
 function WeatherPanelSkeleton() {
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-neutral-800">
         <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
         <CloudSun
-          className="w-4 h-4 shrink-0 text-zinc-300 dark:text-zinc-600"
+          className="w-4 h-4 shrink-0 text-neutral-600"
           strokeWidth={2}
         />
-        <div className="h-3 w-14 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+        <div className="h-3 w-14 rounded-full bg-neutral-800 animate-pulse" />
       </div>
       <div className="px-4 py-3">
         <div className="flex items-start gap-3">
-          <div className="size-9 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+          <div className="size-9 shrink-0 rounded-xl bg-neutral-800 animate-pulse" />
           <div className="flex-1 space-y-2.5 pt-0.5">
-            <div className="h-2 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-            <div className="h-6 w-14 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-            <div className="h-2 w-40 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            <div className="h-2 w-20 rounded-full bg-neutral-800 animate-pulse" />
+            <div className="h-6 w-14 rounded bg-neutral-800 animate-pulse" />
+            <div className="h-2 w-40 rounded-full bg-neutral-800 animate-pulse" />
           </div>
         </div>
       </div>
@@ -140,24 +140,24 @@ export function WeatherPanel() {
         />
       )}
       <section
-        className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden cursor-pointer"
+        className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden cursor-pointer"
         onClick={() => setForecastOpen(true)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => e.key === "Enter" && setForecastOpen(true)}
         {...prefetchIntent}
       >
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-neutral-800">
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
             <CloudSun
-              className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+              className="w-4 h-4 shrink-0 text-neutral-400"
               strokeWidth={2}
             />
             <SectionTitle>{t("dashboard.weather.kicker")}</SectionTitle>
           </div>
           {weatherQuery.isFetching ? (
-            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
               {t("dashboard.weather.updating")}
             </span>
           ) : null}
@@ -168,13 +168,13 @@ export function WeatherPanel() {
             <WeatherIcon icon={statusIcon} />
             <div className="min-w-0 flex-1">
               <Kicker>{weatherQuery.data.location_name}</Kicker>
-              <p className="mt-2 text-xl font-bold leading-none tabular-nums text-zinc-900 dark:text-zinc-50">
+              <p className="mt-2 text-xl font-bold leading-none tabular-nums text-neutral-50">
                 {t("dashboard.weather.temperature", {
                   temp: Math.round(temperatureValue),
                   unit: unitLabel,
                 })}
               </p>
-              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              <p className="mt-1.5 text-xs text-neutral-400 leading-relaxed">
                 {t("dashboard.weather.feelsLikeLine", {
                   condition: conditionLabel,
                   feelsLike: Math.round(feelsLikeValue),

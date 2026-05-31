@@ -44,14 +44,14 @@ export function BoardToolbar({
   return (
     <div className="mb-4 flex items-center gap-2">
       {/* View toggle */}
-      <div className="flex rounded-lg border border-neutral-200/80 bg-neutral-100/60 p-0.5 dark:border-neutral-700/60 dark:bg-neutral-800/60">
+      <div className="flex rounded-lg border p-0.5 border-neutral-700/60 bg-neutral-800/60">
         <button
           onClick={() => onViewModeChange("board")}
           className={cn(
             "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
             viewMode === "board"
-              ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white"
-              : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200",
+              ? "shadow-sm bg-neutral-700 text-white"
+              : "text-neutral-400 hover:text-neutral-200",
           )}
         >
           <LayoutGrid className="h-3.5 w-3.5" />
@@ -62,14 +62,14 @@ export function BoardToolbar({
           className={cn(
             "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
             viewMode === "backlog"
-              ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white"
-              : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200",
+              ? "shadow-sm bg-neutral-700 text-white"
+              : "text-neutral-400 hover:text-neutral-200",
           )}
         >
           <List className="h-3.5 w-3.5" />
           Backlog
           {backlogCount > 0 && (
-            <span className="rounded-full bg-neutral-200/80 px-1.5 py-px text-[10px] text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300">
+            <span className="rounded-full px-1.5 py-px text-[10px] bg-neutral-700 text-neutral-300">
               {backlogCount}
             </span>
           )}
@@ -79,8 +79,8 @@ export function BoardToolbar({
           className={cn(
             "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
             viewMode === "archive"
-              ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white"
-              : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200",
+              ? "shadow-sm bg-neutral-700 text-white"
+              : "text-neutral-400 hover:text-neutral-200",
           )}
         >
           <Archive className="h-3.5 w-3.5" />
@@ -92,7 +92,7 @@ export function BoardToolbar({
 
       {/* Backlog sort */}
       {viewMode === "backlog" && (
-        <div className="flex items-center gap-1 rounded-lg border border-neutral-200/80 bg-neutral-50 px-2.5 py-1.5 dark:border-neutral-700/60 dark:bg-neutral-900/40">
+        <div className="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 border-neutral-700/60 bg-neutral-900/40">
           <span className="text-[11px] font-medium text-neutral-400">
             Sort:
           </span>
@@ -101,7 +101,7 @@ export function BoardToolbar({
             onChange={(e) =>
               onBacklogSortChange(e.target.value as BacklogSortOption)
             }
-            className="bg-transparent text-[12px] font-medium text-neutral-700 outline-none dark:text-neutral-200"
+            className="bg-transparent text-[12px] font-medium outline-none text-neutral-200"
           >
             {BACKLOG_SORT_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
@@ -111,7 +111,7 @@ export function BoardToolbar({
           </select>
           <button
             onClick={onBacklogSortDirToggle}
-            className="ml-1 text-[11px] font-medium text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+            className="ml-1 text-[11px] font-medium text-neutral-400 hover:text-neutral-200"
             title={backlogSortDir === "asc" ? "Ascending" : "Descending"}
           >
             {backlogSortDir === "asc" ? "↑" : "↓"}
@@ -125,8 +125,8 @@ export function BoardToolbar({
         className={cn(
           "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
           hasActiveFilters
-            ? "border-primary-300 bg-primary-50 text-primary-700 dark:border-primary-700/60 dark:bg-primary-900/20 dark:text-primary-300"
-            : "border-neutral-200/80 bg-white text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700/60 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700/60",
+            ? "border-primary-700/60 bg-primary-900/20 text-primary-300"
+            : "border-neutral-700/60 bg-neutral-800 text-neutral-300 hover:bg-neutral-700/60",
         )}
       >
         <Filter className="h-3.5 w-3.5" />

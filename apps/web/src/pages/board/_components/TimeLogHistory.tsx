@@ -25,13 +25,13 @@ export function TimeLogHistory({ taskId }: { taskId: number }) {
                 className="h-5 w-5 shrink-0 rounded-full object-cover"
               />
             ) : (
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-600 dark:bg-primary-900/40 dark:text-primary-400">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold bg-primary-900/40 text-primary-400">
                 {initials}
               </span>
             )}
             <div className="flex-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-200">
+                <span className="text-[11px] font-semibold text-neutral-200">
                   {formatMinutes(log.minutes)}
                 </span>
                 <span className="text-[10px] text-neutral-400">
@@ -39,7 +39,7 @@ export function TimeLogHistory({ taskId }: { taskId: number }) {
                 </span>
               </div>
               {log.note && (
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                <p className="text-[11px] text-neutral-400">
                   {log.note}
                 </p>
               )}

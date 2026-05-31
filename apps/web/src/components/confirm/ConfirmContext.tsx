@@ -96,7 +96,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           <AlertDialog.Overlay className="fixed inset-0 z-[var(--z-modal)] bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
           <AlertDialog.Content
             className={cn(
-              "fixed left-1/2 top-1/2 z-[var(--z-modal)] grid max-h-[90dvh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left shadow-xl outline-none dark:border-neutral-700 dark:bg-neutral-800",
+              "fixed left-1/2 top-1/2 z-[var(--z-modal)] grid max-h-[90dvh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-2xl border p-6 text-left shadow-xl outline-none border-neutral-700 bg-neutral-800",
               "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
             )}
             onOpenAutoFocus={
@@ -108,7 +108,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 : undefined
             }
           >
-            <AlertDialog.Title className="text-lg font-medium leading-6 text-neutral-900 dark:text-white">
+            <AlertDialog.Title className="text-lg font-medium leading-6 text-white">
               {title}
             </AlertDialog.Title>
             {dialog?.hideDescription ? (
@@ -117,7 +117,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               </AlertDialog.Description>
             ) : (
               <AlertDialog.Description asChild>
-                <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                <div className="text-sm text-neutral-400">
                   {description}
                 </div>
               </AlertDialog.Description>

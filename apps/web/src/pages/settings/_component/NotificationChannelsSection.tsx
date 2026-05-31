@@ -66,13 +66,13 @@ export function NotificationChannelsSection() {
 
   return (
     <>
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 space-y-4">
+      <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+            <h2 className="text-base font-semibold text-neutral-100">
               Notification Channels
             </h2>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+            <p className="text-sm text-neutral-400 mt-0.5">
               Push notifications to external services.
             </p>
           </div>
@@ -87,11 +87,11 @@ export function NotificationChannelsSection() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center text-neutral-500 dark:text-neutral-400 text-sm">
+          <div className="p-4 text-center text-neutral-400 text-sm">
             Loading channels…
           </div>
         ) : channels.length === 0 ? (
-          <div className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg text-neutral-500 dark:text-neutral-400 text-sm">
+          <div className="p-4 bg-neutral-700/50 rounded-lg text-neutral-400 text-sm">
             No channels configured.
           </div>
         ) : (
@@ -99,7 +99,7 @@ export function NotificationChannelsSection() {
             {channels.map((channel) => (
               <div
                 key={channel.id}
-                className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg"
+                className="flex items-center justify-between p-4 bg-neutral-700/50 rounded-lg"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <Switch
@@ -110,10 +110,10 @@ export function NotificationChannelsSection() {
                     disabled={updateMutation.isPending}
                   />
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                    <div className="text-sm font-medium text-neutral-100 truncate">
                       {channel.label}
                     </div>
-                    <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    <div className="text-xs text-neutral-400">
                       {channel.type}
                     </div>
                   </div>
@@ -143,7 +143,7 @@ export function NotificationChannelsSection() {
                     onClick={() => handleDelete(channel.id)}
                     disabled={deleteMutation.isPending}
                     title="Delete channel"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10"
+                    className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

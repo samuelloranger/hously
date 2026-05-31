@@ -149,8 +149,8 @@ export function SegmentedTabs<T extends string>({
                   "flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-all duration-150",
                   fullWidth && "flex-1 justify-center",
                   isActive
-                    ? "border-primary-500/30 bg-primary-500/10 text-primary-600 dark:border-primary-500/30 dark:bg-primary-500/15 dark:text-primary-400"
-                    : "border-neutral-200 bg-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-neutral-600 dark:hover:text-neutral-200",
+                    ? "border-primary-500/30 bg-primary-500/15 text-primary-400"
+                    : "bg-transparent border-neutral-700 text-neutral-400 hover:border-neutral-600 hover:text-neutral-200",
                   isActive && activeItemClassName,
                   !isActive && inactiveItemClassName,
                   itemClassName,
@@ -170,8 +170,8 @@ export function SegmentedTabs<T extends string>({
                   <TabBadge
                     className={cn(
                       isActive
-                        ? "bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300"
-                        : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400",
+                        ? "bg-primary-500/20 text-primary-300"
+                        : "bg-neutral-800 text-neutral-400",
                       badgeClassName,
                       isActive && activeBadgeClassName,
                       !isActive && inactiveBadgeClassName,
@@ -193,7 +193,7 @@ export function SegmentedTabs<T extends string>({
     <div
       ref={viewportRef}
       className={cn(
-        "w-full overflow-x-auto border-b border-neutral-200 dark:border-neutral-800 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "w-full overflow-x-auto border-b border-neutral-800 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         containerClassName,
       )}
     >
@@ -216,8 +216,8 @@ export function SegmentedTabs<T extends string>({
                 "relative flex items-center gap-1.5 whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors duration-150",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-1 rounded-t-sm",
                 isActive
-                  ? "text-neutral-900 dark:text-neutral-100"
-                  : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300",
+                  ? "text-neutral-100"
+                  : "text-neutral-400 hover:text-neutral-300",
                 isActive && activeItemClassName,
                 !isActive && inactiveItemClassName,
                 itemClassName,
@@ -234,8 +234,8 @@ export function SegmentedTabs<T extends string>({
                 <TabBadge
                   className={cn(
                     isActive
-                      ? "bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300"
-                      : "bg-neutral-200 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400",
+                      ? "bg-primary-500/20 text-primary-300"
+                      : "bg-neutral-700 text-neutral-400",
                     badgeClassName,
                     isActive && activeBadgeClassName,
                     !isActive && inactiveBadgeClassName,

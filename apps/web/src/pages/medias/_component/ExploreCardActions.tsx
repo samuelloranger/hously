@@ -40,7 +40,7 @@ export function ExploreCardActions({
   const { t } = useTranslation("common");
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-y border-neutral-200 dark:border-neutral-700/60 py-2 mb-3">
+    <div className="flex flex-wrap items-center gap-2 border-y border-neutral-700/60 py-2 mb-3">
       {/* Watchlist toggle */}
       <button
         type="button"
@@ -49,8 +49,8 @@ export function ExploreCardActions({
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-[background-color] disabled:opacity-50",
           isInWatchlist
-            ? "bg-amber-500/25 text-amber-700 hover:bg-amber-500/35 dark:text-amber-400"
-            : "bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400",
+            ? "bg-amber-500/25 hover:bg-amber-500/35 text-amber-400"
+            : "bg-amber-500/10 hover:bg-amber-500/20 text-amber-400",
         )}
       >
         {isInWatchlist ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
@@ -64,7 +64,7 @@ export function ExploreCardActions({
         href={tmdbUrl}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600/10 px-3 py-1.5 text-xs font-medium text-sky-700 transition-[background-color] hover:bg-sky-600/20 dark:text-sky-400"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600/10 px-3 py-1.5 text-xs font-medium transition-[background-color] hover:bg-sky-600/20 text-sky-400"
       >
         <ExternalLink size={12} />
         TMDB
@@ -76,7 +76,7 @@ export function ExploreCardActions({
           href={`https://www.youtube.com/watch?v=${trailerData.key}`}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/10 px-3 py-1.5 text-xs font-medium text-red-700 transition-[background-color] hover:bg-red-600/20 dark:text-red-400"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/10 px-3 py-1.5 text-xs font-medium transition-[background-color] hover:bg-red-600/20 text-red-400"
         >
           <Play size={12} />
           {t("medias.detail.watchTrailer")}
@@ -107,13 +107,13 @@ export function ExploreCardActions({
           to="/library/$libraryId"
           params={{ libraryId: String(item.library_id) }}
           onClick={onClose}
-          className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-[background-color] hover:bg-emerald-500/20 dark:text-emerald-400"
+          className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-medium transition-[background-color] hover:bg-emerald-500/20 text-emerald-400"
         >
           <Check size={12} /> {t("medias.detail.inLibrary")}
         </Link>
       )}
       {item.already_exists && !item.library_id && (
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400">
           <Check size={12} /> {t("medias.detail.inLibrary")}
         </span>
       )}

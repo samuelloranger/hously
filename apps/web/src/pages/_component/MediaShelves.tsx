@@ -51,7 +51,7 @@ function PosterCard({
 }) {
   const inner = (
     <div
-      className="home-poster-card relative w-[120px] md:w-[140px] shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer group"
+      className="home-poster-card relative w-[120px] md:w-[140px] shrink-0 overflow-hidden rounded-lg bg-neutral-800 cursor-pointer group"
       style={{ animationDelay: `${delayMs}ms` }}
       onClick={onClick}
     >
@@ -63,8 +63,8 @@ function PosterCard({
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-zinc-200 dark:bg-zinc-700">
-            <FallbackIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
+          <div className="flex h-full w-full items-center justify-center bg-neutral-700">
+            <FallbackIcon className="w-8 h-8 text-neutral-500" />
           </div>
         )}
       </div>
@@ -156,15 +156,15 @@ export function JellyfinShelf() {
   };
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-blue-500 shrink-0" />
           <PlayCircle
-            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            className="w-4 h-4 shrink-0 text-neutral-400"
             strokeWidth={2}
           />
-          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+          <h3 className="text-sm font-semibold text-neutral-100">
             {t("dashboard.home.jellyfinRecentlyAdded")}
           </h3>
         </div>
@@ -172,7 +172,7 @@ export function JellyfinShelf() {
           type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="text-zinc-400 hover:text-blue-500 transition-colors disabled:opacity-40"
+          className="text-neutral-400 hover:text-blue-500 transition-colors disabled:opacity-40"
           title={t("dashboard.jellyfin.refresh")}
         >
           <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />
@@ -188,16 +188,16 @@ export function JellyfinShelf() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse aspect-[2/3]"
+              className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-neutral-800 animate-pulse aspect-[2/3]"
             />
           ))}
         </div>
       ) : !isEnabled ? (
-        <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+        <p className="px-4 py-6 text-sm text-neutral-400 text-center">
           {t("dashboard.home.jellyfinNotConfigured")}
         </p>
       ) : items.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+        <p className="px-4 py-6 text-sm text-neutral-400 text-center">
           {t("dashboard.home.jellyfinEmpty")}
         </p>
       ) : (
@@ -219,7 +219,7 @@ export function JellyfinShelf() {
               />
             ))}
             {isFetchingNextPage && (
-              <div className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 aspect-[2/3] animate-pulse" />
+              <div className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-neutral-800 aspect-[2/3] animate-pulse" />
             )}
           </div>
         </div>
@@ -306,15 +306,15 @@ export function UpcomingShelf() {
 
   return (
     <>
-      <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+      <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
           <div className="flex items-center gap-2.5">
             <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
             <CalendarClock
-              className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+              className="w-4 h-4 shrink-0 text-neutral-400"
               strokeWidth={2}
             />
-            <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+            <h3 className="text-sm font-semibold text-neutral-100">
               {t("dashboard.home.upcomingShelfTitle")}
             </h3>
           </div>
@@ -322,7 +322,7 @@ export function UpcomingShelf() {
             type="button"
             onClick={() => refreshUpcoming.mutate()}
             disabled={!data?.enabled || isFetching || refreshUpcoming.isPending}
-            className="text-zinc-400 hover:text-amber-500 transition-colors disabled:opacity-40"
+            className="text-neutral-400 hover:text-amber-500 transition-colors disabled:opacity-40"
             title={t("dashboard.upcoming.refresh")}
           >
             <RefreshCw
@@ -339,16 +339,16 @@ export function UpcomingShelf() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse aspect-[2/3]"
+                className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-neutral-800 animate-pulse aspect-[2/3]"
               />
             ))}
           </div>
         ) : !data?.enabled ? (
-          <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+          <p className="px-4 py-6 text-sm text-neutral-400 text-center">
             {t("dashboard.home.upcomingArrNotConfigured")}
           </p>
         ) : data.items.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+          <p className="px-4 py-6 text-sm text-neutral-400 text-center">
             {t("dashboard.home.upcomingEmpty")}
           </p>
         ) : (

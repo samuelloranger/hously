@@ -10,18 +10,18 @@ function badgeFor(
     return {
       label: t("downloadsImport.status.imported"),
       className:
-        "border-neutral-200 bg-neutral-100 text-neutral-500 dark:bg-white/10 dark:text-neutral-400",
+        "border-neutral-200 bg-white/10 text-neutral-400",
     };
   if (row.parsed.title)
     return {
       label: t("downloadsImport.status.ready"),
       className:
-        "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200",
+        "border-emerald-900/60 bg-emerald-950/40 text-emerald-200",
     };
   return {
     label: t("downloadsImport.status.parseFailed"),
     className:
-      "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-200",
+      "border-amber-900/70 bg-amber-950/40 text-amber-200",
   };
 }
 

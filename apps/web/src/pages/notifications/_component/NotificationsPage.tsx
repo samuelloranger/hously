@@ -52,7 +52,7 @@ export function NotificationsPage() {
 
       <div className="w-full mb-4 flex flex-col items-center justify-between">
         {isLoading ? (
-          <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+          <div className="text-center py-8 text-neutral-400">
             {t("common.loading")}
           </div>
         ) : (
@@ -63,7 +63,7 @@ export function NotificationsPage() {
           />
         )}
         {isFetchingNextPage && (
-          <div className="text-center py-4 text-neutral-500 dark:text-neutral-400">
+          <div className="text-center py-4 text-neutral-400">
             {t("common.loading")}
           </div>
         )}

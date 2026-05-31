@@ -6,21 +6,21 @@ export const Route = createFileRoute("/terms")({
 
 function TermsPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950">
+    <div className="min-h-screen bg-neutral-950">
       <div className="mx-auto w-full max-w-3xl px-6 py-12 sm:py-16">
         <div className="space-y-6">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm font-medium text-neutral-400">
               Last updated: February 10, 2026
             </p>
-            <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:text-4xl">
+            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Terms of Service
             </h1>
-            <p className="text-base text-neutral-600 dark:text-neutral-400">
+            <p className="text-base text-neutral-400">
               These terms govern your use of Hously.
             </p>
           </div>
-          <div className="prose prose-neutral max-w-none dark:prose-invert">
+          <div className="prose prose-neutral max-w-none prose-invert">
             <h2>Using Hously</h2>
             <p>
               Hously is a self-hosted command center for monitoring your homelab
@@ -79,7 +79,7 @@ function TermsPage() {
               details on how we collect and use data.
             </p>
           </div>
-          <div className="text-sm text-neutral-500 dark:text-neutral-400">
+          <div className="text-sm text-neutral-400">
             Questions about these terms? Contact the administrator of your
             Hously deployment.
           </div>

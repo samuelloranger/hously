@@ -46,19 +46,19 @@ export function ReleaseCard({
     <div
       className={`rounded-2xl border p-3 transition-colors ${
         release.rejected
-          ? "border-amber-200/60 bg-amber-50/50 dark:border-amber-700/30 dark:bg-amber-950/20"
-          : "border-neutral-200 bg-white hover:bg-neutral-50 dark:border-neutral-700/80 dark:bg-neutral-900/60 dark:hover:bg-neutral-900"
+          ? "border-amber-700/30 bg-amber-950/20"
+          : "border-neutral-700/80 bg-neutral-900/60 hover:bg-neutral-900"
       }`}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-snug text-neutral-900 dark:text-white">
+          <p className="text-sm font-medium leading-snug text-white">
             {release.info_url ? (
               <a
                 href={release.info_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition-colors hover:text-primary-600 hover:underline dark:hover:text-primary-400"
+                className="transition-colors hover:underline hover:text-primary-400"
               >
                 <BreakableTitle text={release.title} />
               </a>
@@ -69,33 +69,33 @@ export function ReleaseCard({
 
           <div className="mt-2 flex flex-wrap gap-1.5">
             {isAiPick && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
+              <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold bg-violet-500/15 text-violet-300">
                 <Sparkles className="h-2.5 w-2.5" />
                 AI Pick
               </span>
             )}
             {release.is_complete_series && (
-              <span className="inline-flex items-center rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold bg-violet-500/15 text-violet-300">
                 Intégrale
               </span>
             )}
             {release.is_season_pack && !release.is_complete_series && (
-              <span className="inline-flex items-center rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold bg-violet-500/15 text-violet-300">
                 Season pack
               </span>
             )}
             {release.indexer && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-neutral-800 text-neutral-400">
                 {release.indexer}
               </span>
             )}
             {release.size_bytes != null && (
-              <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-sky-950/40 text-sky-300">
                 {formatBytes(release.size_bytes)}
               </span>
             )}
             {release.parsed_quality && (
-              <span className="inline-flex items-center rounded-md bg-primary-50 px-2 py-0.5 text-[10px] font-medium text-primary-800 dark:bg-primary-950/40 dark:text-primary-200">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-primary-950/40 text-primary-200">
                 {[
                   release.parsed_quality.resolution
                     ? `${release.parsed_quality.resolution}p`
@@ -108,29 +108,29 @@ export function ReleaseCard({
               </span>
             )}
             {release.parsed_quality?.hdr && (
-              <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold bg-amber-950/40 text-amber-300">
                 {release.parsed_quality.hdr}
               </span>
             )}
             {release.freeleech && (
-              <span className="inline-flex items-center rounded-md bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-500/15 dark:text-green-300">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold bg-green-500/15 text-green-300">
                 FL
               </span>
             )}
             {release.quality_score != null && (
-              <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-emerald-950/40 text-emerald-200">
                 {t("medias.interactive.profileScore", {
                   score: release.quality_score,
                 })}
               </span>
             )}
             {release.age != null && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-neutral-800 text-neutral-400">
                 {t("medias.interactive.age", { age: release.age })}
               </span>
             )}
             {(release.seeders != null || release.leechers != null) && (
-              <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-emerald-950/40 text-emerald-300">
                 {t("medias.interactive.seedersLeechers", {
                   seeders: release.seeders ?? "-",
                   leechers: release.leechers ?? "-",
@@ -138,7 +138,7 @@ export function ReleaseCard({
               </span>
             )}
             {release.languages.length > 0 && (
-              <span className="inline-flex items-center rounded-md bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-violet-950/40 text-violet-300">
                 {release.languages.join(", ")}
               </span>
             )}
@@ -147,7 +147,7 @@ export function ReleaseCard({
           {release.rejected &&
             release.quality_rejection_reasons != null &&
             release.quality_rejection_reasons.length > 0 && (
-              <div className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+              <div className="mt-2 rounded-md px-2 py-1 text-xs bg-amber-900/20 text-amber-400">
                 {release.quality_rejection_reasons.map((code) => (
                   <p key={code}>{t(codeKey(REJECTION_CODE_KEYS, code))}</p>
                 ))}
@@ -161,7 +161,7 @@ export function ReleaseCard({
                 <button
                   type="button"
                   onClick={() => setShowBreakdown((v) => !v)}
-                  className="mt-2 flex items-center gap-1 text-[10px] font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+                  className="mt-2 flex items-center gap-1 text-[10px] font-medium text-violet-400 hover:text-violet-300"
                 >
                   {showBreakdown ? (
                     <ChevronUp className="h-3 w-3" />

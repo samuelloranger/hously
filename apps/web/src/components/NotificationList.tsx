@@ -50,7 +50,7 @@ export function NotificationList({
 
   if (!notifications || notifications.length === 0) {
     return (
-      <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+      <div className="text-center py-8 text-neutral-400">
         {t("notifications.noNotifications")}
       </div>
     );
@@ -65,8 +65,8 @@ export function NotificationList({
           className={cn(
             "relative p-4 rounded-lg border cursor-pointer transition-colors",
             notification.read
-              ? "bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/80"
-              : "bg-primary-50/50 dark:bg-primary-500/10 border-primary-200 dark:border-primary-800 hover:bg-primary-100/50 dark:hover:bg-primary-500/20",
+              ? "bg-neutral-800 border-neutral-700 hover:bg-neutral-700/80"
+              : "bg-primary-500/10 border-primary-800 hover:bg-primary-500/20",
           )}
         >
           <div className="flex items-start gap-4">
@@ -86,8 +86,8 @@ export function NotificationList({
                     className={cn(
                       "text-sm font-medium",
                       notification.read
-                        ? "text-neutral-900 dark:text-neutral-100"
-                        : "text-neutral-900 dark:text-neutral-100 font-semibold",
+                        ? "text-neutral-100"
+                        : "text-neutral-100 font-semibold",
                     )}
                   >
                     {notification.title}
@@ -96,8 +96,8 @@ export function NotificationList({
                     className={cn(
                       "text-sm mt-1",
                       !notification.read
-                        ? "text-neutral-700 dark:text-neutral-300"
-                        : "text-neutral-600 dark:text-neutral-400",
+                        ? "text-neutral-300"
+                        : "text-neutral-400",
                     )}
                   >
                     {notification.body}
@@ -106,8 +106,8 @@ export function NotificationList({
                     className={cn(
                       "text-xs mt-2",
                       !notification.read
-                        ? "text-neutral-500 dark:text-neutral-400"
-                        : "text-neutral-400 dark:text-neutral-500",
+                        ? "text-neutral-400"
+                        : "text-neutral-500",
                     )}
                   >
                     {formatDate(notification.created_at, i18n.language || "en")}{" "}
@@ -123,7 +123,7 @@ export function NotificationList({
             </div>
             <button
               onClick={(e) => handleDelete(e, notification.id)}
-              className="flex justify-center items-center ml-2 p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              className="flex justify-center items-center ml-2 p-1 text-neutral-400 hover:text-red-400 transition-colors"
               aria-label={t("notifications.delete")}
             >
               <Trash2 className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function NotificationList({
         <div className="text-center pt-4">
           <button
             onClick={onLoadMore}
-            className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+            className="text-sm text-primary-400 hover:underline"
           >
             {t("notifications.loadMore")}
           </button>

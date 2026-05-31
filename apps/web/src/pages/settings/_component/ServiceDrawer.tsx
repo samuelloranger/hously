@@ -31,7 +31,7 @@ export function ServiceDrawer({
   onToggleTemplate,
 }: ServiceDrawerProps) {
   return (
-    <div className="border-t border-neutral-200 dark:border-neutral-600 px-6 py-4 space-y-4">
+    <div className="border-t border-neutral-600 px-6 py-4 space-y-4">
       {/* Switch at top of drawer */}
       <ServiceToggle
         service={service}

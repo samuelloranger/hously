@@ -30,7 +30,7 @@ function LinkTile({ link }: { link: QuickLink }) {
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-700/60 transition-colors group"
+      className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-neutral-800/60 hover:bg-neutral-700/60 transition-colors group"
     >
       <div className="w-8 h-8 flex items-center justify-center">
         {faviconUrl(link.url) ? (
@@ -45,10 +45,10 @@ function LinkTile({ link }: { link: QuickLink }) {
           />
         ) : null}
         <Link2
-          className={`w-5 h-5 text-zinc-400 ${faviconUrl(link.url) ? "hidden" : ""}`}
+          className={`w-5 h-5 text-neutral-400 ${faviconUrl(link.url) ? "hidden" : ""}`}
         />
       </div>
-      <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center line-clamp-1 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
+      <span className="text-xs font-medium text-neutral-300 text-center line-clamp-1 group-hover:text-neutral-100 transition-colors">
         {link.label}
       </span>
     </a>
@@ -72,7 +72,7 @@ function EditRow({ link, onChange, onRemove }: EditRowProps) {
           onChange({ ...link, label: e.target.value.slice(0, 32) })
         }
         placeholder={t("dashboard.quickLinks.labelPlaceholder")}
-        className="flex-1 min-w-0 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+        className="flex-1 min-w-0 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-neutral-100 placeholder:text-neutral-400"
       />
       <input
         type="url"
@@ -81,11 +81,11 @@ function EditRow({ link, onChange, onRemove }: EditRowProps) {
           onChange({ ...link, url: e.target.value.slice(0, 512) })
         }
         placeholder={t("dashboard.quickLinks.urlPlaceholder")}
-        className="flex-[2] min-w-0 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+        className="flex-[2] min-w-0 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-neutral-100 placeholder:text-neutral-400"
       />
       <button
         onClick={onRemove}
-        className="p-1.5 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+        className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-900/20 transition-colors"
       >
         <Trash2 size={14} />
       </button>
@@ -126,7 +126,7 @@ function EditModal({
     <div className="space-y-4">
       <div className="space-y-2">
         {draft.length === 0 && (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center py-4">
+          <p className="text-sm text-neutral-400 text-center py-4">
             {t("dashboard.quickLinks.empty")}
           </p>
         )}
@@ -140,11 +140,11 @@ function EditModal({
         ))}
       </div>
 
-      <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="flex items-center justify-between pt-2 border-t border-neutral-800">
         <button
           onClick={addLink}
           disabled={draft.length >= 20}
-          className="flex items-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 disabled:opacity-40 transition-colors"
+          className="flex items-center gap-1.5 text-sm font-medium text-violet-400 hover:text-violet-700 disabled:opacity-40 transition-colors"
         >
           <Plus size={14} />
           {t("dashboard.quickLinks.addLink")}
@@ -152,7 +152,7 @@ function EditModal({
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors"
           >
             {t("dashboard.quickLinks.cancel")}
           </button>
@@ -185,22 +185,22 @@ export function QuickLinksPanel() {
 
   return (
     <>
-      <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+      <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
           <div className="flex items-center gap-2.5">
             <span className="w-1 h-4 rounded-full bg-violet-500 shrink-0" />
             <Link2
-              className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+              className="w-4 h-4 shrink-0 text-neutral-400"
               strokeWidth={2}
             />
-            <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+            <h3 className="text-sm font-semibold text-neutral-100">
               {t("dashboard.quickLinks.title")}
             </h3>
           </div>
           {isAdmin && (
             <button
               onClick={() => setEditing(true)}
-              className="flex items-center gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+              className="flex items-center gap-1 text-xs font-medium text-neutral-400 hover:text-violet-400 transition-colors"
             >
               <Pencil size={12} />
               {t("dashboard.quickLinks.edit")}
@@ -214,8 +214,8 @@ export function QuickLinksPanel() {
               onClick={() => setEditing(true)}
               className={cn(
                 "w-full py-6 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed",
-                "border-zinc-200 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500",
-                "hover:border-violet-400 hover:text-violet-500 dark:hover:border-violet-600 dark:hover:text-violet-400 transition-colors",
+                "border-neutral-700 text-neutral-500",
+                "hover:border-violet-600 hover:text-violet-400 transition-colors",
               )}
             >
               <Plus size={20} />

@@ -20,10 +20,10 @@ interface Props {
 // ─── Shared input styling (matches the form's selectClass) ───────────────────
 
 const selectClass =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
+  "w-full rounded-lg border px-3 py-2 text-sm border-neutral-700 bg-neutral-900 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
 
 const inputClass =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
+  "w-full rounded-lg border px-3 py-2 text-sm border-neutral-700 bg-neutral-900 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
 
 // ─── Mutual-exclusivity toggle (required / forbidden / neither) ──────────────
 
@@ -77,7 +77,7 @@ export function CustomFormatAssignmentEditor({ value, onChange }: Props) {
 
   if (allFormats.length === 0) {
     return (
-      <p className="text-sm text-neutral-500 dark:text-neutral-400 italic py-1">
+      <p className="text-sm text-neutral-400 italic py-1">
         {t("customFormats.empty")}
       </p>
     );
@@ -93,16 +93,16 @@ export function CustomFormatAssignmentEditor({ value, onChange }: Props) {
             return (
               <div
                 key={assignment.custom_format_id}
-                className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800/50"
+                className="flex items-center gap-2 rounded-lg border px-3 py-2 border-neutral-700 bg-neutral-800/50"
               >
                 {/* Format name */}
-                <span className="flex-1 min-w-0 truncate text-sm font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="flex-1 min-w-0 truncate text-sm font-medium text-neutral-200">
                   {nameOf(assignment.custom_format_id)}
                 </span>
 
                 {/* Score input */}
                 <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  <span className="text-xs text-neutral-400">
                     {t("customFormats.score")}
                   </span>
                   <input
@@ -143,7 +143,7 @@ export function CustomFormatAssignmentEditor({ value, onChange }: Props) {
                   type="button"
                   aria-label={`remove ${nameOf(assignment.custom_format_id)}`}
                   onClick={() => removeAssignment(assignment.custom_format_id)}
-                  className="shrink-0 rounded p-1 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
+                  className="shrink-0 rounded p-1 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-neutral-200"
                 >
                   <X size={14} />
                 </button>
@@ -160,7 +160,7 @@ export function CustomFormatAssignmentEditor({ value, onChange }: Props) {
           onChange={(e) => {
             if (e.target.value) addAssignment(Number(e.target.value));
           }}
-          className={cn(selectClass, "text-neutral-500 dark:text-neutral-400")}
+          className={cn(selectClass, "text-neutral-400")}
           aria-label="add custom format"
         >
           <option value="" disabled>

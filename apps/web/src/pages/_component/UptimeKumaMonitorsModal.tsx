@@ -24,11 +24,11 @@ const STATUS_COLORS: Record<UptimekumaMonitorStatus, string> = {
 };
 
 const STATUS_TINT: Record<UptimekumaMonitorStatus, string> = {
-  down: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
+  down: "bg-rose-950/40 text-rose-300",
   pending:
-    "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
-  maintenance: "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300",
-  up: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+    "bg-amber-950/40 text-amber-300",
+  maintenance: "bg-sky-950/40 text-sky-300",
+  up: "bg-emerald-950/40 text-emerald-300",
 };
 
 function StatusDot({
@@ -60,10 +60,10 @@ function MonitorRow({ monitor }: { monitor: UptimekumaMonitor }) {
         <StatusDot status={monitor.status} pulse={monitor.status === "down"} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 truncate">
+        <div className="text-sm font-semibold text-neutral-100 truncate">
           {monitor.name}
         </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-400 font-mono">
           {monitor.type && (
             <span className="uppercase tracking-wide">{monitor.type}</span>
           )}
@@ -96,11 +96,11 @@ function Section({
         >
           {t(`dashboard.uptimekuma.sections.${status}`)}
         </span>
-        <span className="text-[11px] font-mono tabular-nums text-neutral-400 dark:text-neutral-500">
+        <span className="text-[11px] font-mono tabular-nums text-neutral-500">
           {monitors.length}
         </span>
       </div>
-      <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
+      <div className="divide-y divide-neutral-800/60">
         {monitors.map((m) => (
           <MonitorRow key={m.id} monitor={m} />
         ))}
@@ -150,9 +150,9 @@ export function UptimeKumaMonitorsModal({
       bodyScroll
     >
       <div className="flex flex-col min-h-0">
-        <div className="px-5 pt-5 pb-3 border-b border-neutral-200 dark:border-neutral-700">
+        <div className="px-5 pt-5 pb-3 border-b border-neutral-700">
           {updatedAgo && (
-            <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
+            <p className="mt-0.5 text-[11px] text-neutral-400 font-mono">
               {t("dashboard.uptimekuma.updatedAgo", {
                 relative: updatedAgo,
               })}
@@ -161,11 +161,11 @@ export function UptimeKumaMonitorsModal({
         </div>
         <div className="overflow-y-auto px-4 pb-4">
           {query.isLoading && !query.data ? (
-            <div className="py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+            <div className="py-10 text-center text-sm text-neutral-400">
               …
             </div>
           ) : !query.data || query.data.monitors.length === 0 ? (
-            <div className="py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+            <div className="py-10 text-center text-sm text-neutral-400">
               {t("dashboard.uptimekuma.empty")}
             </div>
           ) : (

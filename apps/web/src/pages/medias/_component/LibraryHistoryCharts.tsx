@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { Card } from "./LibrarySharedUI";
 
 const panelClassName =
-  "rounded-lg border border-neutral-100 bg-neutral-50/70 dark:border-neutral-700/60 dark:bg-neutral-900/50";
+  "rounded-lg border border-neutral-700/60 bg-neutral-900/50";
 
 function formatDateShort(iso: string): string {
   const d = new Date(iso);
@@ -38,9 +38,9 @@ export function ChartTooltip({
   if (!active || !payload?.length) return null;
   const label = payload[0]?.payload?.label as string | undefined;
   return (
-    <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 shadow-sm text-[11px]">
+    <div className="rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 shadow-sm text-[11px]">
       {label && (
-        <p className="text-neutral-500 dark:text-neutral-400 mb-0.5">{label}</p>
+        <p className="text-neutral-400 mb-0.5">{label}</p>
       )}
       {payload.map((p, i) => (
         <p
@@ -173,7 +173,7 @@ export function GrabStatusDonut({
 
   return (
     <Card className={cn(panelClassName, "px-4 py-3")}>
-      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400 mb-3">
+      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400 mb-3">
         {t("medias.history.grabStatus")}
       </p>
       <div className="flex items-center gap-4">
@@ -206,10 +206,10 @@ export function GrabStatusDonut({
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: s.color }}
               />
-              <span className="text-xs text-neutral-600 dark:text-neutral-300 truncate">
+              <span className="text-xs text-neutral-300 truncate">
                 {s.name}
               </span>
-              <span className="ml-auto font-mono text-xs font-semibold tabular-nums text-neutral-800 dark:text-neutral-100 pl-2">
+              <span className="ml-auto font-mono text-xs font-semibold tabular-nums text-neutral-100 pl-2">
                 {s.value.toLocaleString()}
               </span>
             </div>

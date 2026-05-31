@@ -138,7 +138,7 @@ function HomeAssistantIntegrationSectionImpl({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.integrations.homeAssistant.baseUrl")}
           </label>
           <input
@@ -149,12 +149,12 @@ function HomeAssistantIntegrationSectionImpl({
               "settings.integrations.homeAssistant.baseUrlPlaceholder",
             )}
             autoComplete="off"
-            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono text-sm"
+            className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.integrations.homeAssistant.accessToken")}
           </label>
           <input
@@ -165,7 +165,7 @@ function HomeAssistantIntegrationSectionImpl({
               "settings.integrations.homeAssistant.accessTokenPlaceholder",
             )}
             autoComplete="off"
-            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono text-sm"
+            className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono text-sm"
           />
         </div>
 
@@ -182,16 +182,16 @@ function HomeAssistantIntegrationSectionImpl({
           </Button>
         </div>
 
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="text-xs text-neutral-400">
           {t("settings.integrations.homeAssistant.devicesHint")}
         </p>
 
         {rows.length > 0 ? (
-          <ul className="max-h-64 overflow-y-auto rounded-lg border border-neutral-200 dark:border-neutral-600 divide-y divide-neutral-200 dark:divide-neutral-700">
+          <ul className="max-h-64 overflow-y-auto rounded-lg border border-neutral-600 divide-y divide-neutral-700">
             {rows.map((row) => (
               <li
                 key={row.entity_id}
-                className="flex items-start gap-3 px-3 py-2.5 bg-white dark:bg-neutral-900/50"
+                className="flex items-start gap-3 px-3 py-2.5 bg-neutral-900/50"
               >
                 <input
                   type="checkbox"
@@ -200,16 +200,16 @@ function HomeAssistantIntegrationSectionImpl({
                   onChange={(e) =>
                     toggleEntity(row.entity_id, e.target.checked)
                   }
-                  className="mt-1 rounded border-neutral-300 dark:border-neutral-600"
+                  className="mt-1 rounded border-neutral-600"
                 />
                 <label
                   htmlFor={`ha-entity-${row.entity_id}`}
                   className="flex-1 min-w-0 cursor-pointer"
                 >
-                  <span className="block text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                  <span className="block text-sm font-medium text-neutral-100 truncate">
                     {row.friendly_name}
                   </span>
-                  <span className="block text-xs text-neutral-500 dark:text-neutral-400 font-mono truncate">
+                  <span className="block text-xs text-neutral-400 font-mono truncate">
                     {row.entity_id}
                   </span>
                 </label>

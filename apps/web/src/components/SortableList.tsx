@@ -51,7 +51,7 @@ export function DragHandle({
   return (
     <div
       ref={handleRef as Ref<HTMLDivElement>}
-      className="cursor-grab active:cursor-grabbing text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 p-1 -ml-1"
+      className="cursor-grab active:cursor-grabbing text-neutral-500 hover:text-neutral-300 p-1 -ml-1"
       aria-label="Drag to reorder"
     >
       <GripVertical size={16} />
