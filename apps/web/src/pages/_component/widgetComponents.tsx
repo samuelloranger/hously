@@ -6,7 +6,6 @@ import { HomeAssistantPanel } from "@/pages/_component/HomeAssistantPanel";
 import { JellyfinRandomPanel } from "@/pages/_component/JellyfinRandomPanel";
 import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
 import { LibraryAttentionPanel } from "@/pages/_component/LibraryAttentionPanel";
-import { LibraryStatsPanel } from "@/pages/_component/LibraryStatsPanel";
 import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
 import { QuickLinksPanel } from "@/pages/_component/QuickLinksPanel";
 import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
@@ -22,7 +21,6 @@ export const WIDGET_COMPONENTS: Record<
   quick_links: QuickLinksPanel,
   chores: ChoresPanel,
   jellyfin_shelf: JellyfinShelf,
-  library_stats: LibraryStatsPanel,
   library_alerts: LibraryAttentionPanel,
   homeassistant: HomeAssistantPanel,
   habits: HabitsPanel,
