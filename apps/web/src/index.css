@@ -70,6 +70,22 @@
 /* Dark mode variant */
 @variant dark (&:where(.dark, .dark *));
 
+@layer base {
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-surface-base);
+    color: var(--color-text);
+  }
+}
+
 /* Reserve space for the scrollbar so Headless UI scroll-lock (overflow: hidden) does not shift layout */
 html {
   scrollbar-gutter: stable;
