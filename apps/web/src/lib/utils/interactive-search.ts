@@ -71,46 +71,80 @@ export function buildTitleOptions(input: {
     }
   }
 
-  // The base title (no suffix) to use for a given language.
-  const baseTitleFor = (code: string): string | null => {
-    if (code === platform) {
-      return input.localized?.trim() || translationByLang.get(code) || null;
-    }
-    if (code === originalLanguage && input.original?.trim()) {
-      return input.original.trim();
-    }
-    return translationByLang.get(code) ?? null;
+  // Ordered candidates: the platform (localized) title is the default; EN/FR
+  // are pinned; the original-language title is offered next — tagged, and kept
+  // even when it shares the platform language but differs from the localized
+  // title (preserving the old localized↔original choice); then the common
+  // allowlist. Each candidate tracks whether it is the platform/original title
+  // so we never mislabel the localized title as the original.
+  type TitleCandidate = {
+    languageCode: string;
+    title: string | null;
+    isOriginal: boolean;
+    isPlatform: boolean;
   };
 
-  const orderedCodes: string[] = [];
-  const pushCode = (code: string) => {
-    const normalized = code.toLowerCase();
-    if (normalized && !orderedCodes.includes(normalized)) {
-      orderedCodes.push(normalized);
+  // Languages already represented by the platform or original entries; their
+  // pinned/common translation slots are skipped so we don't surface a less
+  // canonical translation next to the authoritative title.
+  const coveredCodes = new Set([platform, originalLanguage].filter(Boolean));
+
+  const candidates: TitleCandidate[] = [
+    {
+      languageCode: platform,
+      title: input.localized,
+      isOriginal: false,
+      isPlatform: true,
+    },
+  ];
+  for (const code of ["en", "fr"]) {
+    if (!coveredCodes.has(code)) {
+      candidates.push({
+        languageCode: code,
+        title: translationByLang.get(code) ?? null,
+        isOriginal: false,
+        isPlatform: false,
+      });
     }
-  };
-  pushCode(platform);
-  pushCode("en");
-  pushCode("fr");
-  if (originalLanguage) pushCode(originalLanguage);
-  for (const code of COMMON_TITLE_LANGUAGES) pushCode(code);
+  }
+  if (originalLanguage) {
+    candidates.push({
+      languageCode: originalLanguage,
+      title:
+        input.original?.trim() ||
+        translationByLang.get(originalLanguage) ||
+        null,
+      isOriginal: true,
+      isPlatform: false,
+    });
+  }
+  for (const code of COMMON_TITLE_LANGUAGES) {
+    if (!coveredCodes.has(code)) {
+      candidates.push({
+        languageCode: code,
+        title: translationByLang.get(code) ?? null,
+        isOriginal: false,
+        isPlatform: false,
+      });
+    }
+  }
 
   const options: TitleOption[] = [];
   const seenQueries = new Set<string>();
-  for (const code of orderedCodes) {
-    const base = baseTitleFor(code);
+  for (const candidate of candidates) {
+    const base = candidate.title?.trim();
     // The platform title is always kept; secondary titles need 2+ chars to
     // avoid noisy single-letter indexer queries.
-    const minLength = code === platform ? 1 : 2;
+    const minLength = candidate.isPlatform ? 1 : 2;
     if (!base || base.length < minLength) continue;
     const query = `${base}${suffix}`;
     const dedupeKey = query.toLocaleLowerCase();
     if (seenQueries.has(dedupeKey)) continue;
     seenQueries.add(dedupeKey);
     options.push({
-      languageCode: code,
+      languageCode: candidate.languageCode,
       query,
-      isOriginal: code === originalLanguage,
+      isOriginal: candidate.isOriginal,
     });
   }
   return options;

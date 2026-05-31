@@ -94,6 +94,28 @@ describe("buildTitleOptions", () => {
     expect(fr?.isOriginal).toBe(true);
   });
 
+  it("still offers the original title when it shares the platform language but differs from the localized title", () => {
+    // English UI, English-original media, but the library/localized title
+    // differs from TMDB's original_title — both must be reachable.
+    const options = buildTitleOptions({
+      localized: "The Office (US)",
+      platformLanguage: "en",
+      original: "The Office",
+      originalLanguage: "en",
+      translations: [{ language_code: "en", title: "The Office" }],
+    });
+    const queries = options.map((o) => o.query);
+    expect(queries).toContain("The Office (US)");
+    expect(queries).toContain("The Office");
+    // The localized title is not mislabeled as the original.
+    expect(options.find((o) => o.query === "The Office (US)")?.isOriginal).toBe(
+      false,
+    );
+    expect(options.find((o) => o.query === "The Office")?.isOriginal).toBe(
+      true,
+    );
+  });
+
   it("falls back to the localized title alone when there are no translations", () => {
     const options = buildTitleOptions({
       localized: "Solo Title",
