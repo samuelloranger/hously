@@ -24,14 +24,14 @@
   --color-primary-50: #fdf5ef;
   --color-primary-100: #f9e6d5;
   --color-primary-200: #f2cdab;
-  --color-primary-300: #ecb07f;
+  --color-primary-300: #f0bf93;
   --color-primary-400: #e8a06a; /* apricot accent */
   --color-primary-500: #df8753;
   --color-primary-600: #cf6a4e; /* terracotta */
   --color-primary-700: #ad5440;
   --color-primary-800: #8a4435;
   --color-primary-900: #71382e;
-  --color-primary-950: #3d1c16;
+  --color-primary-950: #4f2419;
 
   /* Neutral — warm brown (replaces cold gray; repaints all dark: surfaces) */
   --color-neutral-50: #f4ece4; /* strong text */
@@ -49,9 +49,9 @@
   /* Cozy Dusk semantic tokens */
   --color-surface-base: #1c1715;
   --color-surface-raised: #241e1b;
-  --color-surface-inset: #171311;
+  --color-surface-inset: #171311; /* between neutral-950 and neutral-900 */
   --color-border: #322a25;
-  --color-border-strong: #3a2f27;
+  --color-border-strong: #3a2f27; /* between neutral-600 and neutral-700 */
   --color-accent: #e8a06a;
   --color-accent-strong: #cf6a4e;
   --color-text-strong: #f4ece4;
@@ -94,6 +94,7 @@ body {
   --z-popover: 250;
   --z-tooltip: 300;
 
+  /* Deprecated aliases of the @theme --color-surface-* tokens — kept until components migrate; do not add new ones. */
   /* Dark surfaces — warm Cozy Dusk (aligned with @theme neutral scale) */
   --surface-base: #1c1715;
   --surface-1: #241e1b;
