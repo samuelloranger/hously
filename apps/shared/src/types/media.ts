@@ -55,6 +55,19 @@ export interface TmdbWatchProvidersResponse {
   link: string | null;
 }
 
+export interface ScoreComponentDto {
+  code: string;
+  value: number;
+  params?: Record<string, string | number>;
+}
+
+export interface ScoreBreakdownDto {
+  rejected: boolean;
+  total: number | null;
+  components: ScoreComponentDto[];
+  matched_formats: string[];
+}
+
 export interface ParsedQualityFields {
   resolution: number | null;
   source: string | null;
@@ -92,11 +105,17 @@ export interface InteractiveReleaseItem {
   quality_score?: number | null;
   parsed_quality?: ParsedQualityFields | null;
   /**
-   * Reason codes for quality-profile hard-requirement failures.
-   * Possible values: "Resolution", "HDR", "Language", "Size", "Sample".
-   * Used by the frontend to display translated rejection messages.
+   * Stable rejection reason codes for quality-profile hard-requirement failures.
+   * Values: "resolution_below_min", "resolution_above_cutoff",
+   * "hdr_required_absent", "language_no_match", "size_over_cap", "is_sample",
+   * "seeders_below_min", "custom_format_required_absent",
+   * "custom_format_forbidden_present". The frontend maps each code to a
+   * translated message. (Population of this field from the search response is a
+   * Plan 2 task — see docs/superpowers/plans.)
    */
   quality_rejection_reasons?: string[] | null;
+  /** Structured score breakdown per release, populated when search is scoped to a library item with a quality profile. */
+  score_breakdown?: ScoreBreakdownDto | null;
   /** True when the release title matches a full-season pattern (SXX with no episode number) */
   is_season_pack?: boolean;
   /** True when the release is a complete series (intégrale, Complete Series, …) */

@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { ParsedRelease } from "@hously/api/utils/medias/filenameParser";
+import type {
+  AssignedCustomFormat,
+  ReleaseEvalContext,
+} from "@hously/api/utils/medias/customFormatTypes";
 import {
   scoreRelease,
+  scoreReleaseDetailed,
   type QualityProfileScoreInput,
 } from "@hously/api/utils/medias/releaseScorer";
 
@@ -27,6 +32,8 @@ const baseProfile: QualityProfileScoreInput = {
   maxSizeGb: null,
   requireHdr: false,
   preferHdr: false,
+  minSeeders: 0,
+  customFormats: [],
 };
 
 function parsed(overrides: Partial<ParsedRelease> = {}): ParsedRelease {
@@ -46,51 +53,47 @@ function parsed(overrides: Partial<ParsedRelease> = {}): ParsedRelease {
 
 describe("scoreRelease — hard rejections", () => {
   test("rejects below min resolution", () => {
-    expect(
-      isRejected(scoreRelease(parsed({ resolution: 720 }), baseProfile, null)),
-    ).toBe(true);
+    const r = scoreRelease(parsed({ resolution: 720 }), baseProfile, null);
+    expect(isRejected(r)).toBe(true);
+    expect(r).toEqual(["resolution_below_min"]);
   });
 
   test("rejects null resolution", () => {
-    expect(
-      isRejected(scoreRelease(parsed({ resolution: null }), baseProfile, null)),
-    ).toBe(true);
+    const r = scoreRelease(parsed({ resolution: null }), baseProfile, null);
+    expect(isRejected(r)).toBe(true);
+    expect(r).toEqual(["resolution_below_min"]);
   });
 
   test("rejects sample", () => {
-    expect(
-      isRejected(scoreRelease(parsed({ isSample: true }), baseProfile, null)),
-    ).toBe(true);
+    const r = scoreRelease(parsed({ isSample: true }), baseProfile, null);
+    expect(isRejected(r)).toBe(true);
+    expect(r).toEqual(["is_sample"]);
   });
 
   test("rejects when requireHdr and no hdr", () => {
-    expect(
-      isRejected(
-        scoreRelease(
-          parsed({ hdr: null }),
-          { ...baseProfile, requireHdr: true },
-          null,
-        ),
-      ),
-    ).toBe(true);
+    const r = scoreRelease(
+      parsed({ hdr: null }),
+      { ...baseProfile, requireHdr: true },
+      null,
+    );
+    expect(isRejected(r)).toBe(true);
+    expect(r).toEqual(["hdr_required_absent"]);
   });
 
   test("rejects over max size", () => {
-    expect(
-      isRejected(scoreRelease(parsed(), { ...baseProfile, maxSizeGb: 5 }, 6e9)),
-    ).toBe(true);
+    const r = scoreRelease(parsed(), { ...baseProfile, maxSizeGb: 5 }, 6e9);
+    expect(isRejected(r)).toBe(true);
+    expect(r).toEqual(["size_over_cap"]);
   });
 
   test("rejects above cutoff resolution", () => {
-    expect(
-      isRejected(
-        scoreRelease(
-          parsed({ resolution: 2160 }),
-          { ...baseProfile, cutoffResolution: 1080 },
-          null,
-        ),
-      ),
-    ).toBe(true);
+    const r = scoreRelease(
+      parsed({ resolution: 2160 }),
+      { ...baseProfile, cutoffResolution: 1080 },
+      null,
+    );
+    expect(isRejected(r)).toBe(true);
+    expect(r).toEqual(["resolution_above_cutoff"]);
   });
 });
 
@@ -464,5 +467,201 @@ describe("tracker priority bonus", () => {
       ),
     );
     expect(prioritized1080p).toBeGreaterThan(unprioritized4k);
+  });
+});
+
+function ctxOf(
+  p: ReturnType<typeof parsed>,
+  over: Partial<ReleaseEvalContext> = {},
+): ReleaseEvalContext {
+  return {
+    parsed: p,
+    rawTitle: "Movie.2024.1080p.BluRay.x265-GROUP",
+    sizeBytes: 5_000_000_000,
+    indexerName: null,
+    seeders: 50,
+    freeleech: false,
+    ...over,
+  };
+}
+
+describe("rejection codes (i18n-safe)", () => {
+  test("below min resolution → code resolution_below_min", () => {
+    const r = scoreRelease(parsed({ resolution: 720 }), baseProfile, null);
+    expect(r).toEqual(["resolution_below_min"]);
+  });
+
+  test("require HDR absent → hdr_required_absent", () => {
+    const r = scoreRelease(
+      parsed(),
+      { ...baseProfile, requireHdr: true },
+      null,
+    );
+    expect(r).toEqual(["hdr_required_absent"]);
+  });
+});
+
+describe("minSeeders gate", () => {
+  test("rejects below minSeeders → seeders_below_min", () => {
+    const b = scoreReleaseDetailed(ctxOf(parsed(), { seeders: 2 }), {
+      ...baseProfile,
+      minSeeders: 5,
+    });
+    expect(b.rejected).toBe(true);
+    if (b.rejected)
+      expect(b.reasons.map((x) => x.code)).toContain("seeders_below_min");
+  });
+
+  test("null seeders is NOT rejected by the gate", () => {
+    const b = scoreReleaseDetailed(ctxOf(parsed(), { seeders: null }), {
+      ...baseProfile,
+      minSeeders: 5,
+    });
+    expect(b.rejected).toBe(false);
+  });
+});
+
+describe("custom format pass", () => {
+  const atmos: AssignedCustomFormat = {
+    name: "Atmos",
+    conditions: [{ type: "title_regex", operator: "matches", value: "atmos" }],
+    score: 200,
+    required: false,
+    forbidden: false,
+  };
+
+  test("matched format adds its score and appears in components", () => {
+    const b = scoreReleaseDetailed(
+      ctxOf(parsed(), { rawTitle: "Movie.2024.1080p.BluRay.Atmos.x265-GROUP" }),
+      { ...baseProfile, customFormats: [atmos] },
+    );
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(b.matchedFormats).toContain("Atmos");
+      expect(
+        b.components.find((c) => c.code === "custom_format" && c.value === 200),
+      ).toBeDefined();
+    }
+  });
+
+  test("forbidden format present → rejected", () => {
+    const b = scoreReleaseDetailed(
+      ctxOf(parsed(), { rawTitle: "Movie.2024.1080p.BluRay.Atmos.x265-GROUP" }),
+      { ...baseProfile, customFormats: [{ ...atmos, forbidden: true }] },
+    );
+    expect(b.rejected).toBe(true);
+    if (b.rejected)
+      expect(b.reasons[0].code).toBe("custom_format_forbidden_present");
+  });
+
+  test("required format absent → rejected", () => {
+    const b = scoreReleaseDetailed(ctxOf(parsed()), {
+      ...baseProfile,
+      customFormats: [{ ...atmos, required: true }],
+    });
+    expect(b.rejected).toBe(true);
+    if (b.rejected)
+      expect(b.reasons[0].code).toBe("custom_format_required_absent");
+  });
+});
+
+describe("regression: no custom formats, minSeeders 0 → identical total", () => {
+  test("score matches a hand-computed baseline", () => {
+    // 1080p == minResolution (tier delta 0), source BluRay is preferredSources[0] (+500),
+    // codec x265 is preferredCodecs[0] (+200) → 700.
+    const r = scoreRelease(
+      parsed(),
+      baseProfile,
+      5_000_000_000,
+      "Movie.2024.1080p.BluRay.x265-GROUP",
+    );
+    expect(r).toBe(700);
+  });
+});
+
+describe("score breakdown components", () => {
+  test("size_penalty component for large file with no maxSizeGb", () => {
+    const b = scoreReleaseDetailed(
+      ctxOf(parsed(), { sizeBytes: 15_000_000_000 }),
+      baseProfile,
+    );
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(b.components.find((c) => c.code === "size_penalty")?.value).toBe(
+        -250,
+      ); // floor(15-10)*50
+    }
+  });
+
+  test("tracker_priority component when indexer is prioritized", () => {
+    const b = scoreReleaseDetailed(
+      ctxOf(parsed(), { indexerName: "TopTracker" }),
+      {
+        ...baseProfile,
+        prioritizedTrackers: ["TopTracker"],
+        preferTrackerOverQuality: false,
+      },
+    );
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(
+        b.components.find(
+          (c) => c.code === "tracker_priority" && c.value === 300,
+        ),
+      ).toBeDefined();
+    }
+  });
+
+  test("multiple formats: only matched ones contribute a component", () => {
+    const atmos: AssignedCustomFormat = {
+      name: "Atmos",
+      conditions: [
+        { type: "title_regex", operator: "matches", value: "atmos" },
+      ],
+      score: 200,
+      required: false,
+      forbidden: false,
+    };
+    const dv: AssignedCustomFormat = {
+      name: "DV",
+      conditions: [
+        { type: "title_regex", operator: "matches", value: "dolby.?vision" },
+      ],
+      score: 300,
+      required: false,
+      forbidden: false,
+    };
+    const b = scoreReleaseDetailed(
+      ctxOf(parsed(), { rawTitle: "Movie.2024.1080p.BluRay.Atmos.x265-GROUP" }),
+      { ...baseProfile, customFormats: [atmos, dv] },
+    );
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(b.matchedFormats).toEqual(["Atmos"]);
+      expect(
+        b.components.filter((c) => c.code === "custom_format"),
+      ).toHaveLength(1);
+    }
+  });
+
+  test("matched format with score 0 emits no component but still counts as matched", () => {
+    const zero: AssignedCustomFormat = {
+      name: "Zero",
+      conditions: [{ type: "source", operator: "equals", value: "BluRay" }],
+      score: 0,
+      required: false,
+      forbidden: false,
+    };
+    const b = scoreReleaseDetailed(ctxOf(parsed()), {
+      ...baseProfile,
+      customFormats: [zero],
+    });
+    expect(b.rejected).toBe(false);
+    if (!b.rejected) {
+      expect(b.matchedFormats).toContain("Zero");
+      expect(
+        b.components.find((c) => c.code === "custom_format"),
+      ).toBeUndefined();
+    }
   });
 });

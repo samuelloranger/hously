@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 
-import type { QualityProfile } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@hously/api/db";
@@ -15,9 +14,45 @@ import {
   QBIT_CATEGORY_HOUSLY_MOVIES,
   QBIT_CATEGORY_HOUSLY_SHOWS,
 } from "@hously/api/constants/libraryGrab";
+import type { AssignedCustomFormat } from "@hously/api/utils/medias/customFormatTypes";
+
+/** Prisma include that pulls a profile's assigned custom formats. */
+export const qualityProfileFormatsInclude = {
+  customFormats: { include: { customFormat: true } },
+} as const;
+
+type QualityProfileWithFormats = Prisma.QualityProfileGetPayload<{
+  include: typeof qualityProfileFormatsInclude;
+}>;
+
+export function mapAssignedFormats(
+  p: QualityProfileWithFormats,
+): AssignedCustomFormat[] {
+  return (p.customFormats ?? []).map((link) => ({
+    name: link.customFormat.name,
+    // `conditions` is stored as JSON and validated on write; the cast is a
+    // deliberate deferral of runtime parsing (a Zod parse may be added later).
+    conditions:
+      (link.customFormat
+        .conditions as unknown as AssignedCustomFormat["conditions"]) ?? [],
+    score: link.score,
+    required: link.required,
+    forbidden: link.forbidden,
+  }));
+}
+
+/** Load a quality profile with its custom formats, or null. */
+export async function loadProfileWithFormats(
+  id: number,
+): Promise<QualityProfileWithFormats | null> {
+  return prisma.qualityProfile.findUnique({
+    where: { id },
+    include: qualityProfileFormatsInclude,
+  });
+}
 
 export function profileToScoreInput(
-  p: QualityProfile,
+  p: QualityProfileWithFormats,
 ): QualityProfileScoreInput {
   return {
     minResolution: p.minResolution,
@@ -30,6 +65,9 @@ export function profileToScoreInput(
     maxSizeGb: p.maxSizeGb,
     requireHdr: p.requireHdr,
     preferHdr: p.preferHdr,
+    // null/unset minSeeders means "no minimum" — the gate is skipped at 0.
+    minSeeders: p.minSeeders ?? 0,
+    customFormats: mapAssignedFormats(p),
   };
 }
 

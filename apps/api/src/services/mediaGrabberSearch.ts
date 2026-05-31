@@ -9,6 +9,7 @@ import { scoreRelease } from "@hously/api/utils/medias/releaseScorer";
 import type { QualityProfileScoreInput } from "@hously/api/utils/medias/releaseScorer";
 import {
   profileToScoreInput,
+  qualityProfileFormatsInclude,
   type CandidateRow,
 } from "@hously/api/services/mediaGrabberHelpers";
 import { grabRelease } from "@hously/api/services/mediaGrabberGrab";
@@ -79,6 +80,7 @@ export async function searchAndGrab(opts: {
     if (qualityProfileId != null) {
       const prof = await prisma.qualityProfile.findUnique({
         where: { id: qualityProfileId },
+        include: qualityProfileFormatsInclude,
       });
       if (prof) profileInput = profileToScoreInput(prof);
     }
@@ -117,6 +119,7 @@ export async function searchAndGrab(opts: {
           title,
           release.indexer,
           release.freeleech,
+          release.seeders,
         );
         if (Array.isArray(sc)) continue;
         rows.push({

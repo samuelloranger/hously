@@ -8,8 +8,11 @@ import {
   normalizeTitleForMatch,
   parseReleaseSeasonEpisode,
 } from "@hously/api/utils/medias/filenameParser";
-import type { QualityProfileScoreInput } from "@hously/api/utils/medias/releaseScorer";
 import { pickReleaseForGrab } from "@hously/api/utils/medias/pickReleaseForGrab";
+import {
+  profileToScoreInput,
+  qualityProfileFormatsInclude,
+} from "@hously/api/services/mediaGrabberHelpers";
 import type { AiPickMediaContext } from "@hously/api/utils/medias/buildAiPickPrompt";
 import {
   APP_DISPLAY_TIMEZONE,
@@ -239,6 +242,7 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
 
   const profiles = await prisma.qualityProfile.findMany({
     where: { id: { in: [...profileIds] } },
+    include: qualityProfileFormatsInclude,
   });
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
@@ -251,12 +255,17 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
     label: string,
     grabArgs: Omit<
       Parameters<typeof grabRelease>[0],
-      "grabSource" | "aiPicked" | "aiReasoning" | "downloadUrl" | "releaseTitle" | "indexer"
+      | "grabSource"
+      | "aiPicked"
+      | "aiReasoning"
+      | "downloadUrl"
+      | "releaseTitle"
+      | "indexer"
     >,
     warnTag: string,
   ): Promise<GrabResult> {
     const profile = profileId ? profileMap.get(profileId) : null;
-    const profileInput = profile ? toScoreInput(profile) : null;
+    const profileInput = profile ? profileToScoreInput(profile) : null;
 
     const best = await pickReleaseForGrab({
       candidates,
@@ -370,32 +379,6 @@ function logRssMatch(
   console.log(
     `[pollIndexerRss] Match: "${best.release.title}" → ${label} (${via})`,
   );
-}
-
-function toScoreInput(p: {
-  minResolution: number;
-  cutoffResolution: number | null;
-  preferredSources: string[];
-  preferredCodecs: string[];
-  preferredLanguages: string[] | null;
-  prioritizedTrackers: string[] | null;
-  preferTrackerOverQuality: boolean | null;
-  maxSizeGb: number | null;
-  requireHdr: boolean;
-  preferHdr: boolean;
-}): QualityProfileScoreInput {
-  return {
-    minResolution: p.minResolution,
-    cutoffResolution: p.cutoffResolution,
-    preferredSources: p.preferredSources,
-    preferredCodecs: p.preferredCodecs,
-    preferredLanguages: p.preferredLanguages ?? [],
-    prioritizedTrackers: p.prioritizedTrackers ?? [],
-    preferTrackerOverQuality: p.preferTrackerOverQuality ?? false,
-    maxSizeGb: p.maxSizeGb,
-    requireHdr: p.requireHdr,
-    preferHdr: p.preferHdr,
-  };
 }
 
 function extractTitleFromRelease(title: string): {

@@ -986,7 +986,8 @@
         "qualityProfiles": "Quality Profiles",
         "librarySettings": "Library Settings",
         "history": "History",
-        "import": "Import"
+        "import": "Import",
+        "customFormats": "Custom Formats"
       }
     },
     "qualityProfiles": {
@@ -1967,5 +1968,95 @@
     "minecraft_compact": "Minecraft (Compact)",
     "minecraft_cards": "Minecraft (Cards)",
     "rss": "RSS"
+  },
+  "scoring": {
+    "reject": {
+      "resolutionBelowMin": "Below minimum resolution",
+      "resolutionAboveCutoff": "Exceeds cutoff resolution",
+      "hdrRequiredAbsent": "HDR required but not present",
+      "languageNoMatch": "Language does not match profile",
+      "sizeOverCap": "File size exceeds cap",
+      "isSample": "Sample file rejected",
+      "seedersBelowMin": "Not enough seeders",
+      "customFormatRequiredAbsent": "Required custom format absent",
+      "customFormatForbiddenPresent": "Forbidden custom format present"
+    },
+    "component": {
+      "resolutionTier": "Resolution tier",
+      "preferredSource": "Preferred source",
+      "preferredCodec": "Preferred codec",
+      "languageMatch": "Language match",
+      "preferHdr": "HDR preference",
+      "properRepack": "Proper/repack",
+      "freeleech": "Freeleech",
+      "trackerPriority": "Tracker priority",
+      "sizePenalty": "Size penalty",
+      "customFormat": "Custom format: {{name}}"
+    }
+  },
+  "customFormats": {
+    "title": "Custom Formats",
+    "description": "Define rules to score releases based on title patterns, source, codec, and more.",
+    "newFormat": "New format",
+    "editFormat": "Edit format",
+    "deleteFormat": "Delete format",
+    "namePlaceholder": "Format name",
+    "empty": "No custom formats yet. Create one to start scoring releases.",
+    "addCondition": "Add condition",
+    "allOf": "All conditions must match",
+    "negate": "Negate",
+    "score": "Score",
+    "required": "Required",
+    "forbidden": "Forbidden",
+    "minSeeders": "Min. seeders",
+    "minSeedersHelp": "0 = off",
+    "scoreBreakdown": "Score breakdown",
+    "condition": {
+      "titleRegex": "Title (regex)",
+      "releaseGroup": "Release group",
+      "source": "Source",
+      "resolution": "Resolution",
+      "codec": "Codec",
+      "language": "Language",
+      "hdrFlag": "HDR flag",
+      "properRepack": "Proper/repack",
+      "sizeRange": "Size range",
+      "indexer": "Indexer",
+      "freeleech": "Freeleech",
+      "seeders": "Seeders"
+    },
+    "operator": {
+      "matches": "matches",
+      "equals": "equals",
+      "gte": "≥",
+      "lte": "≤",
+      "lt": "<",
+      "gt": ">",
+      "between": "between",
+      "isTrue": "is true"
+    },
+    "error": {
+      "conditionsNotArray": "Conditions must be an array",
+      "conditionsEmpty": "At least one condition is required",
+      "conditionNotObject": "Each condition must be an object",
+      "conditionTypeInvalid": "Unknown condition type",
+      "operatorInvalidForType": "Operator is not valid for this condition type",
+      "negateInvalid": "Negate must be a boolean",
+      "valueInvalidForOperator": "Value is not valid for the selected operator",
+      "regexInvalid": "Invalid regular expression",
+      "unknownCustomFormatId": "Unknown custom format ID"
+    },
+    "nameRequired": "Name is required",
+    "createSuccess": "Format created",
+    "updateSuccess": "Format updated",
+    "deleteSuccess": "Format deleted",
+    "saveError": "Could not save format",
+    "deleteError": "Could not delete format",
+    "loadError": "Could not load custom formats",
+    "deleteConfirm": "Delete format \"{{name}}\"? This will remove it from all quality profiles.",
+    "createTitle": "New custom format",
+    "editTitle": "Edit custom format",
+    "formDescription": "Define conditions that must match for this format to apply.",
+    "conditions": "Conditions"
   }
 }

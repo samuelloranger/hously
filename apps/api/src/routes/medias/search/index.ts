@@ -7,13 +7,14 @@ import {
   tieredSearch,
 } from "@hously/api/services/indexerManager";
 import type { NormalizedRelease } from "@hously/api/services/indexerManager";
-import type { QualityProfile } from "@prisma/client";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
 import { parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
+import { scoreReleaseDetailed } from "@hously/api/utils/medias/releaseScorer";
+import type { ScoreBreakdownDto } from "@hously/shared/types";
 import {
-  scoreRelease,
-  type QualityProfileScoreInput,
-} from "@hously/api/utils/medias/releaseScorer";
+  profileToScoreInput,
+  qualityProfileFormatsInclude,
+} from "@hously/api/services/mediaGrabberHelpers";
 import {
   isSeasonPack,
   isCompleteSeries,
@@ -25,21 +26,6 @@ import {
   loadEnabledLocalAiConfig,
   pickReleaseWithLocalAi,
 } from "@hously/api/services/localAi/client";
-
-function toScoreInput(p: QualityProfile): QualityProfileScoreInput {
-  return {
-    minResolution: p.minResolution,
-    cutoffResolution: p.cutoffResolution,
-    preferredSources: p.preferredSources,
-    preferredCodecs: p.preferredCodecs,
-    preferredLanguages: p.preferredLanguages ?? [],
-    prioritizedTrackers: p.prioritizedTrackers ?? [],
-    preferTrackerOverQuality: p.preferTrackerOverQuality ?? false,
-    maxSizeGb: p.maxSizeGb,
-    requireHdr: p.requireHdr,
-    preferHdr: p.preferHdr,
-  };
-}
 
 function normalizedToInteractive(
   r: NormalizedRelease,
@@ -150,22 +136,27 @@ export const mediasSearchRoutes = new Elysia()
           if (Number.isFinite(libId)) {
             const media = await prisma.libraryMedia.findUnique({
               where: { id: libId },
-              include: { qualityProfile: true },
+              include: {
+                qualityProfile: { include: qualityProfileFormatsInclude },
+              },
             });
             const qp = media?.qualityProfile;
             if (qp) {
-              const profile = toScoreInput(qp);
+              const profile = profileToScoreInput(qp);
               mapped = mapped.map((r) => {
                 const parsed = parseReleaseTitle(r.title);
-                const score = scoreRelease(
-                  parsed,
+                const breakdown = scoreReleaseDetailed(
+                  {
+                    parsed,
+                    rawTitle: r.title,
+                    sizeBytes: r.size_bytes,
+                    indexerName: r.indexer,
+                    seeders: r.seeders,
+                    freeleech: Boolean(r.freeleech),
+                  },
                   profile,
-                  r.size_bytes,
-                  r.title,
-                  r.indexer,
-                  r.freeleech,
                 );
-                const qualityReject = Array.isArray(score);
+                const qualityReject = breakdown.rejected;
                 const parsed_quality = {
                   resolution: parsed.resolution,
                   source: parsed.source,
@@ -175,17 +166,38 @@ export const mediasSearchRoutes = new Elysia()
                 const rejected = r.rejected || qualityReject;
                 let rejection_reason = r.rejection_reason;
                 if (qualityReject) {
-                  const qmsg = score.join(", ");
+                  const qmsg = breakdown.reasons.map((x) => x.code).join(", ");
                   rejection_reason = rejection_reason
                     ? `${rejection_reason}; ${qmsg}`
                     : qmsg;
                 }
+                const score_breakdown: ScoreBreakdownDto = breakdown.rejected
+                  ? {
+                      rejected: true,
+                      total: null,
+                      components: [],
+                      matched_formats: [],
+                    }
+                  : {
+                      rejected: false,
+                      total: breakdown.total,
+                      components: breakdown.components.map((c) => ({
+                        code: c.code,
+                        value: c.value,
+                        ...(c.params ? { params: c.params } : {}),
+                      })),
+                      matched_formats: breakdown.matchedFormats,
+                    };
                 return {
                   ...r,
-                  quality_score: qualityReject ? null : score,
+                  quality_score: qualityReject ? null : breakdown.total,
+                  quality_rejection_reasons: qualityReject
+                    ? breakdown.reasons.map((x) => x.code)
+                    : null,
                   parsed_quality,
                   rejected,
                   rejection_reason,
+                  score_breakdown,
                 };
               });
               mapped.sort((a, b) => {

@@ -986,7 +986,8 @@
         "qualityProfiles": "Profils de qualité",
         "librarySettings": "Paramètres de la bibliothèque",
         "history": "Historique",
-        "import": "Importation"
+        "import": "Importation",
+        "customFormats": "Formats personnalisés"
       }
     },
     "qualityProfiles": {
@@ -1967,5 +1968,95 @@
     "minecraft_compact": "Minecraft (Compact)",
     "minecraft_cards": "Minecraft (Cartes)",
     "rss": "RSS"
+  },
+  "scoring": {
+    "reject": {
+      "resolutionBelowMin": "Sous la résolution minimale",
+      "resolutionAboveCutoff": "Dépasse la résolution de coupure",
+      "hdrRequiredAbsent": "HDR requis mais absent",
+      "languageNoMatch": "La langue ne correspond pas au profil",
+      "sizeOverCap": "Taille du fichier dépasse la limite",
+      "isSample": "Fichier sample rejeté",
+      "seedersBelowMin": "Pas assez de sources",
+      "customFormatRequiredAbsent": "Format personnalisé requis absent",
+      "customFormatForbiddenPresent": "Format personnalisé interdit présent"
+    },
+    "component": {
+      "resolutionTier": "Niveau de résolution",
+      "preferredSource": "Source préférée",
+      "preferredCodec": "Codec préféré",
+      "languageMatch": "Correspondance de langue",
+      "preferHdr": "Préférence HDR",
+      "properRepack": "Proper/repack",
+      "freeleech": "Freeleech",
+      "trackerPriority": "Priorité du tracker",
+      "sizePenalty": "Pénalité de taille",
+      "customFormat": "Format personnalisé : {{name}}"
+    }
+  },
+  "customFormats": {
+    "title": "Formats personnalisés",
+    "description": "Définissez des règles pour noter les releases selon le titre, la source, le codec, et plus encore.",
+    "newFormat": "Nouveau format",
+    "editFormat": "Modifier le format",
+    "deleteFormat": "Supprimer le format",
+    "namePlaceholder": "Nom du format",
+    "empty": "Aucun format personnalisé. Créez-en un pour commencer à noter les releases.",
+    "addCondition": "Ajouter une condition",
+    "allOf": "Toutes les conditions doivent correspondre",
+    "negate": "Inverser",
+    "score": "Score",
+    "required": "Requis",
+    "forbidden": "Interdit",
+    "minSeeders": "Sources min.",
+    "minSeedersHelp": "0 = désactivé",
+    "scoreBreakdown": "Détail du score",
+    "condition": {
+      "titleRegex": "Titre (regex)",
+      "releaseGroup": "Groupe de release",
+      "source": "Source",
+      "resolution": "Résolution",
+      "codec": "Codec",
+      "language": "Langue",
+      "hdrFlag": "Indicateur HDR",
+      "properRepack": "Proper/repack",
+      "sizeRange": "Plage de taille",
+      "indexer": "Indexeur",
+      "freeleech": "Freeleech",
+      "seeders": "Sources"
+    },
+    "operator": {
+      "matches": "correspond",
+      "equals": "égal à",
+      "gte": "≥",
+      "lte": "≤",
+      "lt": "<",
+      "gt": ">",
+      "between": "entre",
+      "isTrue": "est vrai"
+    },
+    "error": {
+      "conditionsNotArray": "Les conditions doivent être un tableau",
+      "conditionsEmpty": "Au moins une condition est requise",
+      "conditionNotObject": "Chaque condition doit être un objet",
+      "conditionTypeInvalid": "Type de condition inconnu",
+      "operatorInvalidForType": "L'opérateur n'est pas valide pour ce type de condition",
+      "negateInvalid": "La négation doit être un booléen",
+      "valueInvalidForOperator": "La valeur n'est pas valide pour l'opérateur sélectionné",
+      "regexInvalid": "Expression régulière invalide",
+      "unknownCustomFormatId": "Identifiant de format personnalisé inconnu"
+    },
+    "nameRequired": "Le nom est requis",
+    "createSuccess": "Format créé",
+    "updateSuccess": "Format mis à jour",
+    "deleteSuccess": "Format supprimé",
+    "saveError": "Impossible d'enregistrer le format",
+    "deleteError": "Impossible de supprimer le format",
+    "loadError": "Impossible de charger les formats personnalisés",
+    "deleteConfirm": "Supprimer le format \"{{name}}\"? Il sera retiré de tous les profils de qualité.",
+    "createTitle": "Nouveau format personnalisé",
+    "editTitle": "Modifier le format personnalisé",
+    "formDescription": "Définissez les conditions qui doivent correspondre pour que ce format s'applique.",
+    "conditions": "Conditions"
   }
 }

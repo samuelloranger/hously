@@ -517,13 +517,45 @@ model QualityProfile {
   requireHdr               Boolean  @default(false) @map("require_hdr")
   preferHdr                Boolean  @default(false) @map("prefer_hdr")
   cutoffResolution         Int?     @map("cutoff_resolution")
+  minSeeders               Int      @default(0) @map("min_seeders")
   createdAt                DateTime @default(now()) @map("created_at")
   updatedAt                DateTime @updatedAt @map("updated_at")
 
   media              LibraryMedia[]
   defaultForSettings MediaSettings[] @relation("DefaultQualityProfile")
+  customFormats      QualityProfileCustomFormat[]
 
   @@map("quality_profiles")
+}
+
+model CustomFormat {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  /// FormatCondition[] (see customFormatTypes.ts). A format MATCHES when ALL
+  /// its conditions match; each condition is individually negatable.
+  conditions  Json
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  profileLinks QualityProfileCustomFormat[]
+
+  @@map("custom_formats")
+}
+
+model QualityProfileCustomFormat {
+  id               Int     @id @default(autoincrement())
+  qualityProfileId Int     @map("quality_profile_id")
+  customFormatId   Int     @map("custom_format_id")
+  score            Int     @default(0)
+  required         Boolean @default(false)
+  forbidden        Boolean @default(false)
+
+  qualityProfile QualityProfile @relation(fields: [qualityProfileId], references: [id], onDelete: Cascade)
+  customFormat   CustomFormat   @relation(fields: [customFormatId], references: [id], onDelete: Cascade)
+
+  @@unique([qualityProfileId, customFormatId])
+  @@index([qualityProfileId], map: "ix_qp_custom_format_profile")
+  @@map("quality_profile_custom_formats")
 }
 
 model BaSession {
