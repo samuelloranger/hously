@@ -44,15 +44,8 @@
 
     <!-- Theme Script - Must run before any content renders -->
     <script>
-      (function () {
-        const theme = localStorage.getItem("theme");
-        if (theme === "light") {
-          document.documentElement.style.colorScheme = "light";
-        } else {
-          document.documentElement.classList.add("dark");
-          document.documentElement.style.colorScheme = "dark";
-        }
-      })();
+      document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
     </script>
 
     <!-- Prevent flash of unstyled content -->

@@ -71,7 +71,7 @@ vi.mock("@/lib/routing/usePrefetchAllRoutes", () => ({
   usePrefetchAllRoutes: () => vi.fn(),
 }));
 vi.mock("@/lib/app/useTheme", () => ({
-  useTheme: () => ({ isDark: false, toggleTheme: vi.fn() }),
+  useTheme: () => ({}),
 }));
 vi.mock("@/lib/routing/navigation", () => ({
   navSections: [
