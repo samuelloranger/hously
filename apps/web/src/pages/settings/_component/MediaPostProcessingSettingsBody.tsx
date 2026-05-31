@@ -23,8 +23,7 @@ interface MediaPostProcessingSettingsBodyProps {
 const SELECT_CLASS =
   "w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40";
 
-const LABEL_CLASS =
-  "block text-sm font-medium text-neutral-300 mb-1.5";
+const LABEL_CLASS = "block text-sm font-medium text-neutral-300 mb-1.5";
 
 function CardSection({
   title,
@@ -41,13 +40,9 @@ function CardSection({
     <div className="overflow-hidden rounded-xl border border-neutral-700 bg-neutral-800">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-700/60 px-6 py-4">
         <div>
-          <h2 className="text-sm font-semibold text-neutral-100">
-            {title}
-          </h2>
+          <h2 className="text-sm font-semibold text-neutral-100">{title}</h2>
           {description && (
-            <p className="mt-0.5 text-xs text-neutral-400">
-              {description}
-            </p>
+            <p className="mt-0.5 text-xs text-neutral-400">{description}</p>
           )}
         </div>
         {actions}
@@ -151,7 +146,7 @@ export function MediaPostProcessingSettingsBody({
             type="checkbox"
             checked={postProcessingEnabled}
             onChange={(e) => setPostProcessingEnabled(e.target.checked)}
-            className="rounded border-neutral-300"
+            className="rounded border-neutral-700"
           />
           {t("settings.mediaLibrary.postProcessingToggle")}
         </label>
@@ -398,9 +393,7 @@ function ReindexLanguagesSection() {
           </p>
         )}
         {status?.state === "failed" && status.error && (
-          <p className="text-xs text-red-400">
-            {status.error}
-          </p>
+          <p className="text-xs text-red-400">{status.error}</p>
         )}
       </div>
     </div>

@@ -72,7 +72,7 @@ export function LogTimeForm({ taskId }: { taskId: number }) {
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors ${
             isRunning
               ? "hover:bg-red-100 border-red-700/40 bg-red-900/20 text-red-400"
-              : "hover:bg-neutral-50 border-neutral-700 bg-neutral-800 text-neutral-300"
+              : "hover:bg-neutral-700 border-neutral-700 bg-neutral-800 text-neutral-300"
           }`}
           title={isRunning ? "Stop timer" : "Start timer"}
         >

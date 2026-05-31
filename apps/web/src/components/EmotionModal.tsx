@@ -13,27 +13,27 @@ const emotions = [
   {
     emoji: "🥵",
     label: "Overwhelmed",
-    color: "bg-red-100 hover:bg-red-200 border-red-300",
+    color: "bg-red-500/15 hover:bg-red-500/25 border-red-500/30",
   },
   {
     emoji: "😢",
     label: "Frustrated",
-    color: "bg-blue-100 hover:bg-blue-200 border-blue-300",
+    color: "bg-blue-500/15 hover:bg-blue-500/25 border-blue-500/30",
   },
   {
     emoji: "😐",
     label: "Neutral",
-    color: "bg-neutral-100 hover:bg-neutral-200 border-neutral-300",
+    color: "bg-neutral-500/15 hover:bg-neutral-500/25 border-neutral-500/30",
   },
   {
     emoji: "😄",
     label: "Happy",
-    color: "bg-yellow-100 hover:bg-yellow-200 border-yellow-300",
+    color: "bg-yellow-500/15 hover:bg-yellow-500/25 border-yellow-500/30",
   },
   {
     emoji: "🔥",
     label: "Energized",
-    color: "bg-orange-100 hover:bg-orange-200 border-orange-300",
+    color: "bg-orange-500/15 hover:bg-orange-500/25 border-orange-500/30",
   },
 ];
 
@@ -86,7 +86,7 @@ export function EmotionModal({
                 }`}
               >
                 <span className="text-2xl mb-1">{emotion.emoji}</span>
-                <span className="text-xs font-medium text-center text-neutral-900 leading-tight">
+                <span className="text-xs font-medium text-center text-neutral-100 leading-tight">
                   {t(`emotion.${emotion.label.toLowerCase()}`)}
                 </span>
               </button>

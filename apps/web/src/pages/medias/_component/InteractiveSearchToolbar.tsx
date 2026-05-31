@@ -135,7 +135,7 @@ export function InteractiveSearchToolbar({
                 !hideRejected ||
                 showPacksOnly
                 ? "border-primary-500/30 bg-primary-500/10 text-primary-300"
-                : "hover:text-neutral-800 border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700",
+                : "hover:text-neutral-100 border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700",
             )}
           >
             <SlidersHorizontal size={13} />
@@ -257,7 +257,7 @@ export function InteractiveSearchToolbar({
               "relative inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors",
               showFilters || hasAdvancedFilters
                 ? "border-primary-500/30 bg-primary-500/10 text-primary-300"
-                : "hover:text-neutral-800 border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700",
+                : "hover:text-neutral-100 border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700",
             )}
           >
             <SlidersHorizontal size={13} />
@@ -337,7 +337,7 @@ export function InteractiveSearchToolbar({
                     sortDir: prev.sortDir === "asc" ? "desc" : "asc",
                   }))
                 }
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:text-neutral-900 border-neutral-700 bg-neutral-800 text-neutral-200 hover:bg-neutral-700"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:text-neutral-100 border-neutral-700 bg-neutral-800 text-neutral-200 hover:bg-neutral-700"
                 title={
                   sortDir === "asc"
                     ? t("medias.sortDirectionAsc")

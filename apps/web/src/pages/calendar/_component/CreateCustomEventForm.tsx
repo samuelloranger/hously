@@ -244,7 +244,7 @@ export function CreateCustomEventForm({
                 setValue("end_datetime", end.toISOString());
               }
             }}
-            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
+            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-600 rounded"
           />
           <label
             htmlFor="all_day"
