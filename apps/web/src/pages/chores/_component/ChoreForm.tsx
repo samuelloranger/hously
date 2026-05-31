@@ -339,9 +339,7 @@ function ChoreFormInner({
           onChange={handleImageChange}
           className="mt-1 w-full px-3 py-2 border border-neutral-600 rounded-md text-white bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
         />
-        <p className="mt-1 text-xs text-neutral-400">
-          {t("chores.imageHelp")}
-        </p>
+        <p className="mt-1 text-xs text-neutral-400">{t("chores.imageHelp")}</p>
       </div>
 
       <div className="border-t border-neutral-700 pt-4">
@@ -546,7 +544,7 @@ function ChoreFormInner({
           <button
             type="submit"
             disabled={submitMutation.isPending || isUploadingImage}
-            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
+            className="px-6 py-2 bg-primary-600 hover:bg-primary-500 text-neutral-950 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
           >
             <Plus size={16} className="mr-1.5 inline" />
             {isUploadingImage

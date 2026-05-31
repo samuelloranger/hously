@@ -54,7 +54,7 @@ export function ChoresList() {
         actions={
           <Button
             onClick={() => setParams({ modal: "create" })}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-primary-600 hover:bg-primary-500 text-neutral-950 focus-visible:ring-primary-400"
           >
             <Plus className="w-4 h-4 mr-2" />
             {t("chores.addNewChore")}
