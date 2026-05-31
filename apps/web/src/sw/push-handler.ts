@@ -2,9 +2,8 @@ import { sw } from "./sw";
 import { normalizeNotificationUrl } from "@hously/shared/utils/notifications";
 import { handleAppUpdate } from "./app-update";
 import { syncBadgeCount } from "./badge";
+import { broadcastNotificationEvent } from "./notification-broadcast";
 import type { PushNotificationData } from "./types";
-
-const NOTIFICATION_EVENT_CHANNEL = "hously-notification-events";
 
 export function handlePush(event: PushEvent): void {
   let data: PushNotificationData = {};
@@ -22,19 +21,18 @@ export function handlePush(event: PushEvent): void {
     notificationData: data,
   };
 
+  // Deliver to open windows two ways so the in-app banner shows reliably:
+  // a direct postMessage to each window client, plus a persistent
+  // BroadcastChannel fallback for tabs where SW client messaging is flaky for
+  // uncontrolled windows. The channel is long-lived (never closed per push) so
+  // the message is never dropped by a close()-vs-delivery race.
+  broadcastNotificationEvent(messagePayload);
   const broadcast_promise = sw.clients
     .matchAll({ type: "window", includeUncontrolled: true })
     .then((clients) => {
       clients.forEach((client) => {
         client.postMessage(messagePayload);
       });
-
-      // Fallback for browsers/tabs where SW client messaging is flaky for uncontrolled windows.
-      if ("BroadcastChannel" in self) {
-        const channel = new BroadcastChannel(NOTIFICATION_EVENT_CHANNEL);
-        channel.postMessage(messagePayload);
-        channel.close();
-      }
     });
 
   const title = data.title || "Hously";
