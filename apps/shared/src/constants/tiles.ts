@@ -29,7 +29,9 @@ const VALID_TILE_IDS = new Set<string>(TILES.map((t) => t.id));
  */
 export function getEffectiveTileLayout(stored: TileLayout | null): TileLayout {
   if (!stored) return getDefaultTileLayout();
-  const cleaned = stored.filter((id) => VALID_TILE_IDS.has(id));
+  const cleaned = [
+    ...new Set(stored.filter((id) => VALID_TILE_IDS.has(id))),
+  ] as TileLayout;
   const present = new Set(cleaned);
   TILES.slice()
     .sort((a, b) => a.defaultOrder - b.defaultOrder)

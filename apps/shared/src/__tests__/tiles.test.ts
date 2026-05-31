@@ -37,13 +37,28 @@ describe("tile catalog", () => {
 
   it("moveTileInLayout swaps adjacent tiles", () => {
     const layout = ["a", "b", "c"] as unknown as TileLayout;
-    expect(moveTileInLayout(layout, "b" as never, "up")).toEqual(["b", "a", "c"]);
-    expect(moveTileInLayout(layout, "b" as never, "down")).toEqual(["a", "c", "b"]);
+    expect(moveTileInLayout(layout, "b" as never, "up")).toEqual([
+      "b",
+      "a",
+      "c",
+    ]);
+    expect(moveTileInLayout(layout, "b" as never, "down")).toEqual([
+      "a",
+      "c",
+      "b",
+    ]);
   });
 
   it("moveTileInLayout is a no-op at the edges", () => {
     const layout = ["a", "b"] as unknown as TileLayout;
     expect(moveTileInLayout(layout, "a" as never, "up")).toEqual(["a", "b"]);
     expect(moveTileInLayout(layout, "b" as never, "down")).toEqual(["a", "b"]);
+  });
+
+  it("deduplicates repeated valid ids in stored layout", () => {
+    const stored = ["chores_today", "chores_today"] as unknown as TileLayout;
+    const eff = getEffectiveTileLayout(stored);
+    expect(new Set(eff).size).toBe(eff.length);
+    expect(eff.filter((id) => id === "chores_today")).toHaveLength(1);
   });
 });
