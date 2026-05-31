@@ -1,4 +1,4 @@
-import { useMemo, useState, type UIEvent } from "react";
+import { useMemo, useState, type ReactNode, type UIEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { useDashboardJellyfinLatestInfinite } from "@/pages/_component/useDashboardJellyfin";
@@ -28,6 +28,89 @@ import {
   PlayCircle,
 } from "lucide-react";
 
+// ─── Shelf section frame ────────────────────────────────────────────────────
+
+function ShelfSection({
+  Icon,
+  title,
+  count,
+  onRefresh,
+  refreshing,
+  refreshDisabled,
+  refreshTitle,
+  children,
+}: {
+  Icon: LucideIcon;
+  title: string;
+  count?: number;
+  onRefresh: () => void;
+  refreshing: boolean;
+  refreshDisabled?: boolean;
+  refreshTitle: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border border-neutral-700 bg-neutral-900 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-neutral-800 text-primary-400">
+            <Icon className="w-4 h-4" strokeWidth={2} />
+          </span>
+          <h3 className="font-display text-sm font-semibold text-neutral-50 truncate">
+            {title}
+          </h3>
+          {count != null && count > 0 && (
+            <span className="shrink-0 rounded-full bg-neutral-800 px-2 py-0.5 font-display text-[11px] font-semibold tabular-nums text-neutral-400">
+              {count}
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={refreshDisabled}
+          className="shrink-0 rounded-md p-1 text-neutral-400 transition-colors hover:text-primary-400 disabled:opacity-40"
+          title={refreshTitle}
+        >
+          <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
+        </button>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function ShelfMessage({
+  children,
+  tone = "muted",
+}: {
+  children: ReactNode;
+  tone?: "muted" | "error";
+}) {
+  return (
+    <p
+      className={`px-4 py-8 text-center text-sm ${
+        tone === "error" ? "text-rose-400" : "text-neutral-400"
+      }`}
+    >
+      {children}
+    </p>
+  );
+}
+
+function ShelfSkeleton() {
+  return (
+    <div className="flex gap-3 px-4 py-3 overflow-hidden">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-neutral-800 animate-pulse aspect-[2/3]"
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── Poster card ──────────────────────────────────────────────────────────────
 
 function PosterCard({
@@ -51,7 +134,7 @@ function PosterCard({
 }) {
   const inner = (
     <div
-      className="home-poster-card relative w-[120px] md:w-[140px] shrink-0 overflow-hidden rounded-lg bg-neutral-800 cursor-pointer group"
+      className="home-poster-card relative w-[120px] md:w-[140px] shrink-0 overflow-hidden rounded-lg border border-neutral-700 bg-neutral-800 cursor-pointer group transition-colors hover:border-primary-400/60"
       style={{ animationDelay: `${delayMs}ms` }}
       onClick={onClick}
     >
@@ -60,25 +143,28 @@ function PosterCard({
           <img
             src={posterUrl}
             alt={title}
+            loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-neutral-700">
-            <FallbackIcon className="w-8 h-8 text-neutral-500" />
+          <div className="flex h-full w-full items-center justify-center bg-neutral-800">
+            <FallbackIcon className="w-8 h-8 text-neutral-400" />
           </div>
         )}
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/30 to-transparent" />
       <div className="absolute top-2 left-2">
-        <span className="text-[9px] font-bold uppercase tracking-wide bg-black/60 text-white/90 rounded px-1.5 py-0.5">
+        <span className="rounded bg-neutral-950/70 px-1.5 py-0.5 font-display text-[9px] font-bold uppercase tracking-wide text-neutral-100">
           {type}
         </span>
       </div>
       <div className="absolute bottom-0 left-0 right-0 p-2">
-        <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2">
+        <p className="text-[11px] font-semibold text-neutral-50 leading-tight line-clamp-2">
           {title}
         </p>
-        <p className="text-[9px] text-white/60 mt-0.5">{subtitle}</p>
+        {subtitle && (
+          <p className="mt-0.5 text-[9px] text-neutral-400">{subtitle}</p>
+        )}
       </div>
     </div>
   );
@@ -156,50 +242,25 @@ export function JellyfinShelf() {
   };
 
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
-        <div className="flex items-center gap-2.5">
-          <span className="w-1 h-4 rounded-full bg-blue-500 shrink-0" />
-          <PlayCircle
-            className="w-4 h-4 shrink-0 text-neutral-400"
-            strokeWidth={2}
-          />
-          <h3 className="text-sm font-semibold text-neutral-100">
-            {t("dashboard.home.jellyfinRecentlyAdded")}
-          </h3>
-        </div>
-        <button
-          type="button"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="text-neutral-400 hover:text-blue-500 transition-colors disabled:opacity-40"
-          title={t("dashboard.jellyfin.refresh")}
-        >
-          <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />
-        </button>
-      </div>
-
+    <ShelfSection
+      Icon={PlayCircle}
+      title={t("dashboard.home.jellyfinRecentlyAdded")}
+      count={isEnabled && !isLoading && !isError ? items.length : undefined}
+      onRefresh={() => refetch()}
+      refreshing={isFetching}
+      refreshDisabled={isFetching}
+      refreshTitle={t("dashboard.jellyfin.refresh")}
+    >
       {isError ? (
-        <p className="px-4 py-6 text-sm text-rose-500 text-center">
+        <ShelfMessage tone="error">
           {t("dashboard.home.jellyfinLoadError")}
-        </p>
+        </ShelfMessage>
       ) : isLoading ? (
-        <div className="flex gap-3 px-4 py-3 overflow-hidden">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-neutral-800 animate-pulse aspect-[2/3]"
-            />
-          ))}
-        </div>
+        <ShelfSkeleton />
       ) : !isEnabled ? (
-        <p className="px-4 py-6 text-sm text-neutral-400 text-center">
-          {t("dashboard.home.jellyfinNotConfigured")}
-        </p>
+        <ShelfMessage>{t("dashboard.home.jellyfinNotConfigured")}</ShelfMessage>
       ) : items.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-neutral-400 text-center">
-          {t("dashboard.home.jellyfinEmpty")}
-        </p>
+        <ShelfMessage>{t("dashboard.home.jellyfinEmpty")}</ShelfMessage>
       ) : (
         <div
           className="no-scrollbar overflow-x-auto px-4 py-3"
@@ -224,7 +285,7 @@ export function JellyfinShelf() {
           </div>
         </div>
       )}
-    </section>
+    </ShelfSection>
   );
 }
 
@@ -306,51 +367,25 @@ export function UpcomingShelf() {
 
   return (
     <>
-      <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
-            <CalendarClock
-              className="w-4 h-4 shrink-0 text-neutral-400"
-              strokeWidth={2}
-            />
-            <h3 className="text-sm font-semibold text-neutral-100">
-              {t("dashboard.home.upcomingShelfTitle")}
-            </h3>
-          </div>
-          <button
-            type="button"
-            onClick={() => refreshUpcoming.mutate()}
-            disabled={!data?.enabled || isFetching || refreshUpcoming.isPending}
-            className="text-neutral-400 hover:text-amber-500 transition-colors disabled:opacity-40"
-            title={t("dashboard.upcoming.refresh")}
-          >
-            <RefreshCw
-              size={13}
-              className={
-                isFetching || refreshUpcoming.isPending ? "animate-spin" : ""
-              }
-            />
-          </button>
-        </div>
-
+      <ShelfSection
+        Icon={CalendarClock}
+        title={t("dashboard.home.upcomingShelfTitle")}
+        count={data?.enabled && !isLoading ? data.items.length : undefined}
+        onRefresh={() => refreshUpcoming.mutate()}
+        refreshing={isFetching || refreshUpcoming.isPending}
+        refreshDisabled={
+          !data?.enabled || isFetching || refreshUpcoming.isPending
+        }
+        refreshTitle={t("dashboard.upcoming.refresh")}
+      >
         {isLoading ? (
-          <div className="flex gap-3 px-4 py-3 overflow-hidden">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-neutral-800 animate-pulse aspect-[2/3]"
-              />
-            ))}
-          </div>
+          <ShelfSkeleton />
         ) : !data?.enabled ? (
-          <p className="px-4 py-6 text-sm text-neutral-400 text-center">
+          <ShelfMessage>
             {t("dashboard.home.upcomingArrNotConfigured")}
-          </p>
+          </ShelfMessage>
         ) : data.items.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-neutral-400 text-center">
-            {t("dashboard.home.upcomingEmpty")}
-          </p>
+          <ShelfMessage>{t("dashboard.home.upcomingEmpty")}</ShelfMessage>
         ) : (
           <div className="no-scrollbar overflow-x-auto px-4 py-3">
             <div className="flex gap-3">
@@ -373,7 +408,7 @@ export function UpcomingShelf() {
             </div>
           </div>
         )}
-      </section>
+      </ShelfSection>
 
       {selected && (
         <ExploreCardDetailDialog

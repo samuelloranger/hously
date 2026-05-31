@@ -331,6 +331,22 @@ body {
   animation: collapsible-up 0.2s ease-in;
 }
 
+/* Poster shelf reveal */
+@keyframes posterReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-poster-card {
+  animation: posterReveal 0.35s ease-out both;
+}
+
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -577,5 +593,9 @@ body {
   .torrent-progress-bar-active::after {
     animation: none;
     opacity: 0;
+  }
+
+  .home-poster-card {
+    animation: none;
   }
 }
