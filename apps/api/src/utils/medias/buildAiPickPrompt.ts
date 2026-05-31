@@ -14,9 +14,16 @@ export interface AiPickMediaContext {
 
 export const AI_SYSTEM_PROMPT =
   "You are a media release selection assistant for a homelab. " +
-  "Given a list of torrent releases, pick the best one. " +
+  "Given a list of torrent releases, pick the single best one. " +
+  "`score` is the app's quality rating derived from the user's resolution, format, and size preferences (higher is better) — use it as the primary quality signal and do not re-judge quality from the title. " +
+  "Choose in this order: " +
+  "(1) discard any release with 0 seeders (undownloadable); " +
+  "(2) discard releases with the wrong language, wrong season/episode, or low-quality captures (CAM, TS, TELESYNC, HDCAM, WORKPRINT, SCREENER); " +
+  "(3) among those remaining, pick the highest score; " +
+  "(4) break ties by seeders. " +
+  "release_key MUST be exactly one of the provided keys — never invent one. " +
   'Respond ONLY with valid JSON matching: { "release_key": string, "reasoning": string }. ' +
-  "Keep reasoning under 150 characters.";
+  "In reasoning, cite the deciding factors (e.g. score and seeders), under 150 characters.";
 
 export function buildAiPickPrompt(
   media: AiPickMediaContext,
