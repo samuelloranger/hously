@@ -14,7 +14,18 @@ export interface StreamNotification {
 interface UseNotificationStreamOptions {
   /** Called for each new notification pushed over the stream. */
   onNotification: (notification: StreamNotification) => void;
-  enabled?: boolean;
+  /**
+   * Reconnect token — when it changes, the stream is torn down and reopened.
+   * Pass the authenticated user id so the stream reconnects on login/logout.
+   *
+   * Note: we intentionally do NOT gate opening on a React `isAuthenticated`
+   * flag. The container is mounted at the app root, where that flag is `false`
+   * on the first render even for a logged-in user (its `useCurrentUser` query
+   * has not resolved yet). The session cookie is the source of truth: the
+   * EventSource carries it, so it authenticates on its own when logged in, and
+   * the server returns 401 (EventSource then does not reconnect) when not.
+   */
+  reconnectKey?: string | number | null;
 }
 
 /**
@@ -28,7 +39,7 @@ interface UseNotificationStreamOptions {
  */
 export function useNotificationStream({
   onNotification,
-  enabled = true,
+  reconnectKey,
 }: UseNotificationStreamOptions): void {
   const queryClient = useQueryClient();
   const onNotificationRef = useRef(onNotification);
@@ -37,7 +48,6 @@ export function useNotificationStream({
   }, [onNotification]);
 
   useEffect(() => {
-    if (!enabled) return;
     if (typeof globalThis.EventSource === "undefined") return;
 
     const source = new EventSource("/api/notifications/stream", {
@@ -66,5 +76,5 @@ export function useNotificationStream({
     };
 
     return () => source.close();
-  }, [enabled, queryClient]);
+  }, [reconnectKey, queryClient]);
 }
