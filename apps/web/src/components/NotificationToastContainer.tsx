@@ -1,9 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { NotificationType } from "@hously/shared/types";
 import { NotificationMenuRow } from "@/components/NotificationMenuRow";
 import { openNotificationTarget } from "@/lib/notifications/navigation";
+import {
+  useNotificationStream,
+  type StreamNotification,
+} from "@/lib/notifications/useNotificationStream";
 
 interface ToastNotification {
   id: string;
@@ -15,27 +19,13 @@ interface ToastNotification {
   leaving?: boolean;
 }
 
-interface IncomingMessageData {
-  type: string;
-  notificationData?: {
-    title?: string;
-    body?: string;
-    data?: {
-      notification_type?: string | null;
-      url?: string;
-      service_name?: string;
-    };
-  };
-}
-
-const NOTIFICATION_EVENT_CHANNEL = "hously-notification-events";
 const TOAST_DURATION = 8000;
 const EXIT_DURATION = 300;
-const DEDUP_WINDOW_MS = 2000;
 
 export function NotificationToastContainer() {
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
-  const recentKeys = useRef(new Set<string>());
+  // Notification ids already shown, so a reconnect replay never double-banners.
+  const seenIds = useRef(new Set<number>());
 
   const dismiss = useCallback((id: string) => {
     setToasts((prev) =>
@@ -46,53 +36,33 @@ export function NotificationToastContainer() {
     }, EXIT_DURATION);
   }, []);
 
-  useEffect(() => {
-    const handleMessage = (data: unknown) => {
-      if (!data || typeof data !== "object") return;
-      const msg = data as IncomingMessageData;
-      if (msg.type !== "notification-received" || !msg.notificationData) return;
-
-      const notifData = msg.notificationData;
-      const dedupKey = `${notifData.title}:${notifData.body}`;
-      if (recentKeys.current.has(dedupKey)) return;
-      recentKeys.current.add(dedupKey);
-      setTimeout(() => recentKeys.current.delete(dedupKey), DEDUP_WINDOW_MS);
+  // The in-app banner is driven by the SSE notification stream — independent of
+  // Web Push, so it works whether or not this browser has a push subscription.
+  const handleNotification = useCallback(
+    (notification: StreamNotification) => {
+      if (seenIds.current.has(notification.id)) return;
+      seenIds.current.add(notification.id);
+      // Keep the dedup set bounded over long-lived sessions.
+      if (seenIds.current.size > 300) {
+        seenIds.current = new Set([...seenIds.current].slice(-150));
+      }
 
       const toast: ToastNotification = {
-        id: `${Date.now()}-${Math.random()}`,
-        title: notifData.title || "Hously",
-        body: notifData.body,
-        type:
-          (notifData.data?.notification_type as NotificationType) || "system",
-        url: notifData.data?.url || null,
-        metadata: notifData.data?.service_name
-          ? { service_name: notifData.data.service_name }
-          : null,
+        id: String(notification.id),
+        title: notification.title || "Hously",
+        body: notification.body,
+        type: (notification.type as NotificationType) || "system",
+        url: notification.url,
+        metadata: notification.metadata ?? null,
       };
 
       setToasts((prev) => [...prev, toast]);
       setTimeout(() => dismiss(toast.id), TOAST_DURATION);
-    };
+    },
+    [dismiss],
+  );
 
-    const handleSWMessage = (event: MessageEvent) => handleMessage(event.data);
-    const handleChannelMessage = (event: MessageEvent) =>
-      handleMessage(event.data);
-
-    navigator.serviceWorker?.addEventListener("message", handleSWMessage);
-    let channel: BroadcastChannel | null = null;
-    if ("BroadcastChannel" in window) {
-      channel = new BroadcastChannel(NOTIFICATION_EVENT_CHANNEL);
-      channel.addEventListener("message", handleChannelMessage);
-    }
-
-    return () => {
-      navigator.serviceWorker?.removeEventListener("message", handleSWMessage);
-      if (channel) {
-        channel.removeEventListener("message", handleChannelMessage);
-        channel.close();
-      }
-    };
-  }, [dismiss]);
+  useNotificationStream({ onNotification: handleNotification });
 
   if (toasts.length === 0) return null;
 

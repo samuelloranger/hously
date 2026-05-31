@@ -3,33 +3,11 @@
  */
 
 import { prisma } from "@hously/api/db";
-import { nowUtc, getTimezone } from "@hously/api/utils";
+import { nowUtc } from "@hously/api/utils";
 import { addJob, QUEUE_NAMES } from "@hously/api/services/queueService";
+import { emitUserNotification } from "@hously/api/services/notificationEvents";
 import type { NotificationJobData } from "@hously/api/services/jobs/notificationWorker";
 import { normalizeNotificationUrl } from "@hously/shared/utils";
-/**
- * Check if current time is in night period (23h-6h) when notifications should not be sent
- */
-export function isNightTime(): boolean {
-  const tz = getTimezone();
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: tz,
-    hour: "numeric",
-    hour12: false,
-  });
-  const currentHour = parseInt(formatter.format(now));
-
-  const isNight = currentHour >= 23 || currentHour < 6;
-
-  if (isNight) {
-    console.log(
-      `Night time detected (current hour: ${currentHour}). Skipping notifications.`,
-    );
-  }
-
-  return isNight;
-}
 
 interface NotificationMetadata {
   chore_id?: number;
@@ -73,6 +51,18 @@ export async function createAndQueueNotification(
     console.log(
       `[NotificationService] Created notification ${notification.id} for user ${userId}. Enqueuing push job.`,
     );
+
+    // Relay to the user's open clients over SSE so the in-app banner shows even
+    // when the browser has no push subscription. Independent of the push job.
+    emitUserNotification({
+      userId,
+      id: notification.id,
+      title,
+      body,
+      type: notificationType,
+      url: normalizedUrl,
+      metadata,
+    });
 
     // 2. Enqueue the actual push delivery to BullMQ
     await addJob<NotificationJobData>(

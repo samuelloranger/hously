@@ -8,7 +8,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { checkVersionAndReload } from "@/lib/version";
 import { registerServiceWorker } from "@/lib/sw/registration";
 import { bootstrapAuthFromWindow } from "@/lib/auth";
-import { useAutoInvalidateNotifications } from "@/lib/notifications/useAutoInvalidateNotifications";
 import { useCloseReadNotifications } from "@/lib/notifications/useCloseReadNotifications";
 import { useIOSImprovements } from "@/lib/app/useIOSImprovements";
 import { NotificationToastContainer } from "@/components/NotificationToastContainer";
@@ -45,7 +44,6 @@ bootstrapAuthFromWindow(queryClient);
 
 // Component to handle service worker query invalidation and iOS improvements
 function AppWithServiceWorkerIntegration() {
-  useAutoInvalidateNotifications();
   useCloseReadNotifications();
   useIOSImprovements();
 
