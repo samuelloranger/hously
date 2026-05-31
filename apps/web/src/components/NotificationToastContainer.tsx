@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import type { NotificationType } from "@hously/shared/types";
 import { NotificationMenuRow } from "@/components/NotificationMenuRow";
 import { openNotificationTarget } from "@/lib/notifications/navigation";
+import { useAuth } from "@/lib/auth/useAuth";
 import {
   useNotificationStream,
   type StreamNotification,
@@ -62,7 +63,15 @@ export function NotificationToastContainer() {
     [dismiss],
   );
 
-  useNotificationStream({ onNotification: handleNotification });
+  // Only open the SSE stream for authenticated users — `NotificationToastContainer`
+  // is mounted app-wide (incl. /login and other logged-out screens), and the
+  // stream 401s without a session. Gating also (re)connects right after login
+  // without a full reload, since `enabled` flips when auth resolves.
+  const { isAuthenticated } = useAuth();
+  useNotificationStream({
+    onNotification: handleNotification,
+    enabled: isAuthenticated,
+  });
 
   if (toasts.length === 0) return null;
 

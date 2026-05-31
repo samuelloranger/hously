@@ -43,6 +43,15 @@ describe("useNotificationStream", () => {
     expect(FakeEventSource.last?.init?.withCredentials).toBe(true);
   });
 
+  it("does not open the stream when disabled (e.g. logged out)", () => {
+    const client = new QueryClient();
+    renderHook(
+      () => useNotificationStream({ onNotification: vi.fn(), enabled: false }),
+      { wrapper: wrapper(client) },
+    );
+    expect(FakeEventSource.last).toBeNull();
+  });
+
   it("calls onNotification and invalidates notification queries on an event", () => {
     const client = new QueryClient();
     const invalidate = vi.spyOn(client, "invalidateQueries");
