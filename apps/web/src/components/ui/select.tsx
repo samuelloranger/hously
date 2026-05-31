@@ -16,9 +16,8 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-10 w-full items-center justify-between rounded-md px-3 py-2 text-sm",
-      "border border-neutral-200 border-l-2 border-l-neutral-200 bg-white text-neutral-900",
-      "dark:border-neutral-700 dark:border-l-neutral-700 dark:bg-neutral-800 dark:text-neutral-100",
-      "focus:outline-none focus:border-l-primary-500 focus:shadow-[0_0_0_3px_rgba(34,197,94,0.08)]",
+      "border border-neutral-700 border-l-2 border-l-neutral-700 bg-neutral-800 text-neutral-100",
+      "focus:outline-none focus:border-l-primary-400 focus:shadow-[0_0_0_3px_rgba(232,160,106,0.12)]",
       "transition-all duration-150",
       "disabled:cursor-not-allowed disabled:opacity-40",
       className,
@@ -27,7 +26,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <RadixSelect.Icon asChild>
-      <ChevronDown className="size-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
+      <ChevronDown className="size-4 shrink-0 text-neutral-400" />
     </RadixSelect.Icon>
   </RadixSelect.Trigger>
 ));
@@ -42,8 +41,7 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         "relative z-[var(--z-popover)] overflow-hidden rounded-md",
-        "border border-neutral-200 bg-white shadow-lg",
-        "dark:border-neutral-700 dark:bg-neutral-800 dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)]",
+        "border border-neutral-700 bg-neutral-800 shadow-[0_8px_32px_rgba(0,0,0,0.6)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -75,9 +73,9 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-3 text-sm",
-      "text-neutral-900 outline-none dark:text-slate-300",
-      "hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-700 dark:hover:text-slate-100",
-      "data-[state=checked]:text-primary-600 dark:data-[state=checked]:text-primary-400",
+      "text-neutral-100 outline-none",
+      "hover:bg-neutral-700 hover:text-neutral-50",
+      "data-[state=checked]:text-primary-400",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
       "transition-colors duration-100",
       className,
@@ -100,7 +98,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <RadixSelect.Separator
     ref={ref}
-    className={cn("my-1 h-px bg-neutral-200 dark:bg-neutral-700", className)}
+    className={cn("my-1 h-px bg-neutral-700", className)}
     {...props}
   />
 ));
