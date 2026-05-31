@@ -330,7 +330,20 @@
       "choresPending_other": "{{count}} en attente",
       "streakLabel": "Série",
       "streakDays_one": "jour",
-      "streakDays_other": "jours"
+      "streakDays_other": "jours",
+      "latestMediaLabel": "Derniers médias",
+      "latestMediaEmpty": "Rien pour l'instant",
+      "nextEventLabel": "À venir",
+      "nextEventEmpty": "Rien de prévu",
+      "downloadsLabel": "Téléchargements",
+      "downloadsActive": "En cours",
+      "downloadsIdle": "Inactif",
+      "libraryAlertsLabel": "Bibliothèque",
+      "libraryAlertsCount_one": "alerte",
+      "libraryAlertsCount_other": "alertes",
+      "weatherLabel": "Météo",
+      "systemLabel": "Système",
+      "systemCpu": "Proc."
     },
     "libraryAttention": {
       "title": "Bibliothèque — à traiter",

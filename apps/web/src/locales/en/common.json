@@ -330,7 +330,20 @@
       "choresPending_other": "{{count}} pending",
       "streakLabel": "Streak",
       "streakDays_one": "day",
-      "streakDays_other": "days"
+      "streakDays_other": "days",
+      "latestMediaLabel": "Latest media",
+      "latestMediaEmpty": "Nothing yet",
+      "nextEventLabel": "Next up",
+      "nextEventEmpty": "Nothing scheduled",
+      "downloadsLabel": "Downloads",
+      "downloadsActive": "Downloading",
+      "downloadsIdle": "Idle",
+      "libraryAlertsLabel": "Library",
+      "libraryAlertsCount_one": "alert",
+      "libraryAlertsCount_other": "alerts",
+      "weatherLabel": "Weather",
+      "systemLabel": "System",
+      "systemCpu": "CPU"
     },
     "libraryAttention": {
       "title": "Library attention",
