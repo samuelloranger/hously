@@ -81,4 +81,92 @@ describe("filesFailProfile", () => {
     ];
     expect(filesFailProfile(files, hdrProfile)).toBe(true);
   });
+
+  const validFile = {
+    resolution: 1080,
+    source: "BluRay",
+    videoCodec: "x265",
+    hdrFormat: null,
+    sizeBytes: null as bigint | null,
+    languageTags: [] as string[],
+    releaseGroup: "GROUP" as string | null,
+  };
+
+  it("does NOT fail a valid file for a required release-only format (seeders)", () => {
+    // A required custom format on `seeders` can't be observed from a file —
+    // it must not flag an already-valid download as needing an upgrade.
+    const p: QualityProfileScoreInput = {
+      ...profile,
+      customFormats: [
+        {
+          name: "Healthy",
+          conditions: [{ type: "seeders", operator: "gte", value: 5 }],
+          score: 0,
+          required: true,
+          forbidden: false,
+        },
+      ],
+    };
+    expect(filesFailProfile([validFile], p)).toBe(false);
+  });
+
+  it("does NOT fail a valid file for a required title_regex format", () => {
+    const p: QualityProfileScoreInput = {
+      ...profile,
+      customFormats: [
+        {
+          name: "TitleRule",
+          conditions: [
+            { type: "title_regex", operator: "matches", value: "atmos" },
+          ],
+          score: 0,
+          required: true,
+          forbidden: false,
+        },
+      ],
+    };
+    expect(filesFailProfile([validFile], p)).toBe(false);
+  });
+
+  it("does NOT fail a valid file when profile.minSeeders > 0", () => {
+    expect(filesFailProfile([validFile], { ...profile, minSeeders: 5 })).toBe(
+      false,
+    );
+  });
+
+  it("DOES fail when a file-observable required format is unmet (release_group)", () => {
+    const p: QualityProfileScoreInput = {
+      ...profile,
+      customFormats: [
+        {
+          name: "PreferredGroup",
+          conditions: [
+            { type: "release_group", operator: "matches", value: "^OTHER$" },
+          ],
+          score: 0,
+          required: true,
+          forbidden: false,
+        },
+      ],
+    };
+    expect(filesFailProfile([validFile], p)).toBe(true);
+  });
+
+  it("does NOT fail when a file-observable required format IS met (release_group)", () => {
+    const p: QualityProfileScoreInput = {
+      ...profile,
+      customFormats: [
+        {
+          name: "PreferredGroup",
+          conditions: [
+            { type: "release_group", operator: "matches", value: "^GROUP$" },
+          ],
+          score: 0,
+          required: true,
+          forbidden: false,
+        },
+      ],
+    };
+    expect(filesFailProfile([validFile], p)).toBe(false);
+  });
 });

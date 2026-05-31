@@ -121,6 +121,7 @@ export const libraryMetaRoutes = new Elysia()
             hdrFormat: true,
             sizeBytes: true,
             languageTags: true,
+            releaseGroup: true,
           } as const;
 
           if (existing.type === "movie") {
