@@ -244,32 +244,33 @@ export function Calendar({
                 isDisabled &&
                   "text-neutral-400 dark:text-neutral-600 opacity-50 cursor-not-allowed",
                 // Single mode selected
-                isSelected && "bg-primary-600 text-white hover:bg-primary-700",
+                isSelected &&
+                  "bg-primary-600 text-neutral-950 hover:bg-primary-500",
                 // Range mode - selected range
                 isInSelectedRange && "bg-blue-600 !rounded-none text-white",
                 isRangeStartDate &&
                   !isRangeEndDate &&
-                  "!rounded-l-md rounded-r-none bg-primary-600 text-white",
+                  "!rounded-l-md rounded-r-none bg-primary-600 text-neutral-950",
                 isRangeEndDate &&
                   !isRangeStartDate &&
-                  "!rounded-r-md rounded-l-none bg-primary-600 text-white",
+                  "!rounded-r-md rounded-l-none bg-primary-600 text-neutral-950",
                 isRangeStartDate &&
                   isRangeEndDate &&
-                  "rounded-md bg-primary-600 text-white",
+                  "rounded-md bg-primary-600 text-neutral-950",
                 // Range mode - hover preview
                 isInHoverRange && "bg-blue-100 dark:bg-blue-900",
                 hoverRange &&
                   isRangeStart(day, hoverRange.from) &&
                   !isRangeEnd(day, hoverRange.to) &&
-                  "rounded-l-md rounded-r-none bg-primary-600 text-white",
+                  "rounded-l-md rounded-r-none bg-primary-600 text-neutral-950",
                 hoverRange &&
                   isRangeEnd(day, hoverRange.to) &&
                   !isRangeStart(day, hoverRange.from) &&
-                  "rounded-r-md rounded-l-none bg-primary-600 text-white",
+                  "rounded-r-md rounded-l-none bg-primary-600 text-neutral-950",
                 hoverRange &&
                   isRangeStart(day, hoverRange.from) &&
                   isRangeEnd(day, hoverRange.to) &&
-                  "rounded-md bg-primary-600 text-white",
+                  "rounded-md bg-primary-600 text-neutral-950",
               )}
             >
               {day.getDate()}

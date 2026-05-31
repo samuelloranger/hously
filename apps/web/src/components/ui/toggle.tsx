@@ -26,7 +26,7 @@ const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
         role="switch"
         aria-pressed={pressed}
         className={cn(
-          "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+          "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 disabled:pointer-events-none disabled:opacity-50",
           pressed
             ? "bg-primary-600 text-neutral-950 hover:bg-primary-500"
             : "bg-neutral-800 text-neutral-100 hover:bg-neutral-700 hover:text-neutral-50",

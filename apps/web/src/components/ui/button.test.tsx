@@ -20,4 +20,11 @@ describe("Button", () => {
     const btn = screen.getByRole("button", { name: "Watch" });
     expect(btn.className).not.toContain("ring-offset-white");
   });
+
+  it("uses dark text on the apricot/terracotta default (not white) for contrast", () => {
+    render(<Button>Watch</Button>);
+    const btn = screen.getByRole("button", { name: "Watch" });
+    expect(btn.className).toContain("text-neutral-950");
+    expect(btn.className).not.toContain("text-white");
+  });
 });

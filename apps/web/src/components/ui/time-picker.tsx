@@ -97,7 +97,7 @@ export function TimePicker({
                   className={cn(
                     "w-12 h-8 rounded-md text-sm transition-colors flex items-center justify-center",
                     hours === hour
-                      ? "bg-primary-600 text-white"
+                      ? "bg-primary-600 text-neutral-950 hover:bg-primary-500"
                       : "hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-900 dark:text-neutral-50",
                   )}
                 >
@@ -127,7 +127,7 @@ export function TimePicker({
                   className={cn(
                     "w-12 h-8 rounded-md text-sm transition-colors flex items-center justify-center",
                     minutes === minute
-                      ? "bg-primary-600 text-white"
+                      ? "bg-primary-600 text-neutral-950 hover:bg-primary-500"
                       : "hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-900 dark:text-neutral-50",
                   )}
                 >
