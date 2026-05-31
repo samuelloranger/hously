@@ -332,6 +332,8 @@
       "streakDays_one": "day",
       "streakDays_other": "days",
       "latestMediaLabel": "Latest media",
+      "latestMediaReady": "Ready to watch",
+      "latestMediaWatch": "Watch",
       "latestMediaEmpty": "Nothing yet",
       "nextEventLabel": "Next up",
       "nextEventEmpty": "Nothing scheduled",
