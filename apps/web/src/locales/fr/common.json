@@ -324,6 +324,14 @@
         "downloadedVsWanted": "Téléchargés vs recherchés"
       }
     },
+    "tiles": {
+      "choresLabel": "Tâches",
+      "choresPending_one": "{{count}} en attente",
+      "choresPending_other": "{{count}} en attente",
+      "streakLabel": "Série",
+      "streakDays_one": "jour",
+      "streakDays_other": "jours"
+    },
     "libraryAttention": {
       "title": "Bibliothèque — à traiter",
       "subtitle_one": "{{count}} élément nécessite une action",
