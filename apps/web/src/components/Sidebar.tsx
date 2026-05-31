@@ -8,7 +8,7 @@ import { useUpdateProfile } from "@/pages/settings/useUsers";
 import { formatDisplayName } from "@/lib/utils/format";
 import { NotificationsMenu } from "@/components/NotificationsBell";
 import { UserMenu } from "@/components/UserMenu";
-import { Loader, LogOut, Moon, Search, Settings, Sun } from "lucide-react";
+import { Loader, LogOut, Search, Settings } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
 import { useAuth } from "@/lib/auth/useAuth";
 import { useTheme } from "@/lib/app/useTheme";
@@ -33,7 +33,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
   const logoutMutation = useLogout();
   const prefetchRoute = usePrefetchRoute();
   const prefetchAllRoutes = usePrefetchAllRoutes();
-  const { isDark, toggleTheme } = useTheme();
+  useTheme();
   const { setPosition } = useNavPosition();
   const isHorizontal = position === "top" || position === "bottom";
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -273,14 +273,6 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               {currentLanguage.name}
             </button>
             <button
-              onClick={toggleTheme}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
-              aria-label={t("common.toggleTheme")}
-              title={t("common.toggleTheme")}
-            >
-              {isDark ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-            <button
               onClick={handleLogout}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-red-600 dark:hover:text-red-400 transition-colors"
               aria-label={t("nav.logout")}
@@ -366,14 +358,6 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
 
             {/* Quick actions row */}
             <div className="flex items-center gap-1 px-1">
-              <button
-                onClick={toggleTheme}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
-                aria-label={t("common.toggleTheme")}
-                title={t("common.toggleTheme")}
-              >
-                {isDark ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
               <button
                 onClick={toggleLanguage}
                 className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"

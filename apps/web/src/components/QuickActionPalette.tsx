@@ -14,8 +14,6 @@ import {
   Sparkles,
   Bell,
   Settings,
-  Sun,
-  Moon,
   RefreshCw,
   Clapperboard,
   Tv,
@@ -32,7 +30,6 @@ import { navSections } from "@/lib/routing/navigation";
 import { usePrefetchAllRoutes } from "@/lib/routing/usePrefetchAllRoutes";
 import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/ui/input";
-import { useTheme } from "@/lib/app/useTheme";
 import { cn } from "@/lib/utils";
 
 interface QuickActionPaletteProps {
@@ -60,7 +57,6 @@ export function QuickActionPalette({
   const { t } = useTranslation("common");
   const navigate = useNavigate();
   const router = useRouterState();
-  const { isDark, toggleTheme } = useTheme();
   const prefetchAllRoutes = usePrefetchAllRoutes();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -125,19 +121,6 @@ export function QuickActionPalette({
         },
       },
       {
-        id: "theme",
-        title: isDark ? t("common.switchToLight") : t("common.switchToDark"),
-        description: t("common.quickActionsToggleTheme"),
-        icon: isDark ? <Sun size={20} /> : <Moon size={20} />,
-        section: "actions",
-        keywords: ["theme", "dark", "light"],
-        shortcut: "T",
-        action: () => {
-          toggleTheme();
-          handleClose();
-        },
-      },
-      {
         id: "refresh",
         title: t("common.refetch"),
         description: t("common.quickActionsRefreshCurrentPage"),
@@ -150,7 +133,7 @@ export function QuickActionPalette({
         },
       },
     ];
-  }, [handleClose, isDark, navigate, t, toggleTheme]);
+  }, [handleClose, navigate, t]);
 
   const filteredActions = useMemo<QuickAction[]>(() => {
     if (!normalizedQuery) {
