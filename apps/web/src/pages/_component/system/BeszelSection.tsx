@@ -116,11 +116,8 @@ export function BeszelSection() {
   return (
     <div>
       <div className="flex items-center gap-2.5 mb-3">
-        <span className="w-1 h-4 rounded-full bg-violet-500 shrink-0" />
-        <Server
-          className="w-4 h-4 shrink-0 text-neutral-400"
-          strokeWidth={2}
-        />
+        <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
+        <Server className="w-4 h-4 shrink-0 text-neutral-400" strokeWidth={2} />
         <SectionTitle>{t("dashboard.home.systemHeading")}</SectionTitle>
       </div>
 
@@ -136,11 +133,11 @@ export function BeszelSection() {
             }
             status={s.cpu_percent > 85 ? "warn" : "ok"}
           />
-          <MiniBar pct={s.cpu_percent} accent="bg-violet-500" />
+          <MiniBar pct={s.cpu_percent} accent="bg-primary-500" />
           <TrendChart
             data={sysHistory}
             dataKey="cpu"
-            color="#8b5cf6"
+            color="#df8753"
             gradientId="cpuGradient"
           />
           {s.cpu_name && (
@@ -163,11 +160,11 @@ export function BeszelSection() {
             }
             status={s.ram_used_percent > 90 ? "warn" : "ok"}
           />
-          <MiniBar pct={s.ram_used_percent} accent="bg-violet-400" />
+          <MiniBar pct={s.ram_used_percent} accent="bg-primary-400" />
           <TrendChart
             data={sysHistory}
             dataKey="ram"
-            color="#a78bfa"
+            color="#e8a06a"
             gradientId="ramGradient"
           />
         </>
@@ -186,7 +183,7 @@ export function BeszelSection() {
           <button
             type="button"
             onClick={() => setShowDisks((v) => !v)}
-            className="mt-2 flex items-center gap-1 text-xs text-neutral-400 hover:text-violet-400 transition-colors font-medium"
+            className="mt-2 flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-400 transition-colors font-medium"
           >
             {showDisks ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             {showDisks
@@ -219,7 +216,7 @@ export function BeszelSection() {
                     </div>
                     <MiniBar
                       pct={safe}
-                      accent={safe > 85 ? "bg-rose-500" : "bg-violet-400"}
+                      accent={safe > 85 ? "bg-rose-400" : "bg-primary-400"}
                     />
                   </div>
                 );

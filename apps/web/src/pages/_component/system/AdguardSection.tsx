@@ -20,7 +20,7 @@ export function AdguardSection() {
     <div>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
-          <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
+          <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
           <Shield
             className="w-4 h-4 shrink-0 text-neutral-400"
             strokeWidth={2}
