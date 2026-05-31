@@ -1,26 +1,15 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
+/**
+ * Cozy Dusk is dark-only. This hook always applies the dark theme and exposes
+ * a no-op toggle so existing call sites keep compiling. (Kept as a hook rather
+ * than deleted to avoid a wide refactor in this phase.)
+ */
 export function useTheme() {
-  const [isDark, setIsDark] = useState(() => {
-    const theme = localStorage.getItem("theme");
-    return (
-      theme === "dark" ||
-      (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    );
-  });
-
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-    document.documentElement.style.colorScheme = isDark ? "dark" : "light";
-  }, [isDark]);
+    document.documentElement.classList.add("dark");
+    document.documentElement.style.colorScheme = "dark";
+  }, []);
 
-  const toggleTheme = () => {
-    setIsDark((prev) => {
-      const next = !prev;
-      localStorage.setItem("theme", next ? "dark" : "light");
-      return next;
-    });
-  };
-
-  return { isDark, toggleTheme };
+  return { isDark: true as const, toggleTheme: () => {} };
 }

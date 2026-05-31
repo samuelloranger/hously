@@ -7,7 +7,7 @@ import type { User } from "@hously/shared/types";
 import { formatDisplayName } from "@/lib/utils/format";
 import { useTheme } from "@/lib/app/useTheme";
 import { cn } from "@/lib/utils";
-import { ChevronDown, LogOut, Moon, Settings, Sun } from "lucide-react";
+import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
 import { navSections } from "@/lib/routing/navigation";
 
@@ -21,7 +21,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
   const router = useRouterState();
   const currentPath = router.location.pathname;
   const [isOpen, setIsOpen] = useState(false);
-  const { isDark, toggleTheme } = useTheme();
+  useTheme();
   const updateProfile = useUpdateProfile();
   const prefetchRoute = usePrefetchRoute();
 
@@ -151,20 +151,6 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
               <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
                 {currentLanguage.name}
               </span>
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="flex items-center justify-between w-full py-1.5 group"
-              aria-label={t("common.toggleTheme")}
-            >
-              <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
-                {t("common.theme")}
-              </span>
-              {isDark ? (
-                <Sun className="h-4 w-4 text-neutral-600 dark:text-neutral-300 transition-transform duration-200 group-hover:scale-110" />
-              ) : (
-                <Moon className="h-4 w-4 text-neutral-600 dark:text-neutral-300 transition-transform duration-200 group-hover:scale-110" />
-              )}
             </button>
           </div>
 
