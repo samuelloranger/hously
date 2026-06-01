@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, type Variants } from "motion/react";
 import { PageLayout } from "@/components/PageLayout";
@@ -41,6 +41,14 @@ const panelVariants: Variants = {
     transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
   },
 };
+
+// ─── Widget lazy fallback ─────────────────────────────────────────────────────
+
+function WidgetFallback() {
+  return (
+    <div className="h-40 rounded-xl border border-neutral-800 bg-neutral-900 animate-pulse" />
+  );
+}
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
@@ -101,18 +109,20 @@ export function HomePage() {
       return (
         <motion.div key={id} variants={panelVariants}>
           <CardErrorBoundary>
-            {isEditMode ? (
-              <WidgetEditWrapper
-                onMoveUp={() => moveWidget(id, "up")}
-                onMoveDown={() => moveWidget(id, "down")}
-                canMoveUp={!isFirst}
-                canMoveDown={!isLast}
-              >
+            <Suspense fallback={<WidgetFallback />}>
+              {isEditMode ? (
+                <WidgetEditWrapper
+                  onMoveUp={() => moveWidget(id, "up")}
+                  onMoveDown={() => moveWidget(id, "down")}
+                  canMoveUp={!isFirst}
+                  canMoveDown={!isLast}
+                >
+                  <Component />
+                </WidgetEditWrapper>
+              ) : (
                 <Component />
-              </WidgetEditWrapper>
-            ) : (
-              <Component />
-            )}
+              )}
+            </Suspense>
           </CardErrorBoundary>
         </motion.div>
       );

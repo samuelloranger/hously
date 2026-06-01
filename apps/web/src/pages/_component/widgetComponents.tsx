@@ -1,36 +1,83 @@
+import { lazy } from "react";
 import type { WidgetId } from "@hously/shared/constants";
-import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
-import { DownloadsPanel } from "@/pages/_component/DownloadsPanel";
-import { FocusTimerPanel } from "@/pages/_component/FocusTimerPanel";
-import { HomeAssistantPanel } from "@/pages/_component/HomeAssistantPanel";
-import { JellyfinRandomPanel } from "@/pages/_component/JellyfinRandomPanel";
-import { JellyfinReadyPanel } from "@/pages/_component/JellyfinReadyPanel";
-import { UpcomingShelf } from "@/pages/_component/MediaShelves";
-import { LibraryAttentionPanel } from "@/pages/_component/LibraryAttentionPanel";
-import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
-import { QuickLinksPanel } from "@/pages/_component/QuickLinksPanel";
-import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
-import { SystemPanel } from "@/pages/_component/system";
-import { TrackersPanel } from "@/pages/_component/TrackersPanel";
-import { WeatherPanel } from "@/pages/_component/WeatherPanel";
 
 export const WIDGET_COMPONENTS: Record<
   WidgetId,
-  React.ComponentType<object>
+  React.LazyExoticComponent<React.ComponentType<object>>
 > = {
-  weather: WeatherPanel,
-  quick_links: QuickLinksPanel,
-  chores: ChoresPanel,
-  jellyfin_shelf: JellyfinReadyPanel,
-  library_alerts: LibraryAttentionPanel,
-  homeassistant: HomeAssistantPanel,
-  habits: HabitsPanel,
-  upcoming: UpcomingShelf,
-  trackers: TrackersPanel,
-  jellyfin_random: JellyfinRandomPanel,
-  system: SystemPanel,
-  focus_timer: FocusTimerPanel,
-  downloads: DownloadsPanel,
-  minecraft_compact: MinecraftCompactPanel,
-  rss: RssStatusPanel,
+  weather: lazy(() =>
+    import("@/pages/_component/WeatherPanel").then((m) => ({
+      default: m.WeatherPanel,
+    })),
+  ),
+  quick_links: lazy(() =>
+    import("@/pages/_component/QuickLinksPanel").then((m) => ({
+      default: m.QuickLinksPanel,
+    })),
+  ),
+  chores: lazy(() =>
+    import("@/pages/_component/HomePanel").then((m) => ({
+      default: m.ChoresPanel,
+    })),
+  ),
+  jellyfin_shelf: lazy(() =>
+    import("@/pages/_component/JellyfinReadyPanel").then((m) => ({
+      default: m.JellyfinReadyPanel,
+    })),
+  ),
+  library_alerts: lazy(() =>
+    import("@/pages/_component/LibraryAttentionPanel").then((m) => ({
+      default: m.LibraryAttentionPanel,
+    })),
+  ),
+  homeassistant: lazy(() =>
+    import("@/pages/_component/HomeAssistantPanel").then((m) => ({
+      default: m.HomeAssistantPanel,
+    })),
+  ),
+  habits: lazy(() =>
+    import("@/pages/_component/HomePanel").then((m) => ({
+      default: m.HabitsPanel,
+    })),
+  ),
+  upcoming: lazy(() =>
+    import("@/pages/_component/MediaShelves").then((m) => ({
+      default: m.UpcomingShelf,
+    })),
+  ),
+  trackers: lazy(() =>
+    import("@/pages/_component/TrackersPanel").then((m) => ({
+      default: m.TrackersPanel,
+    })),
+  ),
+  jellyfin_random: lazy(() =>
+    import("@/pages/_component/JellyfinRandomPanel").then((m) => ({
+      default: m.JellyfinRandomPanel,
+    })),
+  ),
+  system: lazy(() =>
+    import("@/pages/_component/system").then((m) => ({
+      default: m.SystemPanel,
+    })),
+  ),
+  focus_timer: lazy(() =>
+    import("@/pages/_component/FocusTimerPanel").then((m) => ({
+      default: m.FocusTimerPanel,
+    })),
+  ),
+  downloads: lazy(() =>
+    import("@/pages/_component/DownloadsPanel").then((m) => ({
+      default: m.DownloadsPanel,
+    })),
+  ),
+  minecraft_compact: lazy(() =>
+    import("@/pages/_component/MinecraftCompactPanel").then((m) => ({
+      default: m.MinecraftCompactPanel,
+    })),
+  ),
+  rss: lazy(() =>
+    import("@/pages/_component/RssStatusPanel").then((m) => ({
+      default: m.RssStatusPanel,
+    })),
+  ),
 };
