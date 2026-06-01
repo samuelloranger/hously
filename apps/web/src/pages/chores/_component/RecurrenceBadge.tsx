@@ -30,7 +30,7 @@ export function RecurrenceBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded bg-blue-900 text-blue-200 ${className}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded bg-primary-900/30 text-primary-300 border border-primary-800 ${className}`}
     >
       <RefreshCw size={11} />
       {formatRecurrenceText(

@@ -46,7 +46,7 @@ export function ChoresList() {
     <PageLayout>
       <PageHeader
         icon={ListChecks}
-        iconColor="text-green-600"
+        iconColor="text-primary-400"
         title={t("chores.title")}
         subtitle={t("chores.subtitle")}
         onRefresh={refetch}
@@ -66,7 +66,7 @@ export function ChoresList() {
         <div className="px-5 py-3.5 border-b border-neutral-700/50">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-semibold text-neutral-50">
                 {t("chores.currentChores")}
               </h3>
               <span className="text-xs font-medium text-neutral-500">
@@ -143,7 +143,7 @@ export function ChoresList() {
           <div className="px-5 py-3.5 border-b border-neutral-700/50">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <h3 className="text-sm font-semibold text-white">
+                <h3 className="text-sm font-semibold text-neutral-50">
                   {t("chores.recentlyCompleted")}
                 </h3>
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-700/60 px-1.5 text-[11px] font-semibold text-neutral-400">
