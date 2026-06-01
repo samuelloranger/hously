@@ -39,12 +39,8 @@ export function LibraryItemPage() {
   useLibraryEvents();
 
   const id = parseInt(libraryId, 10);
-  // Authoritative source of truth: fetch this item by id. A freshly-added item
-  // has no stale list-cache entry to fall back on, so this guarantees it loads
-  // even right after "Add to library" (no hard reload needed).
   const { data: itemData, isLoading: itemLoading } = useLibraryItem(id);
-  // The library-list cache, when warm, gives an instant paint while the by-id
-  // query resolves (e.g. navigating straight from the list page).
+  // List cache gives an instant paint while the by-id query resolves.
   const { data: libData } = useLibrary();
 
   const item = useMemo(

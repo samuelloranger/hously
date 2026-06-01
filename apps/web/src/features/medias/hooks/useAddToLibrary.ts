@@ -15,8 +15,7 @@ export function useAddToLibrary() {
         body,
       }),
     onSuccess: (data) => {
-      // Seed the per-item cache so opening the new item's detail page is
-      // instant and never shows a stale "Item not found".
+      // Seed the per-item cache for an instant detail open.
       queryClient.setQueryData(queryKeys.library.item(data.item.id), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
     },
