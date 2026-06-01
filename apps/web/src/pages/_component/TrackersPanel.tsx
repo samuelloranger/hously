@@ -10,6 +10,7 @@ import { formatGo, formatRatio } from "@hously/shared/utils";
 import { useTranslation } from "react-i18next";
 import { ArrowUp, ArrowDown, Radio, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WidgetHeader, WidgetShell } from "@/pages/_component/widgetPrimitives";
 
 type TrackerInfo = {
   key: string;
@@ -24,25 +25,45 @@ type TrackerInfo = {
   error?: string;
 };
 
-function ratioTextColor(ratio: number | null) {
-  if (ratio == null) return "text-neutral-500";
-  if (ratio >= 1.5) return "text-emerald-400";
-  if (ratio >= 1.0) return "text-amber-400";
-  return "text-rose-400";
-}
+type RatioTone = {
+  text: string;
+  fill: string;
+  rail: string;
+  glow: string;
+};
 
-function ratioBarGradient(ratio: number | null) {
-  if (ratio == null) return "from-neutral-300 to-neutral-400";
-  if (ratio >= 1.5) return "from-emerald-400 to-emerald-500";
-  if (ratio >= 1.0) return "from-amber-400 to-amber-500";
-  return "from-rose-400 to-rose-500";
-}
-
-function ratioCardTint(ratio: number | null) {
-  if (ratio == null) return "";
-  if (ratio >= 1.5) return "bg-emerald-500/[0.07]";
-  if (ratio >= 1.0) return "bg-amber-500/[0.07]";
-  return "bg-rose-500/[0.07]";
+/**
+ * Maps a share ratio to a Cozy Dusk health palette. Semantic colors
+ * (emerald/amber/rose) are intentional — the ratio's color IS the signal.
+ */
+function ratioTone(ratio: number | null): RatioTone {
+  if (ratio == null)
+    return {
+      text: "text-neutral-400",
+      fill: "bg-neutral-600",
+      rail: "bg-neutral-700",
+      glow: "",
+    };
+  if (ratio >= 1.5)
+    return {
+      text: "text-emerald-400",
+      fill: "bg-emerald-400",
+      rail: "bg-emerald-500",
+      glow: "bg-emerald-500/20",
+    };
+  if (ratio >= 1.0)
+    return {
+      text: "text-amber-400",
+      fill: "bg-amber-400",
+      rail: "bg-amber-500",
+      glow: "bg-amber-500/20",
+    };
+  return {
+    text: "text-rose-400",
+    fill: "bg-rose-400",
+    rail: "bg-rose-500",
+    glow: "bg-rose-500/20",
+  };
 }
 
 function TrackerCard({
@@ -53,32 +74,56 @@ function TrackerCard({
   locale: Parameters<typeof formatRelativeTime>[1]["locale"];
 }) {
   const { t } = useTranslation("common");
-  const barFill =
-    tracker.ratio != null
-      ? `${Math.max(Math.min((tracker.ratio / 3.0) * 100, 100), 2)}%`
-      : "0%";
+  const tone = ratioTone(tracker.ratio);
+  const hasRatio = tracker.connected && tracker.ratio != null;
+  const meterFill = hasRatio
+    ? `${Math.max(Math.min((tracker.ratio! / 3.0) * 100, 100), 4)}%`
+    : "0%";
 
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden",
-        tracker.connected && ratioCardTint(tracker.ratio),
+        "group relative flex overflow-hidden transition-colors",
+        tracker.connected
+          ? "hover:bg-neutral-800/40"
+          : "opacity-70 hover:opacity-100",
       )}
     >
-      {/* Content */}
-      <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-3">
-        {/* Row 1: tracker logo + label + sync time + status dot */}
+      {/* Ledger margin: health rail */}
+      <span
+        aria-hidden
+        className={cn(
+          "w-[3px] shrink-0 self-stretch",
+          tracker.connected ? tone.rail : "bg-neutral-700",
+        )}
+      />
+
+      {/* Warm health glow behind the ratio */}
+      {hasRatio && tone.glow ? (
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute -left-4 -top-6 size-24 rounded-full blur-2xl opacity-60",
+            tone.glow,
+          )}
+        />
+      ) : null}
+
+      <div className="relative flex flex-1 flex-col gap-2.5 px-4 pt-3.5 pb-3.5 min-w-0">
+        {/* Row 1: logo chip + label + sync time + status dot */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <img
-              src={tracker.logoUrl}
-              alt={tracker.label}
-              className="w-4 h-4 rounded object-contain shrink-0"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
-            <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-neutral-500">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-surface-inset ring-1 ring-border-strong">
+              <img
+                src={tracker.logoUrl}
+                alt={tracker.label}
+                className="size-4 rounded object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            </span>
+            <span className="truncate text-[10px] font-bold tracking-[0.14em] uppercase text-neutral-400">
               {tracker.label}
             </span>
           </div>
@@ -100,74 +145,71 @@ function TrackerCard({
         </div>
 
         {tracker.connected ? (
-          /* Row 2: ratio (left) + divider + dl/ul (right) */
-          <div className="flex items-stretch gap-0">
-            {/* Ratio */}
-            <div className="flex flex-col justify-center min-w-0">
-              <span
+          <>
+            {/* Row 2: hero ratio (Fraunces) + transfer stats */}
+            <div className="flex items-end justify-between gap-4">
+              <div className="flex flex-col min-w-0">
+                <span
+                  className={cn(
+                    "font-display text-[2rem] font-semibold leading-none tabular-nums",
+                    tone.text,
+                  )}
+                >
+                  {formatRatio(tracker.ratio)}
+                </span>
+                <span className="mt-1.5 text-[8px] font-bold tracking-[0.22em] uppercase text-neutral-600">
+                  {t("dashboard.trackers.ratioLabel", {
+                    defaultValue: "Ratio",
+                  })}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <div className="flex items-center justify-end gap-1.5">
+                  <ArrowDown
+                    size={10}
+                    className="text-sky-400 shrink-0"
+                    strokeWidth={2.5}
+                  />
+                  <span className="font-mono text-[12px] font-semibold tabular-nums text-neutral-200">
+                    {formatGo(tracker.downloaded_go)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-end gap-1.5">
+                  <ArrowUp
+                    size={10}
+                    className="text-emerald-400 shrink-0"
+                    strokeWidth={2.5}
+                  />
+                  <span className="font-mono text-[12px] font-semibold tabular-nums text-neutral-200">
+                    {formatGo(tracker.uploaded_go)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Row 3: refined ratio meter */}
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
+              <div
                 className={cn(
-                  "font-mono text-[1.75rem] font-bold tabular-nums leading-none",
-                  ratioTextColor(tracker.ratio),
+                  "h-full rounded-full transition-[width] duration-700 ease-out",
+                  tone.fill,
                 )}
-              >
-                {formatRatio(tracker.ratio)}
-              </span>
-              <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-neutral-600 mt-1">
-                ratio
-              </span>
+                style={{ width: meterFill }}
+              />
             </div>
-
-            {/* Vertical divider */}
-            <div className="w-px bg-neutral-800 mx-3.5 shrink-0" />
-
-            {/* dl / ul */}
-            <div className="flex flex-col justify-center gap-1.5">
-              <div className="flex items-center gap-1.5">
-                <ArrowDown
-                  size={10}
-                  className="text-sky-400 shrink-0"
-                  strokeWidth={2.5}
-                />
-                <span className="font-mono text-[12px] font-semibold tabular-nums text-neutral-200">
-                  {formatGo(tracker.downloaded_go)}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <ArrowUp
-                  size={10}
-                  className="text-emerald-400 shrink-0"
-                  strokeWidth={2.5}
-                />
-                <span className="font-mono text-[12px] font-semibold tabular-nums text-neutral-200">
-                  {formatGo(tracker.uploaded_go)}
-                </span>
-              </div>
-            </div>
-          </div>
+          </>
         ) : (
-          <div className="flex items-center gap-2 py-1">
+          <div className="flex items-center gap-2 py-1.5">
             <WifiOff
               size={13}
-              className="text-rose-400 shrink-0"
+              className="text-neutral-500 shrink-0"
               strokeWidth={2}
             />
-            <span className="text-xs italic text-rose-500">
+            <span className="truncate text-xs italic text-neutral-400">
               {tracker.error ?? t("dashboard.home.trackerNotConnected")}
             </span>
           </div>
-        )}
-      </div>
-
-      {/* Bottom health bar */}
-      <div className="h-1 bg-neutral-800">
-        {tracker.connected && tracker.ratio != null && (
-          <div
-            className={cn(
-              "h-full bg-gradient-to-r transition-[width] duration-700 ease-out",
-              ratioBarGradient(tracker.ratio),
-            )}
-            style={{ width: barFill }}
-          />
         )}
       </div>
     </div>
@@ -240,40 +282,35 @@ export function TrackersPanel() {
   const connectedCount = enabledTrackers.filter((tr) => tr.connected).length;
 
   return (
-    <section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-neutral-800">
-        <span className="w-1 h-4 rounded-full bg-purple-500 shrink-0" />
-        <Radio
-          className="w-4 h-4 shrink-0 text-neutral-400"
-          strokeWidth={2}
-        />
-        <h3 className="text-sm font-semibold text-neutral-100">
-          {t("dashboard.home.privateTrackersTitle")}
-        </h3>
-        <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-800">
-          <span
-            className={cn(
-              "w-1.5 h-1.5 rounded-full shrink-0",
-              connectedCount > 0 ? "bg-emerald-500" : "bg-rose-500",
-            )}
-          />
-          <span className="text-[11px] font-medium text-neutral-400">
-            {connectedCount > 0
-              ? t("dashboard.trackers.onlineCount", {
-                  connected: connectedCount,
-                  total: enabledTrackers.length,
-                })
-              : t("dashboard.trackers.offline")}
-          </span>
-        </div>
-      </div>
+    <WidgetShell>
+      <WidgetHeader
+        icon={Radio}
+        title={t("dashboard.home.privateTrackersTitle")}
+        right={
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-800">
+            <span
+              className={cn(
+                "w-1.5 h-1.5 rounded-full shrink-0",
+                connectedCount > 0 ? "bg-emerald-500" : "bg-rose-500",
+              )}
+            />
+            <span className="text-[11px] font-medium text-neutral-400">
+              {connectedCount > 0
+                ? t("dashboard.trackers.onlineCount", {
+                    connected: connectedCount,
+                    total: enabledTrackers.length,
+                  })
+                : t("dashboard.trackers.offline")}
+            </span>
+          </div>
+        }
+      />
 
       <div className="divide-y divide-neutral-800">
         {enabledTrackers.map((tracker) => (
           <TrackerCard key={tracker.key} tracker={tracker} locale={locale} />
         ))}
       </div>
-    </section>
+    </WidgetShell>
   );
 }

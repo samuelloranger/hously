@@ -6,6 +6,11 @@ import { AreaChart, Area, Tooltip, ResponsiveContainer } from "recharts";
 
 import { useDownloadsSpeed } from "@/pages/_component/useDownloadsSpeed";
 import { formatSpeed } from "@/lib/utils/format";
+import {
+  Kicker,
+  WidgetHeader,
+  WidgetShell,
+} from "@/pages/_component/widgetPrimitives";
 
 const SPEED_RING_SIZE = 60;
 
@@ -37,22 +42,6 @@ function SpeedTooltip({
   );
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-sm font-semibold text-neutral-100">
-      {children}
-    </h3>
-  );
-}
-
-function Kicker({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
-      {children}
-    </span>
-  );
-}
-
 export function DownloadsPanel() {
   const { t } = useTranslation("common");
   const { data, isLoading } = useDownloadsSpeed();
@@ -71,17 +60,11 @@ export function DownloadsPanel() {
   }, [data]);
 
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-neutral-800">
-        <div className="flex items-center gap-2.5">
-          <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
-          <Download
-            className="w-4 h-4 shrink-0 text-neutral-400"
-            strokeWidth={2}
-          />
-          <SectionTitle>{t("dashboard.home.downloadsTitle")}</SectionTitle>
-        </div>
-      </div>
+    <WidgetShell>
+      <WidgetHeader
+        icon={Download}
+        title={t("dashboard.home.downloadsTitle")}
+      />
 
       <div className="px-4 py-3 space-y-4">
         {isLoading && (
@@ -195,6 +178,6 @@ export function DownloadsPanel() {
           </div>
         )}
       </div>
-    </section>
+    </WidgetShell>
   );
 }

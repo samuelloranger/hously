@@ -12,7 +12,7 @@ export function ChoresTodayTile() {
         {count}
       </span>
       <span className="ml-1.5 text-sm text-neutral-400">
-        {t("dashboard.tiles.choresPending", { count })}
+        {t("dashboard.tiles.choresPending")}
       </span>
     </TileCard>
   );

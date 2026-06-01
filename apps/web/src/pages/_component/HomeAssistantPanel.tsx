@@ -6,15 +6,8 @@ import {
 } from "@/hooks/home-assistant/useHomeAssistant";
 import { usePrefetchIntent } from "@/lib/routing/usePrefetchIntent";
 import { cn } from "@/lib/utils";
+import { WidgetHeader, WidgetShell } from "@/pages/_component/widgetPrimitives";
 import { useState } from "react";
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-sm font-semibold text-neutral-100">
-      {children}
-    </h3>
-  );
-}
 
 function isEntityOn(state: string): boolean {
   return state === "on" || state === "open";
@@ -22,13 +15,10 @@ function isEntityOn(state: string): boolean {
 
 function HomeAssistantPanelSkeleton() {
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-neutral-800">
-        <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
-        <Home
-          className="w-4 h-4 shrink-0 text-neutral-600"
-          strokeWidth={2}
-        />
+    <WidgetShell>
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-neutral-800">
+        <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
+        <Home className="w-4 h-4 shrink-0 text-neutral-600" strokeWidth={2} />
         <div className="h-3 w-24 rounded-full bg-neutral-800 animate-pulse" />
       </div>
       <div className="px-4 py-3 space-y-2">
@@ -58,7 +48,7 @@ function HomeAssistantPanelSkeleton() {
           </div>
         ))}
       </div>
-    </section>
+    </WidgetShell>
   );
 }
 
@@ -86,25 +76,18 @@ export function HomeAssistantPanel() {
   };
 
   return (
-    <section
-      className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden"
-      {...prefetchIntent}
-    >
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-neutral-800">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
-          <Home
-            className="w-4 h-4 shrink-0 text-neutral-400"
-            strokeWidth={2}
-          />
-          <SectionTitle>{t("dashboard.homeAssistant.kicker")}</SectionTitle>
-        </div>
-        {query.isFetching ? (
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-            …
-          </span>
-        ) : null}
-      </div>
+    <WidgetShell {...prefetchIntent}>
+      <WidgetHeader
+        icon={Home}
+        title={t("dashboard.homeAssistant.kicker")}
+        right={
+          query.isFetching ? (
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+              …
+            </span>
+          ) : undefined
+        }
+      />
 
       <div className="px-4 py-3 space-y-2">
         {entities.length === 0 ? (
@@ -153,9 +136,10 @@ export function HomeAssistantPanel() {
                   aria-label={`${t("dashboard.homeAssistant.toggle")}: ${e.friendly_name}`}
                   className={cn(
                     "shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors",
-                    "border border-neutral-600",
-                    "bg-neutral-900 hover:bg-neutral-800",
                     "disabled:opacity-50",
+                    on
+                      ? "border border-primary-500/40 bg-primary-500/15 text-primary-300 hover:bg-primary-500/25"
+                      : "border border-neutral-600 bg-neutral-900 text-neutral-200 hover:bg-neutral-800",
                   )}
                 >
                   {busy ? "…" : t("dashboard.homeAssistant.toggle")}
@@ -165,6 +149,6 @@ export function HomeAssistantPanel() {
           })
         )}
       </div>
-    </section>
+    </WidgetShell>
   );
 }

@@ -326,8 +326,7 @@
     },
     "tiles": {
       "choresLabel": "Chores",
-      "choresPending_one": "{{count}} pending",
-      "choresPending_other": "{{count}} pending",
+      "choresPending": "pending",
       "streakLabel": "Streak",
       "streakDays_one": "day",
       "streakDays_other": "days",
@@ -1972,7 +1971,7 @@
     "weather": "Weather",
     "quick_links": "Quick Links",
     "chores": "Chores",
-    "jellyfin_shelf": "Jellyfin Shelf",
+    "jellyfin_shelf": "Ready to watch",
     "library_alerts": "Library Alerts",
     "homeassistant": "Home Assistant",
     "habits": "Habits",

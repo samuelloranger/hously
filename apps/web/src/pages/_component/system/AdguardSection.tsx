@@ -3,7 +3,7 @@ import { Shield } from "lucide-react";
 import { useDashboardAdguardSummary } from "@/pages/_component/useDashboardSystem";
 import { useSetAdguardProtection } from "@/pages/settings/useSetAdguardProtection";
 import { useAuth } from "@/lib/auth/useAuth";
-import { SectionTitle, MetricRow } from "./shared";
+import { ModuleEyebrow, MetricRow } from "./shared";
 
 export function AdguardSection() {
   const { t } = useTranslation("common");
@@ -17,35 +17,31 @@ export function AdguardSection() {
   const protOn = data.protection_enabled;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2.5">
-          <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
-          <Shield
-            className="w-4 h-4 shrink-0 text-neutral-400"
-            strokeWidth={2}
-          />
-          <SectionTitle>{t("dashboard.home.adguardHeading")}</SectionTitle>
-        </div>
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => setProtection.mutate({ enabled: !protOn })}
-            disabled={setProtection.isPending}
-            className={`text-xs font-semibold rounded-full px-3 py-1 transition-colors border ${
-              protOn
-                ? "border-emerald-700 text-emerald-300 hover:bg-emerald-900/30"
-                : "border-rose-700 text-rose-400 hover:bg-rose-900/30"
-            } disabled:opacity-50`}
-          >
-            {setProtection.isPending
-              ? t("dashboard.home.protectionPending")
-              : protOn
-                ? t("dashboard.home.protectionOn")
-                : t("dashboard.home.protectionOff")}
-          </button>
-        )}
-      </div>
+    <div className="px-4 py-4 border-t border-neutral-800 first:border-t-0">
+      <ModuleEyebrow
+        icon={Shield}
+        title={t("dashboard.home.adguardHeading")}
+        right={
+          isAdmin ? (
+            <button
+              type="button"
+              onClick={() => setProtection.mutate({ enabled: !protOn })}
+              disabled={setProtection.isPending}
+              className={`text-xs font-semibold rounded-full px-3 py-1 transition-colors border ${
+                protOn
+                  ? "border-emerald-700 text-emerald-300 hover:bg-emerald-900/30"
+                  : "border-rose-700 text-rose-400 hover:bg-rose-900/30"
+              } disabled:opacity-50`}
+            >
+              {setProtection.isPending
+                ? t("dashboard.home.protectionPending")
+                : protOn
+                  ? t("dashboard.home.protectionOn")
+                  : t("dashboard.home.protectionOff")}
+            </button>
+          ) : undefined
+        }
+      />
       <MetricRow
         label={t("dashboard.adguard.blocked")}
         value={s.blocked_ratio != null ? `${s.blocked_ratio.toFixed(1)}%` : "–"}
