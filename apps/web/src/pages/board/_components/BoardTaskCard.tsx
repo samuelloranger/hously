@@ -27,10 +27,10 @@ interface BoardTaskCardProps {
 }
 
 const PRIORITY_DOT: Record<BoardTaskPriorityApi, string> = {
-  low: "bg-sky-400",
+  low: "bg-neutral-400",
   medium: "bg-amber-400",
-  high: "bg-orange-500",
-  urgent: "bg-red-500",
+  high: "bg-rose-400",
+  urgent: "bg-rose-500",
 };
 
 export function BoardTaskCard({
@@ -93,7 +93,7 @@ export function BoardTaskCard({
         if (e.key === "Enter") onCardClick(task, e);
       }}
       className={cn(
-        "group cursor-pointer rounded-lg border p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing bg-neutral-800",
+        "group cursor-pointer rounded-xl border p-3 transition-colors active:cursor-grabbing bg-neutral-800 hover:bg-neutral-700/40",
         isSelected
           ? "ring-1 border-primary-500 ring-primary-600/50"
           : "border-neutral-600/60 hover:border-neutral-500/60",
@@ -128,7 +128,7 @@ export function BoardTaskCard({
       </div>
 
       {/* Title */}
-      <p className="text-sm font-medium leading-snug text-white">
+      <p className="text-sm font-medium leading-snug text-neutral-50">
         {task.title}
       </p>
 
@@ -159,7 +159,7 @@ export function BoardTaskCard({
 
       {/* Blocked indicator */}
       {task.blocked_by.some((d) => !d.is_resolved) && (
-        <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-orange-400">
+        <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-amber-400">
           <Lock className="h-3 w-3" />
           Blocked
         </div>
@@ -178,7 +178,7 @@ export function BoardTaskCard({
             <div
               className={`h-full rounded-full transition-all ${
                 task.logged_minutes >= task.estimated_minutes
-                  ? "bg-red-500"
+                  ? "bg-rose-500"
                   : task.logged_minutes >= task.estimated_minutes * 0.8
                     ? "bg-amber-500"
                     : "bg-emerald-500"
@@ -199,9 +199,9 @@ export function BoardTaskCard({
               className={cn(
                 "flex items-center gap-1 text-[11px] font-medium",
                 isOverdue
-                  ? "text-red-400"
+                  ? "text-rose-400"
                   : isDueToday
-                    ? "text-orange-400"
+                    ? "text-amber-400"
                     : isDueSoon
                       ? "text-amber-400"
                       : "text-neutral-500",

@@ -71,7 +71,7 @@ export function LogTimeForm({ taskId }: { taskId: number }) {
           onClick={isRunning ? stopTimer : startTimer}
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors ${
             isRunning
-              ? "hover:bg-red-100 border-red-700/40 bg-red-900/20 text-red-400"
+              ? "hover:bg-rose-900/20 border-rose-800/60 bg-rose-900/30 text-rose-400"
               : "hover:bg-neutral-700 border-neutral-700 bg-neutral-800 text-neutral-300"
           }`}
           title={isRunning ? "Stop timer" : "Start timer"}
@@ -93,7 +93,7 @@ export function LogTimeForm({ taskId }: { taskId: number }) {
         <Button
           onClick={submit}
           disabled={isPending || !timeInput.trim()}
-          className="h-7 bg-primary-600 px-3 text-xs hover:bg-primary-700"
+          className="h-7 bg-primary-600 px-3 text-xs text-neutral-950 hover:bg-primary-500"
         >
           Log time
         </Button>

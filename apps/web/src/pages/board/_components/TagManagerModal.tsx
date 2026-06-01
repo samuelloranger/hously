@@ -114,7 +114,7 @@ export function TagManagerModal({ isOpen, onClose }: TagManagerModalProps) {
                     if (e.key === "Enter") commitEdit(tag.id);
                     if (e.key === "Escape") cancelEdit();
                   }}
-                  className="rounded-md border px-2 py-1 text-sm outline-none focus:border-primary-400 border-neutral-600 bg-neutral-800 text-white"
+                  className="rounded-md border px-2 py-1 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/40 border-neutral-700 bg-neutral-900 text-neutral-100"
                 />
                 {/* Color swatches */}
                 <div className="flex flex-wrap gap-1.5">
@@ -135,7 +135,7 @@ export function TagManagerModal({ isOpen, onClose }: TagManagerModalProps) {
                       className={cn(
                         "h-5 w-5 rounded-full border-2",
                         editColor === c
-                          ? "border-white"
+                          ? "border-primary-300"
                           : "border-transparent",
                       )}
                       style={{ backgroundColor: c }}
@@ -148,7 +148,7 @@ export function TagManagerModal({ isOpen, onClose }: TagManagerModalProps) {
                     size="sm"
                     onClick={() => commitEdit(tag.id)}
                     disabled={updateTag.isPending}
-                    className="h-7 bg-primary-600 px-3 text-xs hover:bg-primary-700"
+                    className="h-7 bg-primary-600 px-3 text-xs text-neutral-950 hover:bg-primary-500"
                   >
                     <Check className="mr-1 h-3 w-3" /> Save
                   </Button>
@@ -170,7 +170,7 @@ export function TagManagerModal({ isOpen, onClose }: TagManagerModalProps) {
             return (
               <div
                 key={tag.id}
-                className="flex flex-col gap-2 rounded-lg border p-3 border-red-700/40 bg-red-900/10"
+                className="flex flex-col gap-2 rounded-lg border p-3 border-rose-800/60 bg-rose-900/30"
               >
                 <p className="text-sm text-neutral-200">
                   Delete <strong>&ldquo;{tag.name}&rdquo;</strong>
@@ -255,7 +255,7 @@ export function TagManagerModal({ isOpen, onClose }: TagManagerModalProps) {
                     setDeleteConfirmId(tag.id);
                     setEditingId(null);
                   }}
-                  className="flex h-6 w-6 items-center justify-center rounded text-neutral-400 hover:bg-red-900/20 hover:text-red-400"
+                  className="flex h-6 w-6 items-center justify-center rounded text-neutral-400 hover:bg-rose-900/20 hover:text-rose-400"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>

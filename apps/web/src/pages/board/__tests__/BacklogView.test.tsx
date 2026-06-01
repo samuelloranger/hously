@@ -142,9 +142,9 @@ describe("BacklogView", () => {
       <BacklogView tasks={[task]} onTaskClick={onTaskClick} />,
     );
     await waitFor(() => {
-      // Overdue dates render with a red text span
-      const redSpan = container.querySelector(".text-red-500, .text-red-400");
-      expect(redSpan).toBeInTheDocument();
+      // Overdue dates render with a rose text span
+      const roseSpan = container.querySelector(".text-rose-400");
+      expect(roseSpan).toBeInTheDocument();
     });
   });
 

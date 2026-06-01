@@ -100,7 +100,7 @@ export function FilterBar({
               className={cn(
                 "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
                 filters.tags.includes(tag.id)
-                  ? "bg-primary-600 text-white"
+                  ? "bg-primary-600 text-neutral-950"
                   : "bg-neutral-700 text-neutral-300 hover:bg-neutral-600",
               )}
             >
@@ -109,7 +109,7 @@ export function FilterBar({
                   className="h-1.5 w-1.5 shrink-0 rounded-full"
                   style={{
                     backgroundColor: filters.tags.includes(tag.id)
-                      ? "white"
+                      ? "var(--color-neutral-950)"
                       : tag.color,
                   }}
                 />

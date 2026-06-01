@@ -44,7 +44,7 @@ export function CreateTaskForm({
             if (e.key === "Escape") onClose();
           }}
           placeholder={t("board.newTaskPlaceholder")}
-          className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 border-neutral-600 bg-neutral-900 text-white"
+          className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/40 border-neutral-700 bg-neutral-900 text-neutral-100"
         />
       </div>
       <div className="w-full sm:w-44">
@@ -54,7 +54,7 @@ export function CreateTaskForm({
         <select
           value={createStatus}
           onChange={(e) => onStatusChange(e.target.value as BoardTaskStatusApi)}
-          className="w-full rounded-lg border px-3 py-2 text-sm border-neutral-600 bg-neutral-900 text-white"
+          className="w-full rounded-lg border px-3 py-2 text-sm border-neutral-700 bg-neutral-900 text-neutral-100"
         >
           {BOARD_TASK_STATUSES.map((s) => (
             <option key={s} value={s}>
@@ -67,7 +67,7 @@ export function CreateTaskForm({
         <Button
           onClick={onCreate}
           disabled={isPending || !newTitle.trim()}
-          className="shrink-0 bg-primary-600 hover:bg-primary-700"
+          className="shrink-0 bg-primary-600 text-neutral-950 hover:bg-primary-500"
         >
           <Plus className="mr-1.5 h-4 w-4" />
           {t("board.addTask")}

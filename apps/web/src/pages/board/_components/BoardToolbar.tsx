@@ -50,7 +50,7 @@ export function BoardToolbar({
           className={cn(
             "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
             viewMode === "board"
-              ? "shadow-sm bg-neutral-700 text-white"
+              ? "shadow-sm bg-neutral-700 text-neutral-50"
               : "text-neutral-400 hover:text-neutral-200",
           )}
         >
@@ -62,7 +62,7 @@ export function BoardToolbar({
           className={cn(
             "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
             viewMode === "backlog"
-              ? "shadow-sm bg-neutral-700 text-white"
+              ? "shadow-sm bg-neutral-700 text-neutral-50"
               : "text-neutral-400 hover:text-neutral-200",
           )}
         >
@@ -79,7 +79,7 @@ export function BoardToolbar({
           className={cn(
             "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
             viewMode === "archive"
-              ? "shadow-sm bg-neutral-700 text-white"
+              ? "shadow-sm bg-neutral-700 text-neutral-50"
               : "text-neutral-400 hover:text-neutral-200",
           )}
         >
@@ -132,7 +132,7 @@ export function BoardToolbar({
         <Filter className="h-3.5 w-3.5" />
         Filters
         {hasActiveFilters && (
-          <span className="rounded-full bg-primary-600 px-1.5 py-px text-[10px] text-white">
+          <span className="rounded-full bg-primary-600 px-1.5 py-px text-[10px] text-neutral-950">
             {activeFilterCount}
           </span>
         )}
@@ -141,7 +141,7 @@ export function BoardToolbar({
       {/* Add task */}
       <Button
         onClick={onCreateToggle}
-        className="h-8 gap-1.5 bg-primary-600 px-3 text-xs hover:bg-primary-700"
+        className="h-8 gap-1.5 bg-primary-600 px-3 text-xs text-neutral-950 hover:bg-primary-500"
       >
         <Plus className="h-3.5 w-3.5" />
         {t("board.newTask", "New task")}
