@@ -2,9 +2,10 @@ import { useCallback } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { MEDIAS_ENDPOINTS } from "@/lib/endpoints";
+import { MEDIAS_ENDPOINTS, LIBRARY_ENDPOINTS } from "@/lib/endpoints";
 import { webFetcher } from "@/lib/api/fetcher";
 import type {
+  LibraryItemResponse,
   LibraryMedia,
   MediaModalDataResponse,
 } from "@hously/shared/types";
@@ -26,6 +27,14 @@ export function usePrefetchLibraryItem() {
       void router.preloadRoute({
         to: "/library/$libraryId",
         params: { libraryId: String(item.id) },
+      });
+
+      // Prefetch the authoritative by-id payload the detail page reads.
+      void queryClient.prefetchQuery({
+        queryKey: queryKeys.library.item(item.id),
+        queryFn: () =>
+          webFetcher<LibraryItemResponse>(LIBRARY_ENDPOINTS.ITEM(item.id)),
+        staleTime: 60 * 1000,
       });
 
       // Prefetch TMDB modal data (the main missing piece on the detail page)

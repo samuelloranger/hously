@@ -14,7 +14,10 @@ export function useAddToLibrary() {
         method: "POST",
         body,
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Seed the per-item cache so opening the new item's detail page is
+      // instant and never shows a stale "Item not found".
+      queryClient.setQueryData(queryKeys.library.item(data.item.id), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
     },
   });

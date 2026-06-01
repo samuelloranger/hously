@@ -347,6 +347,7 @@ export const queryKeys = {
       q?: string;
       language?: string;
     }) => [...queryKeys.library.all, "list", filters] as const,
+    item: (id: number) => [...queryKeys.library.all, "item", id] as const,
     episodes: (id: number) =>
       [...queryKeys.library.all, "episodes", id] as const,
     downloads: (id: number) =>
