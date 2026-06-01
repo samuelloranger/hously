@@ -12,7 +12,7 @@ export function ScrutinySection() {
   return (
     <div>
       <div className="flex items-center gap-2.5 mb-3">
-        <span className="w-1 h-4 rounded-full bg-rose-500 shrink-0" />
+        <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
         <HardDrive
           className="w-4 h-4 shrink-0 text-neutral-400"
           strokeWidth={2}

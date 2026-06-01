@@ -324,6 +324,29 @@
         "downloadedVsWanted": "Downloaded vs Wanted"
       }
     },
+    "tiles": {
+      "choresLabel": "Chores",
+      "choresPending_one": "{{count}} pending",
+      "choresPending_other": "{{count}} pending",
+      "streakLabel": "Streak",
+      "streakDays_one": "day",
+      "streakDays_other": "days",
+      "latestMediaLabel": "Latest media",
+      "latestMediaReady": "Ready to watch",
+      "latestMediaWatch": "Watch",
+      "latestMediaEmpty": "Nothing yet",
+      "nextEventLabel": "Next up",
+      "nextEventEmpty": "Nothing scheduled",
+      "downloadsLabel": "Downloads",
+      "downloadsActive": "Downloading",
+      "downloadsIdle": "Idle",
+      "libraryAlertsLabel": "Library",
+      "libraryAlertsCount_one": "alert",
+      "libraryAlertsCount_other": "alerts",
+      "weatherLabel": "Weather",
+      "systemLabel": "System",
+      "systemCpu": "CPU"
+    },
     "libraryAttention": {
       "title": "Library attention",
       "subtitle_one": "{{count}} item needs follow-up",
@@ -1950,7 +1973,6 @@
     "quick_links": "Quick Links",
     "chores": "Chores",
     "jellyfin_shelf": "Jellyfin Shelf",
-    "library_stats": "Library Stats",
     "library_alerts": "Library Alerts",
     "homeassistant": "Home Assistant",
     "habits": "Habits",

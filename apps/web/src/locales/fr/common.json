@@ -324,6 +324,29 @@
         "downloadedVsWanted": "Téléchargés vs recherchés"
       }
     },
+    "tiles": {
+      "choresLabel": "Tâches",
+      "choresPending_one": "{{count}} en attente",
+      "choresPending_other": "{{count}} en attente",
+      "streakLabel": "Série",
+      "streakDays_one": "jour",
+      "streakDays_other": "jours",
+      "latestMediaLabel": "Derniers médias",
+      "latestMediaReady": "Prêt à regarder",
+      "latestMediaWatch": "Regarder",
+      "latestMediaEmpty": "Rien pour l'instant",
+      "nextEventLabel": "À venir",
+      "nextEventEmpty": "Rien de prévu",
+      "downloadsLabel": "Téléchargements",
+      "downloadsActive": "En cours",
+      "downloadsIdle": "Inactif",
+      "libraryAlertsLabel": "Bibliothèque",
+      "libraryAlertsCount_one": "alerte",
+      "libraryAlertsCount_other": "alertes",
+      "weatherLabel": "Météo",
+      "systemLabel": "Système",
+      "systemCpu": "Proc."
+    },
     "libraryAttention": {
       "title": "Bibliothèque — à traiter",
       "subtitle_one": "{{count}} élément nécessite une action",
@@ -1950,7 +1973,6 @@
     "quick_links": "Liens rapides",
     "chores": "Tâches ménagères",
     "jellyfin_shelf": "Bibliothèque Jellyfin",
-    "library_stats": "Statistiques de bibliothèque",
     "library_alerts": "Alertes de bibliothèque",
     "homeassistant": "Home Assistant",
     "habits": "Habitudes",

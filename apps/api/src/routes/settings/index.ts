@@ -12,7 +12,11 @@ import {
   normalizeUserCountryCode,
 } from "@hously/api/services/holidayCalendar";
 import { WIDGETS } from "@hously/shared/constants";
-import type { WidgetId, WidgetLayout } from "@hously/shared/constants";
+import type {
+  WidgetId,
+  WidgetLayout,
+  TileLayout,
+} from "@hously/shared/constants";
 
 import type { AppSettings } from "@prisma/client";
 
@@ -32,6 +36,8 @@ function mapSettings(row: AppSettings) {
     },
     dashboard_widget_layout:
       (row.dashboardWidgetLayout as WidgetLayout | null) ?? null,
+    dashboard_tile_layout:
+      (row.dashboardTileLayout as TileLayout | null) ?? null,
     updated_at: row.updatedAt.toISOString(),
   };
 }
@@ -84,6 +90,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
           upcomingLanguages?: string;
           dashboardWidgetVisibility?: Record<string, boolean>;
           dashboardWidgetLayout?: WidgetLayout;
+          dashboardTileLayout?: TileLayout;
         } = {};
 
         if (body.country_code && countryCode)
@@ -111,6 +118,10 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
         if (body.dashboard_widget_layout !== undefined) {
           updateData.dashboardWidgetLayout =
             body.dashboard_widget_layout as WidgetLayout;
+        }
+        if (body.dashboard_tile_layout !== undefined) {
+          updateData.dashboardTileLayout =
+            body.dashboard_tile_layout as TileLayout;
         }
 
         const row = await prisma.appSettings.upsert({
@@ -143,6 +154,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
             t.Array(t.Union(WIDGETS.map((w) => t.Literal(w.id)))),
           ]),
         ),
+        dashboard_tile_layout: t.Optional(t.Array(t.String())),
       }),
     },
   );

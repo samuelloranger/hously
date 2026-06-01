@@ -22,16 +22,9 @@ export const WIDGETS = [
     adminOnly: false,
   },
   {
-    id: "library_stats",
-    column: 1,
-    order: 4,
-    defaultVisible: true,
-    adminOnly: true,
-  },
-  {
     id: "library_alerts",
     column: 1,
-    order: 5,
+    order: 4,
     defaultVisible: true,
     adminOnly: true,
   },

@@ -3,9 +3,11 @@ import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   CheckCircle2,
+  Clock,
   Loader2,
   RefreshCw,
   X,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { LibraryAttentionItem } from "@hously/shared/types";
@@ -23,9 +25,14 @@ function severityOf(kind: LibraryAttentionItem["kind"]): Severity {
     : "stall";
 }
 
-const SEVERITY_DOT: Record<Severity, string> = {
-  fail: "bg-rose-500",
-  stall: "bg-amber-500",
+const SEVERITY_ICON: Record<Severity, typeof XCircle> = {
+  fail: XCircle,
+  stall: Clock,
+};
+
+const SEVERITY_ICON_COLOR: Record<Severity, string> = {
+  fail: "text-rose-400",
+  stall: "text-amber-400",
 };
 
 const KIND_LABEL_KEY: Record<LibraryAttentionItem["kind"], string> = {
@@ -66,8 +73,8 @@ function Kicker({ children }: { children: React.ReactNode }) {
 function SkeletonRow() {
   return (
     <div className="px-4 py-3 border-b border-neutral-800 last:border-0">
-      <div className="flex items-start gap-2.5">
-        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-700" />
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 h-7 w-7 shrink-0 rounded-lg bg-neutral-800 animate-pulse" />
         <div className="flex-1 space-y-2">
           <div className="h-3 w-24 rounded bg-neutral-800 animate-pulse" />
           <div className="h-4 w-3/5 rounded bg-neutral-800 animate-pulse" />
@@ -100,6 +107,7 @@ function AttentionRow({
 }) {
   const { t } = useTranslation("common");
   const severity = severityOf(item.kind);
+  const SeverityIcon = SEVERITY_ICON[severity];
   const tv = tvLabel(item);
   const isPostProcess = item.kind === "post_process_error";
   const linkTab = isPostProcess ? ("management" as const) : ("search" as const);
@@ -145,12 +153,14 @@ function AttentionRow({
         : null;
 
   return (
-    <div className="px-4 py-3 border-b border-neutral-800 last:border-0">
-      <div className="flex items-start gap-2.5">
+    <div className="px-4 py-3 border-b border-neutral-800 last:border-0 transition-colors hover:bg-neutral-800/40">
+      <div className="flex items-start gap-3">
         <span
-          className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${SEVERITY_DOT[severity]}`}
+          className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-neutral-700 bg-neutral-800 ${SEVERITY_ICON_COLOR[severity]}`}
           aria-hidden
-        />
+        >
+          <SeverityIcon size={14} />
+        </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Kicker>{t(KIND_LABEL_KEY[item.kind])}</Kicker>
@@ -186,7 +196,7 @@ function AttentionRow({
               type="button"
               disabled={primary.busy}
               onClick={primary.onClick}
-              className="inline-flex items-center gap-1 rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-[11px] font-medium text-neutral-200 hover:bg-neutral-800 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-md border border-primary-600/60 bg-primary-600/15 px-2 py-1 text-[11px] font-semibold text-primary-400 hover:bg-primary-600/25 disabled:opacity-50"
             >
               {primary.busy ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -243,12 +253,12 @@ export function LibraryAttentionPanel() {
         <div className="flex items-center gap-2">
           <AlertTriangle
             size={14}
-            className="text-amber-500 shrink-0"
+            className="text-amber-400 shrink-0"
             aria-hidden
           />
           <Kicker>{t("dashboard.libraryAttention.title")}</Kicker>
           {!isLoading && items.length > 0 ? (
-            <span className="text-[10px] font-semibold text-neutral-400 tabular-nums">
+            <span className="font-display text-xs font-semibold text-neutral-100 tabular-nums">
               {items.length}
             </span>
           ) : null}
@@ -265,7 +275,7 @@ export function LibraryAttentionPanel() {
       </div>
 
       {isError ? (
-        <div className="px-4 py-3 flex items-center gap-2 text-xs text-rose-300">
+        <div className="px-4 py-3 flex items-center gap-2 text-xs text-rose-400">
           <AlertTriangle size={14} className="shrink-0" />
           {t("dashboard.libraryAttention.loadError")}
           <button
@@ -283,9 +293,13 @@ export function LibraryAttentionPanel() {
           <SkeletonRow />
         </div>
       ) : items.length === 0 ? (
-        <div className="px-4 py-5 flex items-center gap-2 text-xs text-neutral-400">
-          <CheckCircle2 size={14} className="shrink-0 text-emerald-500" />
-          {t("dashboard.libraryAttention.emptyState")}
+        <div className="px-4 py-7 flex flex-col items-center gap-2 text-center">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 text-emerald-400">
+            <CheckCircle2 size={18} />
+          </span>
+          <p className="text-xs text-neutral-400">
+            {t("dashboard.libraryAttention.emptyState")}
+          </p>
         </div>
       ) : (
         <div>

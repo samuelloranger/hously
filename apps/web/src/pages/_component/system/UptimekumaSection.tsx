@@ -29,12 +29,12 @@ function MonitorStatusDot({
 }) {
   const color =
     status === "down"
-      ? "bg-rose-500"
+      ? "bg-rose-400"
       : status === "pending"
-        ? "bg-amber-500"
+        ? "bg-amber-400"
         : status === "maintenance"
-          ? "bg-sky-500"
-          : "bg-emerald-500";
+          ? "bg-sky-400"
+          : "bg-emerald-400";
   return (
     <span className="relative flex h-2 w-2 shrink-0">
       {pulse && (
@@ -111,10 +111,10 @@ export function UptimekumaSection() {
   const overallStatus = deriveOverallStatus(summary);
   const accentColor =
     overallStatus === "degraded"
-      ? "bg-rose-500"
+      ? "bg-rose-400"
       : overallStatus === "pending"
-        ? "bg-amber-500"
-        : "bg-emerald-500";
+        ? "bg-amber-400"
+        : "bg-primary-500";
   const unhealthy = monitors.filter(
     (m) => m.status === "down" || m.status === "pending",
   );

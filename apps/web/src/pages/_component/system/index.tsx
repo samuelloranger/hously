@@ -13,7 +13,7 @@ function SystemPanelSkeleton() {
   return (
     <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 space-y-1">
       <div className="flex items-center gap-2.5 mb-3">
-        <span className="w-1 h-4 rounded-full bg-violet-500 shrink-0" />
+        <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
         <div className="w-4 h-4 rounded bg-neutral-800 animate-pulse shrink-0" />
         <div className="h-3 w-12 rounded-full bg-neutral-800 animate-pulse" />
       </div>

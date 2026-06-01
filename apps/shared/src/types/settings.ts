@@ -1,4 +1,4 @@
-import type { WidgetVisibility, WidgetLayout } from "../constants/widgets";
+import type { WidgetVisibility, WidgetLayout, TileLayout } from "../constants";
 
 export interface QuickLink {
   id: string;
@@ -13,6 +13,7 @@ export interface AppSettings {
   upcoming_languages: string;
   dashboard_widget_visibility: WidgetVisibility;
   dashboard_widget_layout: WidgetLayout | null;
+  dashboard_tile_layout: TileLayout | null;
   quick_links: QuickLink[];
   updated_at: string;
 }
@@ -28,4 +29,5 @@ export interface UpdateAppSettingsRequest {
   upcoming_languages?: string;
   dashboard_widget_visibility?: WidgetVisibility;
   dashboard_widget_layout?: WidgetLayout;
+  dashboard_tile_layout?: TileLayout;
 }

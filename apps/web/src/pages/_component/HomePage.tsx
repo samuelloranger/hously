@@ -1,13 +1,10 @@
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
-import { CalendarDays, CheckSquare2, Flame } from "lucide-react";
 import { motion, type Variants } from "motion/react";
 import { PageLayout } from "@/components/PageLayout";
 import { CardErrorBoundary } from "@/components/ErrorBoundary";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { useDashboardStats } from "@/pages/_component/useDashboardStats";
-import type { DashboardStats } from "@hously/shared/types";
 import { getUserFirstName } from "@/lib/utils/format";
 import { GreetingCard } from "@/pages/_component/GreetingCard";
 import { WidgetEditWrapper } from "@/pages/_component/WidgetEditWrapper";
@@ -15,7 +12,9 @@ import {
   WIDGETS,
   getEffectiveLayout,
   moveWidgetInLayout,
+  getEffectiveTileLayout,
 } from "@hously/shared/constants";
+import { SmartTilesStrip } from "@/pages/_component/SmartTilesStrip";
 import type {
   WidgetVisibility,
   WidgetLayout,
@@ -43,88 +42,12 @@ const panelVariants: Variants = {
   },
 };
 
-// ─── Stats row ────────────────────────────────────────────────────────────────
-
-function StatsRow({
-  stats,
-  isLoading,
-}: {
-  stats?: DashboardStats;
-  isLoading?: boolean;
-}) {
-  const { t } = useTranslation("common");
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-4">
-        <div className="h-4 w-24 rounded-full bg-neutral-800 animate-pulse" />
-        <div
-          className="h-4 w-20 rounded-full bg-neutral-800 animate-pulse"
-          style={{ animationDelay: "80ms" }}
-        />
-      </div>
-    );
-  }
-
-  if (!stats) return null;
-
-  const chips = [
-    {
-      href: "/calendar" as const,
-      icon: <CalendarDays size={11} />,
-      value: stats.events_today,
-      label: t("dashboard.home.statsEventsToday", {
-        count: stats.events_today,
-      }),
-      color: "hover:text-amber-400",
-    },
-    {
-      href: "/chores" as const,
-      icon: <CheckSquare2 size={11} />,
-      value: stats.chores_count,
-      label: t("dashboard.home.statsChores", { count: stats.chores_count }),
-      color: "hover:text-emerald-400",
-    },
-  ].filter((c) => c.value > 0);
-
-  const streak = stats.habits_streak;
-
-  if (chips.length === 0 && !streak) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-      {chips.map((chip) => (
-        <Link
-          key={chip.href}
-          to={chip.href}
-          className={`flex items-center gap-1.5 text-sm text-neutral-400 transition-colors ${chip.color}`}
-        >
-          {chip.icon}
-          <span className="font-mono font-semibold tabular-nums">
-            {chip.value}
-          </span>
-          <span>{chip.label}</span>
-        </Link>
-      ))}
-      {streak > 0 && (
-        <span className="flex items-center gap-1 text-sm text-neutral-400">
-          <Flame size={11} className="text-orange-400" />
-          <span className="font-mono font-semibold tabular-nums text-orange-500">
-            {t("dashboard.home.streakDays", { count: streak })}
-          </span>
-          <span>{t("dashboard.home.streakLabel")}</span>
-        </span>
-      )}
-    </div>
-  );
-}
-
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function HomePage() {
   const { t } = useTranslation("common");
   const { data: user } = useCurrentUser();
-  const { data: statsData, isPending: statsLoading } = useDashboardStats();
+  const { data: statsData } = useDashboardStats();
   const stats = statsData?.stats;
 
   const isAdmin = !!user?.is_admin;
@@ -133,6 +56,9 @@ export function HomePage() {
   const updateMut = useUpdateAppSettings();
   const visibility =
     data?.settings.dashboard_widget_visibility ?? ({} as WidgetVisibility);
+  const tileLayout = getEffectiveTileLayout(
+    data?.settings.dashboard_tile_layout ?? null,
+  );
 
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -196,29 +122,28 @@ export function HomePage() {
   return (
     <PageLayout fullWidth>
       <div className="space-y-4">
-        {/* 3-column widget layout:
-            <768px  → single column
-            768–999px → 2 columns (col1 left, col2+col3 stacked right)
-            1000px+ → 3 equal columns */}
+        {/* Full-width hero zone: greeting + configurable smart tiles */}
+        <div className="space-y-3">
+          <GreetingCard
+            userName={getUserFirstName(user, t("dashboard.user"))}
+            pendingChores={stats?.chores_count}
+            eventsToday={stats?.events_today}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode}
+            onToggleEditMode={() => setIsEditMode((v) => !v)}
+          />
+          <SmartTilesStrip layout={tileLayout} />
+        </div>
+
+        {/* 3-column widget layout below the hero zone */}
         <div className="flex flex-col md:flex-row gap-4 md:items-start">
-          {/* Column 1 — GreetingCard always first, non-movable */}
+          {/* Column 1 */}
           <motion.div
             className="flex flex-col gap-4 flex-1 min-w-0"
             variants={columnVariants}
             initial="hidden"
             animate="show"
           >
-            <motion.div variants={panelVariants} className="space-y-3">
-              <GreetingCard
-                userName={getUserFirstName(user, t("dashboard.user"))}
-                pendingChores={stats?.chores_count}
-                eventsToday={stats?.events_today}
-                isAdmin={isAdmin}
-                isEditMode={isEditMode}
-                onToggleEditMode={() => setIsEditMode((v) => !v)}
-              />
-              <StatsRow stats={stats} isLoading={statsLoading} />
-            </motion.div>
             {widgetColumns[0]}
           </motion.div>
 
