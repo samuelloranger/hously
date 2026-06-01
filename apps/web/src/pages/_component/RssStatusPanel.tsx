@@ -7,6 +7,11 @@ import { toast } from "sonner";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { LIBRARY_ENDPOINTS, ADMIN_ENDPOINTS } from "@/lib/endpoints";
+import {
+  Kicker,
+  WidgetHeader,
+  WidgetShell,
+} from "@/pages/_component/widgetPrimitives";
 import type { RssStatusResponse } from "@hously/shared/types";
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -42,16 +47,6 @@ function formatCountdown(isoString: string, now: number): string {
   const secs = diff % 60;
   if (mins === 0) return `${secs}s`;
   return `in ${mins}m ${String(secs).padStart(2, "0")}s`;
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function Kicker({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
-      {children}
-    </span>
-  );
 }
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
@@ -137,40 +132,35 @@ export function RssStatusPanel() {
   const buttonDisabled = isCoolingDown || isPolling || triggerRss.isPending;
 
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-neutral-800">
-        <span className="w-1 h-4 rounded-full bg-orange-400 shrink-0" />
-        <Rss
-          className="w-4 h-4 shrink-0 text-neutral-400"
-          strokeWidth={2}
-        />
-        <h3 className="text-sm font-semibold text-neutral-100">
-          {t("dashboard.rss.title")}
-        </h3>
-        <button
-          onClick={() => {
-            snapshotRef.current = completedAt;
-            triggerRss.mutate();
-          }}
-          disabled={buttonDisabled}
-          aria-label={t("dashboard.rss.checkNow")}
-          className="ml-auto flex items-center gap-1 text-xs font-medium text-neutral-400 hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {isPolling ? (
-            <Loader2 className="w-3 h-3 animate-spin" />
-          ) : (
-            <RefreshCw className="w-3 h-3" />
-          )}
-          <span>
-            {isPolling
-              ? t("dashboard.rss.checking")
-              : isCoolingDown
-                ? `${cooldownSecsLeft}s`
-                : t("dashboard.rss.checkNow")}
-          </span>
-        </button>
-      </div>
+    <WidgetShell>
+      <WidgetHeader
+        icon={Rss}
+        title={t("dashboard.rss.title")}
+        right={
+          <button
+            onClick={() => {
+              snapshotRef.current = completedAt;
+              triggerRss.mutate();
+            }}
+            disabled={buttonDisabled}
+            aria-label={t("dashboard.rss.checkNow")}
+            className="flex items-center gap-1 text-xs font-medium text-neutral-400 hover:text-primary-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isPolling ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3 h-3" />
+            )}
+            <span>
+              {isPolling
+                ? t("dashboard.rss.checking")
+                : isCoolingDown
+                  ? `${cooldownSecsLeft}s`
+                  : t("dashboard.rss.checkNow")}
+            </span>
+          </button>
+        }
+      />
 
       <div className="px-4 py-3 space-y-3">
         {/* Loading skeleton */}
@@ -265,10 +255,7 @@ export function RssStatusPanel() {
             <Kicker>{t("dashboard.rss.indexers")}</Kicker>
             <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
               {lastRun.indexers.map((idx) => (
-                <span
-                  key={idx.name}
-                  className="text-xs text-neutral-300"
-                >
+                <span key={idx.name} className="text-xs text-neutral-300">
                   <span className="font-medium">{idx.name}</span>
                   <span className="font-mono tabular-nums text-neutral-400">
                     {" "}
@@ -285,7 +272,7 @@ export function RssStatusPanel() {
           <div>
             <Kicker>{t("dashboard.rss.nextRun")}</Kicker>
             {isExecuting ? (
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-orange-400 font-medium">
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-primary-400 font-medium">
                 <Loader2 size={13} className="animate-spin" />
                 {t("dashboard.rss.executing")}
               </p>
@@ -301,10 +288,10 @@ export function RssStatusPanel() {
       {/* Footer */}
       <Link
         to="/library"
-        className="block px-4 py-2.5 text-xs font-medium text-neutral-400 hover:text-orange-400 transition-colors border-t border-neutral-800 text-center"
+        className="block px-4 py-2.5 text-xs font-medium text-neutral-400 hover:text-primary-400 transition-colors border-t border-neutral-800 text-center"
       >
         {t("dashboard.rss.openLibraryLink")}
       </Link>
-    </section>
+    </WidgetShell>
   );
 }

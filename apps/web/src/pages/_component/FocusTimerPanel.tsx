@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 import { useBlocker } from "@tanstack/react-router";
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WidgetHeader, WidgetShell } from "@/pages/_component/widgetPrimitives";
 
 const PRESETS = [
-  { label: "Focus", minutes: 25, color: "bg-violet-500" },
-  { label: "Short", minutes: 15, color: "bg-sky-500" },
+  { label: "Focus", minutes: 25, color: "bg-primary-500" },
+  { label: "Short", minutes: 15, color: "bg-primary-300" },
   { label: "Break", minutes: 5, color: "bg-emerald-500" },
 ] as const;
 
@@ -119,17 +120,8 @@ export function FocusTimerPanel() {
   const activeColor = PRESETS[preset].color;
 
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-neutral-800">
-        <span className={cn("w-1 h-4 rounded-full shrink-0", activeColor)} />
-        <Timer
-          className="w-4 h-4 shrink-0 text-neutral-400"
-          strokeWidth={2}
-        />
-        <h3 className="text-sm font-semibold text-neutral-100">
-          {t("dashboard.focusTimer.title")}
-        </h3>
-      </div>
+    <WidgetShell>
+      <WidgetHeader icon={Timer} title={t("dashboard.focusTimer.title")} />
 
       <div className="px-4 py-5 flex flex-col items-center gap-5">
         {/* Preset pills */}
@@ -218,6 +210,6 @@ export function FocusTimerPanel() {
           </button>
         </div>
       </div>
-    </section>
+    </WidgetShell>
   );
 }

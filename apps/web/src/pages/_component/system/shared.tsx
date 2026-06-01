@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+
 export function pctFmt(v: number | null | undefined) {
   return v != null ? `${v.toFixed(0)}%` : "–";
 }
@@ -79,6 +81,39 @@ export function MiniBar({
         className={`h-full rounded-full transition-all duration-700 ${accent}`}
         style={{ width: `${safe}%` }}
       />
+    </div>
+  );
+}
+
+/**
+ * Lightweight module sub-header inside the System panel. The panel owns the
+ * single primary accent bar (WidgetHeader); each integration module gets a
+ * calmer eyebrow — an inset icon chip + uppercase label + optional right slot.
+ */
+export function ModuleEyebrow({
+  icon: Icon,
+  title,
+  right,
+}: {
+  icon: LucideIcon;
+  title: React.ReactNode;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 mb-2.5">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-inset ring-1 ring-border-strong">
+          <Icon
+            className="size-3 text-neutral-400"
+            strokeWidth={2}
+            aria-hidden
+          />
+        </span>
+        <span className="truncate text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
+          {title}
+        </span>
+      </div>
+      {right}
     </div>
   );
 }

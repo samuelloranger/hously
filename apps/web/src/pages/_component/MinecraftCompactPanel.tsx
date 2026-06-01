@@ -1,5 +1,6 @@
 import { useMinecraftWidget } from "@/pages/_component/useMinecraftWidget";
 import { cn } from "@/lib/utils";
+import { WidgetHeader, WidgetShell } from "@/pages/_component/widgetPrimitives";
 import type { MinecraftServerEntry } from "@hously/shared/types";
 
 const MINECRAFT_ICON =
@@ -7,9 +8,9 @@ const MINECRAFT_ICON =
 
 function MinecraftCompactPanelSkeleton() {
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-neutral-800">
-        <span className="w-1 h-4 rounded-full bg-emerald-500 shrink-0" />
+    <WidgetShell>
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-neutral-800">
+        <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
         <div className="h-4 w-4 rounded bg-neutral-800 animate-pulse shrink-0" />
         <div className="h-3 w-20 rounded-full bg-neutral-800 animate-pulse" />
       </div>
@@ -26,7 +27,7 @@ function MinecraftCompactPanelSkeleton() {
           </div>
         ))}
       </div>
-    </section>
+    </WidgetShell>
   );
 }
 
@@ -49,9 +50,7 @@ function ServerRow({ server }: { server: MinecraftServerEntry }) {
           </span>
         )}
         {server.version && (
-          <span className="text-xs text-neutral-500">
-            {server.version}
-          </span>
+          <span className="text-xs text-neutral-500">{server.version}</span>
         )}
         {server.latency_ms !== null && server.is_online && (
           <span className="text-xs tabular-nums text-neutral-500">
@@ -73,26 +72,27 @@ export function MinecraftCompactPanel() {
   const onlineCount = servers.filter((s) => s.is_online).length;
 
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-neutral-800">
-        <span className="w-1 h-4 rounded-full bg-emerald-500 shrink-0" />
-        <img
-          src={MINECRAFT_ICON}
-          alt="Minecraft"
-          className="w-4 h-4 shrink-0 rounded"
-        />
-        <h3 className="text-sm font-semibold text-neutral-100">
-          Minecraft
-        </h3>
-        <span className="ml-auto text-xs text-neutral-400 tabular-nums">
-          {onlineCount}/{servers.length} online
-        </span>
-      </div>
+    <WidgetShell>
+      <WidgetHeader
+        iconNode={
+          <img
+            src={MINECRAFT_ICON}
+            alt="Minecraft"
+            className="w-4 h-4 shrink-0 rounded"
+          />
+        }
+        title="Minecraft"
+        right={
+          <span className="text-xs text-neutral-400 tabular-nums">
+            {onlineCount}/{servers.length} online
+          </span>
+        }
+      />
       <div className="px-4 py-3 divide-y divide-neutral-800">
         {servers.map((server) => (
           <ServerRow key={server.id} server={server} />
         ))}
       </div>
-    </section>
+    </WidgetShell>
   );
 }

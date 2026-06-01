@@ -18,6 +18,7 @@ import {
 } from "@/pages/_component/useQuickLinks";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { cn } from "@/lib/utils";
+import { WidgetHeader, WidgetShell } from "@/pages/_component/widgetPrimitives";
 import type { QuickLink } from "@hously/shared/types";
 
 function generateId() {
@@ -30,9 +31,9 @@ function LinkTile({ link }: { link: QuickLink }) {
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-neutral-800/60 hover:bg-neutral-700/60 transition-colors group"
+      className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-neutral-800/60 ring-1 ring-transparent hover:bg-neutral-700/60 hover:ring-primary-500/40 transition-colors group"
     >
-      <div className="w-8 h-8 flex items-center justify-center">
+      <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-900/60">
         {faviconUrl(link.url) ? (
           <img
             src={faviconUrl(link.url)!}
@@ -72,7 +73,7 @@ function EditRow({ link, onChange, onRemove }: EditRowProps) {
           onChange({ ...link, label: e.target.value.slice(0, 32) })
         }
         placeholder={t("dashboard.quickLinks.labelPlaceholder")}
-        className="flex-1 min-w-0 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-neutral-100 placeholder:text-neutral-400"
+        className="flex-1 min-w-0 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-100 placeholder:text-neutral-400"
       />
       <input
         type="url"
@@ -81,7 +82,7 @@ function EditRow({ link, onChange, onRemove }: EditRowProps) {
           onChange({ ...link, url: e.target.value.slice(0, 512) })
         }
         placeholder={t("dashboard.quickLinks.urlPlaceholder")}
-        className="flex-[2] min-w-0 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-neutral-100 placeholder:text-neutral-400"
+        className="flex-[2] min-w-0 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-100 placeholder:text-neutral-400"
       />
       <button
         onClick={onRemove}
@@ -144,7 +145,7 @@ function EditModal({
         <button
           onClick={addLink}
           disabled={draft.length >= 20}
-          className="flex items-center gap-1.5 text-sm font-medium text-violet-400 hover:text-violet-700 disabled:opacity-40 transition-colors"
+          className="flex items-center gap-1.5 text-sm font-medium text-primary-400 hover:text-primary-300 disabled:opacity-40 transition-colors"
         >
           <Plus size={14} />
           {t("dashboard.quickLinks.addLink")}
@@ -159,7 +160,7 @@ function EditModal({
           <button
             onClick={save}
             disabled={isPending}
-            className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60 transition-colors"
+            className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60 transition-colors"
           >
             {isPending
               ? t("dashboard.quickLinks.saving")
@@ -185,28 +186,22 @@ export function QuickLinksPanel() {
 
   return (
     <>
-      <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1 h-4 rounded-full bg-violet-500 shrink-0" />
-            <Link2
-              className="w-4 h-4 shrink-0 text-neutral-400"
-              strokeWidth={2}
-            />
-            <h3 className="text-sm font-semibold text-neutral-100">
-              {t("dashboard.quickLinks.title")}
-            </h3>
-          </div>
-          {isAdmin && (
-            <button
-              onClick={() => setEditing(true)}
-              className="flex items-center gap-1 text-xs font-medium text-neutral-400 hover:text-violet-400 transition-colors"
-            >
-              <Pencil size={12} />
-              {t("dashboard.quickLinks.edit")}
-            </button>
-          )}
-        </div>
+      <WidgetShell>
+        <WidgetHeader
+          icon={Link2}
+          title={t("dashboard.quickLinks.title")}
+          right={
+            isAdmin ? (
+              <button
+                onClick={() => setEditing(true)}
+                className="flex items-center gap-1 text-xs font-medium text-neutral-400 hover:text-primary-400 transition-colors"
+              >
+                <Pencil size={12} />
+                {t("dashboard.quickLinks.edit")}
+              </button>
+            ) : undefined
+          }
+        />
 
         <div className="p-3">
           {links.length === 0 ? (
@@ -215,7 +210,7 @@ export function QuickLinksPanel() {
               className={cn(
                 "w-full py-6 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed",
                 "border-neutral-700 text-neutral-500",
-                "hover:border-violet-600 hover:text-violet-400 transition-colors",
+                "hover:border-primary-600 hover:text-primary-400 transition-colors",
               )}
             >
               <Plus size={20} />
@@ -231,7 +226,7 @@ export function QuickLinksPanel() {
             </div>
           )}
         </div>
-      </section>
+      </WidgetShell>
 
       <Dialog
         isOpen={editing}

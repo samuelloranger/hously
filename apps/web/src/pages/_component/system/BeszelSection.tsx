@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronUp, Server } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { TooltipContentProps } from "recharts";
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -8,7 +8,7 @@ import { useDashboardSystemSummary } from "@/pages/_component/useDashboardSystem
 import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import type { DashboardBeszelSummaryResponse } from "@hously/shared/types";
 import { useEventSourceState } from "@/lib/realtime/useEventSourceState";
-import { SectionTitle, MetricRow, MiniBar, pctFmt, mbps, gb } from "./shared";
+import { StatusDot, MiniBar, pctFmt, mbps, gb } from "./shared";
 
 const SYS_RING_SIZE = 60;
 
@@ -82,6 +82,54 @@ function TrendChart({
   );
 }
 
+function VitalCell({
+  label,
+  percent,
+  sub,
+  status,
+  accent,
+  history,
+  dataKey,
+  color,
+  gradientId,
+}: {
+  label: string;
+  percent: number;
+  sub?: string | null;
+  status: "ok" | "warn" | "err";
+  accent: string;
+  history: SysSample[];
+  dataKey: keyof SysSample;
+  color: string;
+  gradientId: string;
+}) {
+  return (
+    <div className="rounded-lg bg-surface-inset/60 ring-1 ring-border/60 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
+          {label}
+        </span>
+        <StatusDot status={status} />
+      </div>
+      <div className="mt-1.5 font-display text-[1.75rem] font-semibold leading-none tabular-nums text-neutral-50">
+        {pctFmt(percent)}
+      </div>
+      {sub ? (
+        <div className="mt-1 truncate text-[10px] tabular-nums text-neutral-500">
+          {sub}
+        </div>
+      ) : null}
+      <MiniBar pct={percent} accent={accent} />
+      <TrendChart
+        data={history}
+        dataKey={dataKey}
+        color={color}
+        gradientId={gradientId}
+      />
+    </div>
+  );
+}
+
 export function BeszelSection() {
   const { t } = useTranslation("common");
   const { data: fallback } = useDashboardSystemSummary();
@@ -113,69 +161,65 @@ export function BeszelSection() {
     .sort((a, b) => b.used_percent - a.used_percent)
     .slice(0, 6);
 
-  return (
-    <div>
-      <div className="flex items-center gap-2.5 mb-3">
-        <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
-        <Server className="w-4 h-4 shrink-0 text-neutral-400" strokeWidth={2} />
-        <SectionTitle>{t("dashboard.home.systemHeading")}</SectionTitle>
-      </div>
+  const hasCpu = s.cpu_percent != null;
+  const hasRam = s.ram_used_percent != null;
 
-      {s.cpu_percent != null && (
-        <>
-          <MetricRow
-            label={t("dashboard.beszel.cpu")}
-            value={pctFmt(s.cpu_percent)}
-            sub={
-              s.load_1 != null
-                ? t("dashboard.home.loadAvg", { value: s.load_1.toFixed(2) })
-                : undefined
-            }
-            status={s.cpu_percent > 85 ? "warn" : "ok"}
-          />
-          <MiniBar pct={s.cpu_percent} accent="bg-primary-500" />
-          <TrendChart
-            data={sysHistory}
-            dataKey="cpu"
-            color="#df8753"
-            gradientId="cpuGradient"
-          />
-          {s.cpu_name && (
-            <p className="text-[11px] text-neutral-500 truncate -mt-0.5 mb-1">
-              {s.cpu_name}
-            </p>
+  return (
+    <div className="px-4 py-4 border-t border-neutral-800 first:border-t-0">
+      {(hasCpu || hasRam) && (
+        <div className="grid grid-cols-2 gap-2">
+          {hasCpu && (
+            <VitalCell
+              label={t("dashboard.beszel.cpu")}
+              percent={s.cpu_percent!}
+              sub={
+                s.load_1 != null
+                  ? t("dashboard.home.loadAvg", { value: s.load_1.toFixed(2) })
+                  : undefined
+              }
+              status={s.cpu_percent! > 85 ? "warn" : "ok"}
+              accent="bg-primary-500"
+              history={sysHistory}
+              dataKey="cpu"
+              color="#df8753"
+              gradientId="cpuGradient"
+            />
           )}
-        </>
+          {hasRam && (
+            <VitalCell
+              label={t("dashboard.beszel.ram")}
+              percent={s.ram_used_percent!}
+              sub={
+                s.ram_used_mib != null && s.ram_total_mib != null
+                  ? `${gb(s.ram_used_mib)} / ${gb(s.ram_total_mib)}`
+                  : undefined
+              }
+              status={s.ram_used_percent! > 90 ? "warn" : "ok"}
+              accent="bg-primary-400"
+              history={sysHistory}
+              dataKey="ram"
+              color="#e8a06a"
+              gradientId="ramGradient"
+            />
+          )}
+        </div>
       )}
 
-      {s.ram_used_percent != null && (
-        <>
-          <MetricRow
-            label={t("dashboard.beszel.ram")}
-            value={pctFmt(s.ram_used_percent)}
-            sub={
-              s.ram_used_mib != null && s.ram_total_mib != null
-                ? `${gb(s.ram_used_mib)} / ${gb(s.ram_total_mib)}`
-                : undefined
-            }
-            status={s.ram_used_percent > 90 ? "warn" : "ok"}
-          />
-          <MiniBar pct={s.ram_used_percent} accent="bg-primary-400" />
-          <TrendChart
-            data={sysHistory}
-            dataKey="ram"
-            color="#e8a06a"
-            gradientId="ramGradient"
-          />
-        </>
+      {hasCpu && s.cpu_name && (
+        <p className="mt-2 truncate text-[10px] text-neutral-500">
+          {s.cpu_name}
+        </p>
       )}
 
       {(s.network_in_kbps != null || s.network_out_kbps != null) && (
-        <MetricRow
-          label={t("dashboard.beszel.network")}
-          value={`↓ ${mbps(s.network_in_kbps)}`}
-          sub={`↑ ${mbps(s.network_out_kbps)}`}
-        />
+        <div className="mt-3 flex items-center justify-between gap-3 text-[11px]">
+          <span className="font-medium text-neutral-400">
+            {t("dashboard.beszel.network")}
+          </span>
+          <span className="font-mono tabular-nums text-neutral-200">
+            ↓ {mbps(s.network_in_kbps)} · ↑ {mbps(s.network_out_kbps)}
+          </span>
+        </div>
       )}
 
       {disks.length > 0 && (
@@ -183,7 +227,7 @@ export function BeszelSection() {
           <button
             type="button"
             onClick={() => setShowDisks((v) => !v)}
-            className="mt-2 flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-400 transition-colors font-medium"
+            className="mt-3 flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-400 transition-colors font-medium"
           >
             {showDisks ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             {showDisks
