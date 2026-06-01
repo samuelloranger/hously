@@ -326,8 +326,7 @@
     },
     "tiles": {
       "choresLabel": "Tâches",
-      "choresPending_one": "{{count}} en attente",
-      "choresPending_other": "{{count}} en attente",
+      "choresPending": "en attente",
       "streakLabel": "Série",
       "streakDays_one": "jour",
       "streakDays_other": "jours",

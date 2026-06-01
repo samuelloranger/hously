@@ -326,8 +326,7 @@
     },
     "tiles": {
       "choresLabel": "Chores",
-      "choresPending_one": "{{count}} pending",
-      "choresPending_other": "{{count}} pending",
+      "choresPending": "pending",
       "streakLabel": "Streak",
       "streakDays_one": "day",
       "streakDays_other": "days",
