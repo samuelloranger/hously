@@ -9,12 +9,10 @@ import { formatDateShort, localDateYmd } from "@hously/shared/utils/date";
 import { cn } from "@/lib/utils";
 
 const STATUS_STYLE: Partial<Record<BoardTaskStatusApi, string>> = {
-  on_hold:
-    "bg-neutral-800 text-neutral-400",
-  todo: "bg-blue-900/30 text-blue-400",
-  in_progress:
-    "bg-primary-900/30 text-primary-400",
-  done: "bg-emerald-900/30 text-emerald-400",
+  on_hold: "bg-neutral-600 text-neutral-200",
+  todo: "border border-primary-800 bg-primary-900/30 text-primary-300",
+  in_progress: "border border-amber-800/60 bg-amber-900/30 text-amber-300",
+  done: "border border-emerald-800/60 bg-emerald-900/30 text-emerald-300",
 };
 
 interface BacklogViewProps {
@@ -23,10 +21,10 @@ interface BacklogViewProps {
 }
 
 const PRIORITY_DOT: Record<BoardTaskPriorityApi, string> = {
-  low: "bg-sky-400",
+  low: "bg-neutral-400",
   medium: "bg-amber-400",
-  high: "bg-orange-500",
-  urgent: "bg-red-500",
+  high: "bg-rose-400",
+  urgent: "bg-rose-500",
 };
 
 const PRIORITY_LABEL: Record<BoardTaskPriorityApi, string> = {
@@ -97,7 +95,7 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
             </span>
 
             {/* Title */}
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-white">
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-50">
               {task.title}
             </span>
 
@@ -147,9 +145,9 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
                 className={cn(
                   "hidden shrink-0 items-center gap-1 text-[11px] font-medium sm:flex",
                   isOverdue
-                    ? "text-red-400"
+                    ? "text-rose-400"
                     : isDueToday
-                      ? "text-orange-400"
+                      ? "text-amber-400"
                       : "text-neutral-500",
                 )}
               >

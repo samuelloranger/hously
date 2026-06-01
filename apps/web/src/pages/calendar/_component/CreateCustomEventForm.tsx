@@ -205,7 +205,7 @@ export function CreateCustomEventForm({
             placeholder={t("calendar.eventTitlePlaceholder")}
           />
           {errors.title && (
-            <p className="mt-1 text-sm text-red-400">
+            <p className="mt-1 text-sm text-rose-400">
               {t("calendar.titleRequired")}
             </p>
           )}
@@ -266,7 +266,7 @@ export function CreateCustomEventForm({
             placeholder={t("calendar.selectDateRange") || "Select date range"}
           />
           {(errors.start_datetime || errors.end_datetime) && (
-            <p className="mt-1 text-sm text-red-400">
+            <p className="mt-1 text-sm text-rose-400">
               {errors.start_datetime
                 ? t("calendar.startRequired")
                 : t("calendar.endRequired")}
@@ -310,7 +310,7 @@ export function CreateCustomEventForm({
           </label>
           <select
             {...register("recurrence_type")}
-            className="w-full px-3 py-2 border border-neutral-600 rounded-md bg-neutral-800 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border border-neutral-700 rounded-md bg-neutral-900 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
           >
             <option value="">{t("calendar.noRecurrence")}</option>
             <option value="daily_interval">{t("calendar.everyTwoDays")}</option>

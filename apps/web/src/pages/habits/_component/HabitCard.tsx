@@ -110,7 +110,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
       className={cn(
         "group relative overflow-hidden p-4 rounded-2xl bg-neutral-800 border transition-all duration-300",
         isFullyCompleted
-          ? "border-green-500/30 bg-green-500/5 shadow-sm"
+          ? "border-emerald-800/60 bg-emerald-900/30 shadow-sm"
           : isAccountedForToday
             ? "border-rose-500/30 bg-rose-500/5 shadow-sm"
             : "border-neutral-700/60 hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5",
@@ -123,7 +123,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
             {habit.emoji}
           </div>
           <div>
-            <h3 className="font-bold text-white leading-tight">
+            <h3 className="font-bold text-neutral-50 leading-tight">
               {habit.name}
             </h3>
             {habit.description && (
@@ -182,10 +182,10 @@ export const HabitCard: React.FC<HabitCardProps> = ({
               className={cn(
                 "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
                 isFullyCompleted
-                  ? "bg-green-500/20 text-green-400 cursor-default"
+                  ? "bg-emerald-900/30 text-emerald-400 cursor-default"
                   : isAccountedForToday
                     ? "bg-neutral-700 text-neutral-500 cursor-default"
-                    : "bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/20 active:scale-90",
+                    : "bg-primary-600 hover:bg-primary-500 text-neutral-950 shadow-md shadow-primary-600/20 active:scale-90",
               )}
               aria-label={t("habits.done")}
             >

@@ -83,15 +83,15 @@ export function BulkActionsBar({
           {t("board.bulk.archive")}
         </Button>
         {deleteConfirmPending ? (
-          <div className="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs border-red-900 bg-red-950/40">
-            <span className="text-red-300">
+          <div className="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs border-rose-800/60 bg-rose-900/30">
+            <span className="text-rose-300">
               {t("board.bulk.deleteConfirm", { count: selectedCount })}
             </span>
             <button
               type="button"
               disabled={deletePending}
               onClick={onConfirmDelete}
-              className="font-semibold hover:underline text-red-400"
+              className="font-semibold hover:underline text-rose-400"
             >
               {t("board.bulk.confirmYes")}
             </button>
@@ -108,7 +108,7 @@ export function BulkActionsBar({
             type="button"
             variant="outline"
             size="sm"
-            className="h-7 text-xs border-red-900 bg-neutral-900 text-red-400 hover:bg-red-950/40"
+            className="h-7 text-xs border-rose-800/60 bg-neutral-900 text-rose-400 hover:bg-rose-900/20"
             disabled={deletePending}
             onClick={onDelete}
           >

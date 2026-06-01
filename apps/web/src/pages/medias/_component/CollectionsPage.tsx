@@ -32,7 +32,7 @@ function CollectionCard({
           <img
             src={collection.poster_url}
             alt={collection.name}
-            className="w-20 shrink-0 rounded-xl object-cover shadow-sm ring-1 ring-white/10 self-start"
+            className="w-20 shrink-0 rounded-xl object-cover shadow-sm ring-1 ring-primary-500/30 self-start"
           />
         ) : (
           <div className="flex w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-700 aspect-[2/3]">
@@ -44,7 +44,7 @@ function CollectionCard({
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           {/* Name + progress */}
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-white leading-tight">
+            <h3 className="font-semibold text-neutral-50 leading-tight">
               {collection.name}
             </h3>
             <span
@@ -87,18 +87,18 @@ function CollectionCard({
                 {movie.already_exists ? (
                   <div className="absolute inset-0 flex items-end justify-end p-0.5">
                     <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-1 ring-black/20">
-                      <Check size={8} strokeWidth={3} className="text-white" />
+                      <Check size={8} strokeWidth={3} className="text-neutral-950" />
                     </div>
                   </div>
                 ) : movie.release_date && movie.release_date > todayYmd ? (
                   <div className="absolute inset-0 bg-black/60 flex items-end justify-center pb-1 px-0.5">
-                    <span className="text-[7px] font-semibold text-white/90 leading-tight text-center">
+                    <span className="text-[7px] font-semibold text-neutral-50 leading-tight text-center">
                       {formatDate(movie.release_date, i18n.language)}
                     </span>
                   </div>
                 ) : (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 ring-1 ring-black/20 text-white text-xs font-bold">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 ring-1 ring-black/20 text-neutral-950 text-xs font-bold">
                       +
                     </div>
                   </div>

@@ -17,8 +17,8 @@ function PageDot({
       className={[
         "flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-medium transition-[background-color,border-color,color] duration-150",
         active
-          ? "bg-primary-600/80 text-white"
-          : "border border-white/[0.08] bg-white/[0.03] text-neutral-400 hover:border-white/20 hover:text-neutral-200",
+          ? "bg-primary-600 text-neutral-950"
+          : "border border-neutral-700 bg-neutral-900 text-neutral-400 hover:border-neutral-600 hover:text-neutral-200",
       ].join(" ")}
     >
       {n}
@@ -49,7 +49,7 @@ export function DiscoverPagination({
           type="button"
           onClick={goPrev}
           disabled={page === 1 || isFetching}
-          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-neutral-300 transition-colors hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-neutral-700 bg-neutral-900 text-sm text-neutral-300 transition-colors hover:border-neutral-600 disabled:cursor-not-allowed disabled:opacity-30"
         >
           <ChevronLeft size={16} />
           <span className="font-medium">Prev</span>
@@ -63,7 +63,7 @@ export function DiscoverPagination({
           type="button"
           onClick={goNext}
           disabled={page === totalPages || isFetching}
-          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-neutral-300 transition-colors hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-neutral-700 bg-neutral-900 text-sm text-neutral-300 transition-colors hover:border-neutral-600 disabled:cursor-not-allowed disabled:opacity-30"
         >
           <span className="font-medium">Next</span>
           <ChevronRight size={16} />
@@ -75,7 +75,7 @@ export function DiscoverPagination({
           type="button"
           onClick={goPrev}
           disabled={page === 1 || isFetching}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-700 bg-neutral-900 text-neutral-400 transition-colors hover:border-neutral-600 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
         >
           <ChevronLeft size={15} />
         </button>
@@ -118,7 +118,7 @@ export function DiscoverPagination({
           type="button"
           onClick={goNext}
           disabled={page === totalPages || isFetching}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-700 bg-neutral-900 text-neutral-400 transition-colors hover:border-neutral-600 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
         >
           <ChevronRight size={15} />
         </button>

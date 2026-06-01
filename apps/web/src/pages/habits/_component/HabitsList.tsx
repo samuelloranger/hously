@@ -118,13 +118,13 @@ export const HabitsList: React.FC = () => {
         title={t("habits.title")}
         subtitle={t("habits.subtitle")}
         icon={Target}
-        iconColor="text-orange-600"
+        iconColor="text-primary-400"
         onRefresh={refetch}
         isRefreshing={isRefetching || isLoading}
         actions={
           <button
             onClick={() => setParams({ modal: "create" })}
-            className="flex items-center gap-2 px-4 h-10 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-md shadow-primary-600/20 transition-all active:scale-95"
+            className="flex items-center gap-2 px-4 h-10 rounded-xl bg-primary-600 hover:bg-primary-500 text-neutral-950 text-sm font-semibold shadow-md shadow-primary-600/20 transition-all active:scale-95"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">{t("habits.addHabit")}</span>
@@ -145,9 +145,7 @@ export const HabitsList: React.FC = () => {
           <span
             className={cn(
               "text-sm font-semibold capitalize",
-              isToday
-                ? "text-primary-400"
-                : "text-neutral-300",
+              isToday ? "text-primary-400" : "text-neutral-300",
             )}
           >
             {isToday ? t("calendar.today", "Today") : formattedDate}
@@ -230,7 +228,7 @@ export const HabitsList: React.FC = () => {
             />
             <button
               onClick={() => setParams({ modal: "create" })}
-              className="flex items-center gap-2 px-6 h-12 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold shadow-lg shadow-primary-600/20 transition-all active:scale-95"
+              className="flex items-center gap-2 px-6 h-12 rounded-xl bg-primary-600 hover:bg-primary-500 text-neutral-950 font-semibold shadow-lg shadow-primary-600/20 transition-all active:scale-95"
             >
               <Plus size={20} />
               {t("habits.addHabit")}

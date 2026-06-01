@@ -46,13 +46,13 @@ export const ScheduleTimePicker: React.FC<ScheduleTimePickerProps> = ({
               type="time"
               value={time}
               onChange={(e) => updateTime(index, e.target.value)}
-              className="bg-transparent border-none text-sm focus:ring-0 focus:outline-none text-white"
+              className="bg-transparent border-none text-sm focus:ring-0 focus:outline-none text-neutral-100"
             />
             {times.length > 1 && (
               <button
                 type="button"
                 onClick={() => removeTime(index)}
-                className="p-1 rounded-md text-neutral-400 hover:text-red-500 hover:bg-red-900/20 transition-colors"
+                className="p-1 rounded-md text-neutral-400 hover:text-rose-400 hover:bg-rose-900/20 transition-colors"
               >
                 <X size={14} />
               </button>

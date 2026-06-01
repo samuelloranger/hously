@@ -46,7 +46,7 @@ export function TmdbSearchModal({
       >
         <div className="shrink-0 flex items-start justify-between px-5 py-3.5 border-b border-neutral-800">
           <div>
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-neutral-50">
               {t("medias.tmdb.title")}
             </p>
             <p className="text-xs text-neutral-400 mt-0.5">

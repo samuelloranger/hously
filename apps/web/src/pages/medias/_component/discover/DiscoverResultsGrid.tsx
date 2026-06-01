@@ -31,7 +31,7 @@ export function DiscoverResultsGrid({
           {Array.from({ length: discoverPageSize }).map((_, i) => (
             <div
               key={i}
-              className="aspect-[2/3] animate-pulse rounded-xl bg-white/[0.06] ring-1 ring-white/[0.06]"
+              className="aspect-[2/3] animate-pulse rounded-xl bg-neutral-800 ring-1 ring-primary-500/30"
               style={{ animationDelay: `${i * 20}ms` }}
             />
           ))}

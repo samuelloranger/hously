@@ -48,10 +48,10 @@ interface TaskDrawerProps {
 }
 
 const STATUS_COLORS: Record<BoardTaskStatusApi, string> = {
-  backlog: "bg-neutral-400",
-  on_hold: "bg-gray-400",
-  todo: "bg-blue-500",
-  in_progress: "bg-primary-500",
+  backlog: "bg-neutral-500",
+  on_hold: "bg-neutral-600",
+  todo: "bg-primary-500",
+  in_progress: "bg-amber-500",
   done: "bg-emerald-500",
 };
 
@@ -64,10 +64,10 @@ const STATUS_LABELS: Record<BoardTaskStatusApi, string> = {
 };
 
 const PRIORITY_BG: Record<BoardTaskPriorityApi, string> = {
-  low: "bg-sky-500/10 text-sky-400",
-  medium: "bg-amber-500/10 text-amber-400",
-  high: "bg-orange-500/10 text-orange-400",
-  urgent: "bg-red-500/10 text-red-400",
+  low: "border border-neutral-700 bg-neutral-800 text-neutral-400",
+  medium: "border border-amber-800/60 bg-amber-900/30 text-amber-400",
+  high: "border border-rose-800/60 bg-rose-900/30 text-rose-400",
+  urgent: "border border-rose-800/60 bg-rose-900/30 text-rose-400",
 };
 
 const PRIORITY_LABELS: Record<BoardTaskPriorityApi, string> = {
@@ -214,7 +214,7 @@ export function TaskDrawer({
               )}
               <button
                 onClick={() => setConfirmDeleteOpen(true)}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-red-900/20 hover:text-red-400"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-rose-900/20 hover:text-rose-400"
                 aria-label={t("board.deleteTask")}
               >
                 <Trash2 className="h-4 w-4" />
@@ -248,7 +248,7 @@ export function TaskDrawer({
                       titleRef.current?.blur();
                     }
                   }}
-                  className="w-full bg-transparent text-xl font-semibold outline-none text-white placeholder-neutral-600 focus:ring-0"
+                  className="w-full bg-transparent text-xl font-semibold outline-none text-neutral-50 placeholder-neutral-600 focus:ring-0"
                   placeholder="Task title"
                 />
               </div>
@@ -367,7 +367,7 @@ export function TaskDrawer({
                     className={cn(
                       "w-full bg-transparent text-sm outline-none [color-scheme:dark]",
                       isOverdue
-                        ? "font-medium text-red-400"
+                        ? "font-medium text-rose-400"
                         : "text-neutral-100",
                     )}
                   />

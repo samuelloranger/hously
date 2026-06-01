@@ -39,7 +39,7 @@ export function TimeEstimateField({
             if (e.key === "Escape") cancel();
           }}
           placeholder="e.g. 2h 30m"
-          className="w-28 rounded border px-2 py-0.5 text-xs outline-none focus:border-primary-400 border-neutral-600 bg-neutral-800 text-white"
+          className="w-28 rounded border px-2 py-0.5 text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/40 border-neutral-700 bg-neutral-900 text-neutral-100"
         />
         <button
           onClick={commit}

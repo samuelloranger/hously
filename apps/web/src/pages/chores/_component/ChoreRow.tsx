@@ -185,14 +185,14 @@ export function ChoreRow({
                 className={`mb-1 text-sm font-medium ${
                   chore.completed
                     ? "line-through text-neutral-400"
-                    : "text-white cursor-pointer hover:text-primary-400 transition-colors"
+                    : "text-neutral-50 cursor-pointer hover:text-primary-400 transition-colors"
                 }`}
               >
                 {chore.chore_name}
               </h4>
             </div>
             {isOverdue && (
-              <span className="px-2 py-1 mr-2 text-xs font-semibold rounded bg-red-900 text-red-200">
+              <span className="px-2 py-1 mr-2 text-xs font-semibold rounded bg-rose-900/30 text-rose-300 border border-rose-800/60">
                 {t("chores.overdue")}
               </span>
             )}
@@ -205,7 +205,7 @@ export function ChoreRow({
             {chore.description && (
               <SafeHtml
                 html={chore.description}
-                className="text-xs text-neutral-400 mt-1 break-words prose prose-sm max-w-none prose-invert prose-a:text-blue-400 prose-a:underline prose-a:break-all"
+                className="text-xs text-neutral-400 mt-1 break-words prose prose-sm max-w-none prose-invert prose-a:text-primary-300 hover:prose-a:text-primary-200 prose-a:underline prose-a:break-all"
               />
             )}
             <div className="flex flex-col items-start space-y-2 mt-2">
@@ -215,7 +215,7 @@ export function ChoreRow({
                 {t("chores.on")} {formatDate(chore.created_at, i18n.language)}
               </p>
               {chore.assigned_to_username ? (
-                <p className="flex items-center gap-1 text-sm text-blue-400">
+                <p className="flex items-center gap-1 text-sm text-primary-300">
                   <User size={14} />
                   {t("chores.assignedTo")}{" "}
                   {formatUsername(
@@ -230,7 +230,7 @@ export function ChoreRow({
                 </p>
               )}
               {!!chore.completed && !!chore.completed_by_username && (
-                <p className="flex items-center gap-1 text-sm text-green-400">
+                <p className="flex items-center gap-1 text-sm text-emerald-400">
                   <CheckCircle size={14} />
                   {t("chores.completedBy")}{" "}
                   {formatUsername(
@@ -242,9 +242,7 @@ export function ChoreRow({
               {hasReminder && (
                 <p
                   className={`flex items-center gap-1 text-sm ${
-                    isOverdue
-                      ? "text-red-400"
-                      : "text-neutral-400"
+                    isOverdue ? "text-rose-400" : "text-neutral-400"
                   }`}
                 >
                   <Clock size={14} />

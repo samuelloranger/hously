@@ -64,7 +64,7 @@ export function ExploreCardActions({
         href={tmdbUrl}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600/10 px-3 py-1.5 text-xs font-medium transition-[background-color] hover:bg-sky-600/20 text-sky-400"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-primary-900/30 px-3 py-1.5 text-xs font-medium text-primary-300 transition-[background-color] hover:bg-primary-900/40"
       >
         <ExternalLink size={12} />
         TMDB
@@ -76,7 +76,7 @@ export function ExploreCardActions({
           href={`https://www.youtube.com/watch?v=${trailerData.key}`}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/10 px-3 py-1.5 text-xs font-medium transition-[background-color] hover:bg-red-600/20 text-red-400"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-rose-900/30 px-3 py-1.5 text-xs font-medium text-rose-400 transition-[background-color] hover:bg-rose-900/20"
         >
           <Play size={12} />
           {t("medias.detail.watchTrailer")}
@@ -90,10 +90,10 @@ export function ExploreCardActions({
         <button
           onClick={onAdd}
           disabled={isAddPending}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color] hover:bg-primary-700 active:bg-primary-800 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-neutral-950 transition-[background-color] hover:bg-primary-500 active:bg-primary-700 disabled:opacity-50"
         >
           {isAddPending ? (
-            <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-neutral-950 border-t-transparent" />
           ) : (
             <Plus size={12} />
           )}

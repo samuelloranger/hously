@@ -41,14 +41,14 @@ function DepList({
           </span>
           {"is_resolved" in dep && !dep.is_resolved && (
             <Lock
-              className="h-3 w-3 shrink-0 text-orange-500"
+              className="h-3 w-3 shrink-0 text-amber-400"
               aria-label="Blocking"
             />
           )}
           <button
             onClick={() => onRemove(dep.id)}
             disabled={isRemoving}
-            className="text-neutral-400 hover:text-red-500"
+            className="text-neutral-400 hover:text-rose-400"
           >
             <X className="h-3 w-3" />
           </button>
