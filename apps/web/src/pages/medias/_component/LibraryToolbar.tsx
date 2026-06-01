@@ -180,7 +180,7 @@ export function LibraryToolbar({
             <SlidersHorizontal size={13} />
             {t("medias.library.filtersButton")}
             {activeFilterCount > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-primary-500 text-[9px] font-bold leading-none text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-primary-600 text-[9px] font-bold leading-none text-neutral-950">
                 {activeFilterCount}
               </span>
             )}
