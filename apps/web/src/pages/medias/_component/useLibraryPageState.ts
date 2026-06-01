@@ -14,7 +14,6 @@ export const LIBRARY_DEFAULTS = {
   search: "" as string,
   sortBy: "added_at" as SortKey,
   sortDir: "desc" as SortDir,
-  page: 1,
   viewMode: "grid" as ViewMode,
 };
 
