@@ -269,7 +269,7 @@ function CalendarBody({
       <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <PageHeader
           icon={CalendarIcon}
-          iconColor="text-blue-600"
+          iconColor="text-primary-400"
           title={t("calendar.title")}
           subtitle={t("calendar.subtitle")}
         />

@@ -74,7 +74,7 @@ export function CalendarDayPanel({
           {/* Panel Header */}
           <div className="px-5 py-4 border-b border-neutral-700/50 flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-neutral-50">
                 {formatDate(selectedDate, i18n.language)}
               </p>
               <p className="text-xs text-neutral-500 mt-0.5">

@@ -57,11 +57,11 @@ export const EventCard = ({
   const getEventBgClass = (type: CalendarEvent["type"]) => {
     switch (type) {
       case "chore":
-        return "bg-blue-950/20";
+        return "bg-primary-900/30 border border-primary-800";
       case "public_holiday":
-        return "bg-amber-950/20";
+        return "bg-amber-900/30 border border-amber-800/60";
       default:
-        return "bg-neutral-800/40";
+        return "bg-neutral-800 text-neutral-200 border border-neutral-700";
     }
   };
 
@@ -99,10 +99,9 @@ export const EventCard = ({
   return (
     <div
       className={cn(
-        "group relative rounded-xl overflow-hidden transition-all duration-200",
-        "hover:shadow-sm",
+        "group relative rounded-xl overflow-hidden transition-colors duration-200 hover:bg-neutral-700/40",
         event.type === "custom_event"
-          ? "bg-neutral-800/40"
+          ? "bg-neutral-800 text-neutral-200 border border-neutral-700"
           : getEventBgClass(event.type),
         highlighted &&
           "ring-2 ring-primary-500/70 ring-offset-2 ring-offset-neutral-900",
@@ -134,7 +133,7 @@ export const EventCard = ({
             <div className="flex-1 min-w-0">
               {/* Title row */}
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                <h4 className="font-semibold text-sm text-white truncate">
+                <h4 className="font-semibold text-sm text-neutral-50 truncate">
                   {event.title}
                 </h4>
                 {event.type === "chore" && (
@@ -185,10 +184,10 @@ export const EventCard = ({
                 <>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="p-1.5 rounded-lg hover:bg-red-900/30 transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-rose-900/20 transition-colors"
                     title={t("calendar.customEventDelete")}
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    <Trash2 className="w-3.5 h-3.5 text-rose-400" />
                   </button>
                   <Dialog
                     isOpen={showDeleteConfirm}

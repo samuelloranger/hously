@@ -49,7 +49,7 @@ export function CalendarGrid({
     <div className="flex-1 min-w-0">
       <div className="bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-700/50 overflow-hidden">
         {/* Month Navigation */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-600/60">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-700/60">
           <button
             onClick={onPreviousMonth}
             className="p-2 rounded-xl hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
@@ -59,7 +59,7 @@ export function CalendarGrid({
           </button>
 
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-white tracking-tight">
+            <h2 className="font-display text-lg font-semibold text-neutral-50 tracking-tight">
               {getMonthName(t, currentMonth - 1)} {currentYear}
             </h2>
             {!isViewingCurrentMonth && (
@@ -82,7 +82,7 @@ export function CalendarGrid({
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 border-b border-neutral-600/60">
+        <div className="grid grid-cols-7 border-b border-neutral-700/60">
           {new Array(7).fill(0).map((_, day) => (
             <div
               key={day}
@@ -112,7 +112,7 @@ export function CalendarGrid({
                 key={index}
                 onClick={() => onDayClick(date)}
                 className={cn(
-                  "relative aspect-square min-h-0 p-1 sm:p-1.5 flex flex-col items-stretch transition-all duration-150 border-b border-r border-neutral-600/55",
+                  "relative aspect-square min-h-0 p-1 sm:p-1.5 flex flex-col items-stretch transition-all duration-150 border-b border-r border-neutral-700/60",
                   !isCurrentMonthDay && "opacity-30",
                   isCurrentMonthDay &&
                     "hover:bg-primary-900/10",
@@ -125,10 +125,10 @@ export function CalendarGrid({
                     className={cn(
                       "relative z-10 shrink-0 text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full transition-all duration-200",
                       isTodayDay &&
-                        "bg-primary-600 text-white font-semibold shadow-sm shadow-primary-600/30",
+                        "bg-primary-600 text-neutral-950 font-semibold shadow-sm shadow-primary-600/30",
                       isSelectedDate &&
                         !isTodayDay &&
-                        "bg-white text-neutral-900 font-semibold",
+                        "bg-primary-900/30 text-primary-300 ring-2 ring-primary-500/40 font-semibold",
                       !isTodayDay &&
                         !isSelectedDate &&
                         isCurrentMonthDay &&
@@ -203,9 +203,9 @@ export function CalendarGrid({
         </div>
 
         {/* Legend */}
-        <div className="px-5 py-3 border-t border-neutral-600/60 flex flex-wrap gap-4 text-xs text-neutral-400">
+        <div className="px-5 py-3 border-t border-neutral-700/60 flex flex-wrap gap-4 text-xs text-neutral-400">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <div className="w-2 h-2 rounded-full bg-primary-500" />
             <span>{t("calendar.chores")}</span>
           </div>
           <div className="flex items-center gap-1.5">
