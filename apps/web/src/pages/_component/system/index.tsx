@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { Server } from "lucide-react";
 import { BeszelSection } from "./BeszelSection";
 import { ScrutinySection } from "./ScrutinySection";
 import { AdguardSection } from "./AdguardSection";
@@ -8,36 +10,39 @@ import {
   useDashboardAdguardSummary,
 } from "@/pages/_component/useDashboardSystem";
 import { useUptimekumaMonitors } from "@/pages/_component/useUptimekumaMonitors";
+import { WidgetHeader, WidgetShell } from "@/pages/_component/widgetPrimitives";
+
+function VitalCellSkeleton() {
+  return (
+    <div className="rounded-lg bg-surface-inset/60 ring-1 ring-border/60 p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="h-2 w-8 rounded-full bg-neutral-800 animate-pulse" />
+        <div className="size-2 rounded-full bg-neutral-800 animate-pulse" />
+      </div>
+      <div className="h-7 w-14 rounded bg-neutral-800 animate-pulse" />
+      <div className="h-[3px] w-full rounded-full bg-neutral-800" />
+    </div>
+  );
+}
 
 function SystemPanelSkeleton() {
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 space-y-1">
-      <div className="flex items-center gap-2.5 mb-3">
+    <WidgetShell>
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-neutral-800">
         <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
-        <div className="w-4 h-4 rounded bg-neutral-800 animate-pulse shrink-0" />
-        <div className="h-3 w-12 rounded-full bg-neutral-800 animate-pulse" />
+        <Server className="w-4 h-4 shrink-0 text-neutral-600" strokeWidth={2} />
+        <div className="h-3 w-16 rounded-full bg-neutral-800 animate-pulse" />
       </div>
-      {[0, 1].map((i) => (
-        <div key={i} className="space-y-1 py-1">
-          <div className="flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-neutral-800 animate-pulse shrink-0" />
-            <div
-              className="h-2.5 w-8 rounded-full bg-neutral-800 animate-pulse"
-              style={{ animationDelay: `${i * 80}ms` }}
-            />
-            <div
-              className="h-2.5 w-10 rounded-full bg-neutral-800 animate-pulse ml-auto"
-              style={{ animationDelay: `${i * 80}ms` }}
-            />
-          </div>
-          <div className="h-[3px] w-full rounded-full bg-neutral-800" />
-        </div>
-      ))}
-    </section>
+      <div className="px-4 py-4 grid grid-cols-2 gap-2">
+        <VitalCellSkeleton />
+        <VitalCellSkeleton />
+      </div>
+    </WidgetShell>
   );
 }
 
 export function SystemPanel() {
+  const { t } = useTranslation("common");
   const beszel = useDashboardSystemSummary();
   const scrutiny = useDashboardScrutinySummary();
   const adguard = useDashboardAdguardSummary();
@@ -53,11 +58,12 @@ export function SystemPanel() {
   }
 
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 space-y-5">
+    <WidgetShell>
+      <WidgetHeader icon={Server} title={t("dashboard.home.systemHeading")} />
       <BeszelSection />
       <ScrutinySection />
       <AdguardSection />
       <UptimekumaSection />
-    </section>
+    </WidgetShell>
   );
 }

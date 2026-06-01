@@ -18,29 +18,18 @@ import { WeatherForecastModal } from "@/pages/_component/WeatherForecastModal";
 import type { WeatherData } from "@hously/shared/types";
 import { getWeatherConditionKey } from "@/lib/utils/weather";
 import { usePrefetchIntent } from "@/lib/routing/usePrefetchIntent";
+import {
+  Kicker,
+  WidgetHeader,
+  WidgetShell,
+} from "@/pages/_component/widgetPrimitives";
 
 const toCelsius = (fahrenheit: number): number => (fahrenheit - 32) * (5 / 9);
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-sm font-semibold text-neutral-100">
-      {children}
-    </h3>
-  );
-}
-
-function Kicker({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
-      {children}
-    </span>
-  );
-}
 
 function WeatherIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
     <Icon
-      className="size-9 shrink-0 text-sky-400"
+      className="size-9 shrink-0 text-primary-300"
       strokeWidth={1.75}
       aria-hidden
     />
@@ -77,9 +66,9 @@ function weatherStatusIcon(weather: WeatherData): LucideIcon {
 
 function WeatherPanelSkeleton() {
   return (
-    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-neutral-800">
-        <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
+    <WidgetShell>
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-neutral-800">
+        <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
         <CloudSun
           className="w-4 h-4 shrink-0 text-neutral-600"
           strokeWidth={2}
@@ -96,7 +85,7 @@ function WeatherPanelSkeleton() {
           </div>
         </div>
       </div>
-    </section>
+    </WidgetShell>
   );
 }
 
@@ -139,36 +128,32 @@ export function WeatherPanel() {
           current={weatherQuery.data}
         />
       )}
-      <section
-        className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden cursor-pointer"
+      <WidgetShell
+        className="cursor-pointer"
         onClick={() => setForecastOpen(true)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => e.key === "Enter" && setForecastOpen(true)}
         {...prefetchIntent}
       >
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-neutral-800">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
-            <CloudSun
-              className="w-4 h-4 shrink-0 text-neutral-400"
-              strokeWidth={2}
-            />
-            <SectionTitle>{t("dashboard.weather.kicker")}</SectionTitle>
-          </div>
-          {weatherQuery.isFetching ? (
-            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-              {t("dashboard.weather.updating")}
-            </span>
-          ) : null}
-        </div>
+        <WidgetHeader
+          icon={CloudSun}
+          title={t("dashboard.weather.kicker")}
+          right={
+            weatherQuery.isFetching ? (
+              <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                {t("dashboard.weather.updating")}
+              </span>
+            ) : undefined
+          }
+        />
 
         <div className="px-4 py-3">
           <div className="flex items-start gap-3">
             <WeatherIcon icon={statusIcon} />
             <div className="min-w-0 flex-1">
               <Kicker>{weatherQuery.data.location_name}</Kicker>
-              <p className="mt-2 text-xl font-bold leading-none tabular-nums text-neutral-50">
+              <p className="mt-2 text-3xl font-display font-semibold leading-none tabular-nums text-neutral-50">
                 {t("dashboard.weather.temperature", {
                   temp: Math.round(temperatureValue),
                   unit: unitLabel,
@@ -184,7 +169,7 @@ export function WeatherPanel() {
             </div>
           </div>
         </div>
-      </section>
+      </WidgetShell>
     </>
   );
 }

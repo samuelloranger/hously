@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { HardDrive } from "lucide-react";
 import { useDashboardScrutinySummary } from "@/pages/_component/useDashboardSystem";
-import { SectionTitle, MetricRow } from "./shared";
+import { ModuleEyebrow, MetricRow } from "./shared";
 
 export function ScrutinySection() {
   const { t } = useTranslation("common");
@@ -10,15 +10,8 @@ export function ScrutinySection() {
   const s = data.summary;
 
   return (
-    <div>
-      <div className="flex items-center gap-2.5 mb-3">
-        <span className="w-1 h-4 rounded-full bg-primary-500 shrink-0" />
-        <HardDrive
-          className="w-4 h-4 shrink-0 text-neutral-400"
-          strokeWidth={2}
-        />
-        <SectionTitle>{t("dashboard.scrutiny.title")}</SectionTitle>
-      </div>
+    <div className="px-4 py-4 border-t border-neutral-800 first:border-t-0">
+      <ModuleEyebrow icon={HardDrive} title={t("dashboard.scrutiny.title")} />
       <MetricRow
         label={t("dashboard.home.scrutinyDrivesLabel")}
         value={t("dashboard.home.scrutinyDrivesOk", {

@@ -8,7 +8,7 @@ import type {
 } from "@hously/shared/types";
 import { useUptimekumaMonitors } from "@/pages/_component/useUptimekumaMonitors";
 import { UptimeKumaMonitorsModal } from "@/pages/_component/UptimeKumaMonitorsModal";
-import { SectionTitle } from "./shared";
+import { ModuleEyebrow } from "./shared";
 
 const MAX_INLINE_ROWS = 5;
 
@@ -109,12 +109,6 @@ export function UptimekumaSection() {
   if (summary.total === 0) return null;
 
   const overallStatus = deriveOverallStatus(summary);
-  const accentColor =
-    overallStatus === "degraded"
-      ? "bg-rose-400"
-      : overallStatus === "pending"
-        ? "bg-amber-400"
-        : "bg-primary-500";
   const unhealthy = monitors.filter(
     (m) => m.status === "down" || m.status === "pending",
   );
@@ -124,18 +118,12 @@ export function UptimekumaSection() {
   return (
     <>
       <UptimeKumaMonitorsModal open={modalOpen} onOpenChange={setModalOpen} />
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2.5">
-            <span className={`w-1 h-4 rounded-full shrink-0 ${accentColor}`} />
-            <Activity
-              className="w-4 h-4 shrink-0 text-neutral-400"
-              strokeWidth={2}
-            />
-            <SectionTitle>{t("dashboard.uptimekuma.title")}</SectionTitle>
-          </div>
-          <SummaryPill status={overallStatus} summary={summary} />
-        </div>
+      <div className="px-4 py-4 border-t border-neutral-800 first:border-t-0">
+        <ModuleEyebrow
+          icon={Activity}
+          title={t("dashboard.uptimekuma.title")}
+          right={<SummaryPill status={overallStatus} summary={summary} />}
+        />
 
         {unhealthy.length > 0 ? (
           <div className="divide-y divide-neutral-800/60">
