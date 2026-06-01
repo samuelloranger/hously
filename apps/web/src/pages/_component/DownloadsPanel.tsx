@@ -22,7 +22,7 @@ function SpeedTooltip({
   const dl = payload.find((p) => p.dataKey === "dl");
   const ul = payload.find((p) => p.dataKey === "ul");
   return (
-    <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">
+    <div className="rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">
       {dl && (
         <p className="font-semibold tabular-nums text-sky-500">
           ↓ {formatSpeed(Number(dl.value))}
@@ -39,7 +39,7 @@ function SpeedTooltip({
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+    <h3 className="text-sm font-semibold text-neutral-100">
       {children}
     </h3>
   );
@@ -47,7 +47,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">
+    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
       {children}
     </span>
   );
@@ -71,12 +71,12 @@ export function DownloadsPanel() {
   }, [data]);
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-neutral-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
           <Download
-            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            className="w-4 h-4 shrink-0 text-neutral-400"
             strokeWidth={2}
           />
           <SectionTitle>{t("dashboard.home.downloadsTitle")}</SectionTitle>
@@ -86,20 +86,20 @@ export function DownloadsPanel() {
       <div className="px-4 py-3 space-y-4">
         {isLoading && (
           <div className="space-y-3">
-            <div className="h-2 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            <div className="h-2 w-16 rounded-full bg-neutral-800 animate-pulse" />
             <div className="flex gap-6">
-              <div className="h-5 w-20 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+              <div className="h-5 w-20 rounded bg-neutral-800 animate-pulse" />
               <div
-                className="h-5 w-20 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                className="h-5 w-20 rounded bg-neutral-800 animate-pulse"
                 style={{ animationDelay: "80ms" }}
               />
             </div>
-            <div className="h-10 w-full rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            <div className="h-10 w-full rounded-lg bg-neutral-800 animate-pulse" />
           </div>
         )}
 
         {!data?.enabled && !isLoading && (
-          <p className="py-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+          <p className="py-2 text-sm text-neutral-400 text-center">
             {t("dashboard.home.qbittorrentNotConfigured")}
           </p>
         )}
@@ -108,11 +108,11 @@ export function DownloadsPanel() {
           <div>
             <Kicker>{t("dashboard.home.transfer")}</Kicker>
             <div className="mt-2 flex items-center gap-6">
-              <div className="flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums text-sky-600 dark:text-sky-400">
+              <div className="flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums text-sky-400">
                 <ArrowDown size={13} />
                 {formatSpeed(data.dl_speed)}
               </div>
-              <div className="flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums text-emerald-400">
                 <ArrowUp size={13} />
                 {formatSpeed(data.ul_speed)}
               </div>

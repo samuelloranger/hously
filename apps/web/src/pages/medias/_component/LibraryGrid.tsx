@@ -65,7 +65,7 @@ export function LibraryGrid({
               {Array.from({ length: 10 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-14 rounded-xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                  className="h-14 rounded-xl bg-neutral-800 animate-pulse"
                 />
               ))}
             </div>
@@ -82,7 +82,7 @@ export function LibraryGrid({
               {Array.from({ length: 12 }).map((_, i) => (
                 <div
                   key={i}
-                  className="aspect-[2/3] rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                  className="aspect-[2/3] rounded-2xl bg-neutral-800 animate-pulse"
                 />
               ))}
             </div>
@@ -154,7 +154,7 @@ export function LibraryGrid({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-2">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="text-xs text-neutral-400">
             {t("medias.library.paginationRange", {
               start: (safePage - 1) * pageSize + 1,
               end: Math.min(safePage * pageSize, totalItems),
@@ -166,18 +166,18 @@ export function LibraryGrid({
               type="button"
               onClick={() => onPageChange(safePage - 1)}
               disabled={safePage <= 1}
-              className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
+              className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-300 disabled:opacity-40 transition-colors"
             >
               <ChevronLeft size={15} />
             </button>
-            <span className="text-xs text-neutral-600 dark:text-neutral-400 min-w-[60px] text-center">
+            <span className="text-xs text-neutral-400 min-w-[60px] text-center">
               {safePage} / {totalPages}
             </span>
             <button
               type="button"
               onClick={() => onPageChange(safePage + 1)}
               disabled={safePage >= totalPages}
-              className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
+              className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-300 disabled:opacity-40 transition-colors"
             >
               <ChevronRight size={15} />
             </button>

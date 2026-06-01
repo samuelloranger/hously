@@ -22,8 +22,8 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         aria-checked={checked}
         disabled={disabled}
         className={cn(
-          "relative inline-flex h-6 w-11 max-h-6 shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-inner transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 appearance-none disabled:cursor-not-allowed disabled:opacity-50",
-          checked ? "bg-primary-600" : "bg-neutral-200 dark:bg-neutral-700",
+          "relative inline-flex h-6 w-11 max-h-6 shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-inner transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-neutral-900 appearance-none disabled:cursor-not-allowed disabled:opacity-50",
+          checked ? "bg-primary-600" : "bg-neutral-700",
           className,
         )}
         onClick={(event) => {

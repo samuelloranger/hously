@@ -18,40 +18,40 @@ const STATUS_STYLES: Record<
   wanted: {
     labelKey: "medias.library.itemStatus.wanted",
     className:
-      "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300",
+      "bg-amber-500/20 text-amber-300",
   },
   downloading: {
     labelKey: "medias.library.itemStatus.downloading",
-    className: "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300",
+    className: "bg-sky-500/20 text-sky-300",
   },
   downloaded: {
     labelKey: "medias.library.itemStatus.downloaded",
     className:
-      "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
+      "bg-emerald-500/20 text-emerald-300",
   },
   skipped: {
     labelKey: "medias.library.itemStatus.skipped",
     className:
-      "bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400",
+      "bg-neutral-700 text-neutral-400",
   },
   returning: {
     labelKey: "medias.library.itemStatus.returning",
     className:
-      "bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300",
+      "bg-violet-500/20 text-violet-300",
   },
   in_production: {
     labelKey: "medias.library.itemStatus.in_production",
     className:
-      "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300",
+      "bg-indigo-500/20 text-indigo-300",
   },
   planned: {
     labelKey: "medias.library.itemStatus.planned",
     className:
-      "bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300",
+      "bg-teal-500/20 text-teal-300",
   },
   upgrading: {
     labelKey: "medias.library.itemStatus.upgrading",
-    className: "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300",
+    className: "bg-sky-500/20 text-sky-300",
   },
 };
 
@@ -101,7 +101,7 @@ export function LibraryItemCard({
 
   return (
     <div
-      className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden cursor-pointer group"
+      className="rounded-2xl border border-neutral-700/60 bg-neutral-900 overflow-hidden cursor-pointer group"
       onClick={() =>
         navigate({
           to: "/library/$libraryId",
@@ -120,7 +120,7 @@ export function LibraryItemCard({
         {viewMode !== "compact" && (
           <div className="pb-2 space-y-1">
             <div className="flex flex-wrap items-center gap-1">
-              <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+              <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-neutral-800 text-neutral-400">
                 {item.year ?? "—"}
               </span>
               <span
@@ -133,7 +133,7 @@ export function LibraryItemCard({
               </span>
             </div>
             {digitalLabel && (
-              <p className="text-[9px] text-neutral-500 dark:text-neutral-400 leading-tight">
+              <p className="text-[9px] text-neutral-400 leading-tight">
                 {t("medias.library.digitalRelease", { date: digitalLabel })}
               </p>
             )}

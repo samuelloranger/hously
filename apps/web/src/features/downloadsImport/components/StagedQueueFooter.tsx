@@ -22,7 +22,7 @@ export function StagedQueueFooter({
   const { t } = useTranslation("common");
   if (stagedCount === 0 && batch.phase === "idle") return null;
   return (
-    <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-4xl -translate-x-1/2 rounded-xl border border-neutral-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur dark:border-neutral-700 dark:bg-neutral-900/95 space-y-2">
+    <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-4xl -translate-x-1/2 rounded-xl border px-4 py-3 shadow-lg backdrop-blur border-neutral-700 bg-neutral-900/95 space-y-2">
       {batch.phase === "idle" && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span>
@@ -62,7 +62,7 @@ export function StagedQueueFooter({
               {t("downloadsImport.footer.cancel")}
             </Button>
           </div>
-          <div className="h-2 w-full rounded-full bg-neutral-200 overflow-hidden dark:bg-white/15">
+          <div className="h-2 w-full rounded-full overflow-hidden bg-white/15">
             <div
               className="h-2 rounded-full bg-primary-600 transition-all"
               style={{

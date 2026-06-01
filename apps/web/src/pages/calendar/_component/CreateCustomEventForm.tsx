@@ -197,7 +197,7 @@ export function CreateCustomEventForm({
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("calendar.eventTitle")} *
           </label>
           <Input
@@ -205,14 +205,14 @@ export function CreateCustomEventForm({
             placeholder={t("calendar.eventTitlePlaceholder")}
           />
           {errors.title && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-red-400">
               {t("calendar.titleRequired")}
             </p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("calendar.description")}
           </label>
           <MinimalTiptap
@@ -244,18 +244,18 @@ export function CreateCustomEventForm({
                 setValue("end_datetime", end.toISOString());
               }
             }}
-            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
+            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-600 rounded"
           />
           <label
             htmlFor="all_day"
-            className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
+            className="text-sm font-medium text-neutral-300"
           >
             {t("calendar.allDay")}
           </label>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("calendar.startDateTime")} - {t("calendar.endDateTime")} *
           </label>
           <DateRangePicker
@@ -266,7 +266,7 @@ export function CreateCustomEventForm({
             placeholder={t("calendar.selectDateRange") || "Select date range"}
           />
           {(errors.start_datetime || errors.end_datetime) && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-red-400">
               {errors.start_datetime
                 ? t("calendar.startRequired")
                 : t("calendar.endRequired")}
@@ -275,12 +275,12 @@ export function CreateCustomEventForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("calendar.color")}
           </label>
           <div className="flex items-center gap-4">
             <div
-              className="w-12 h-12 rounded border-2 border-neutral-300 dark:border-neutral-600"
+              className="w-12 h-12 rounded border-2 border-neutral-600"
               style={{ backgroundColor: color || "#3b82f6" }}
             />
             <div className="flex-1">
@@ -305,12 +305,12 @@ export function CreateCustomEventForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("calendar.recurrence")}
           </label>
           <select
             {...register("recurrence_type")}
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border border-neutral-600 rounded-md bg-neutral-800 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">{t("calendar.noRecurrence")}</option>
             <option value="daily_interval">{t("calendar.everyTwoDays")}</option>

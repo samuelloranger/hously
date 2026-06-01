@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 
 const STATUS_STYLE: Partial<Record<BoardTaskStatusApi, string>> = {
   on_hold:
-    "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400",
-  todo: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+    "bg-neutral-800 text-neutral-400",
+  todo: "bg-blue-900/30 text-blue-400",
   in_progress:
-    "bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400",
-  done: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
+    "bg-primary-900/30 text-primary-400",
+  done: "bg-emerald-900/30 text-emerald-400",
 };
 
 interface BacklogViewProps {
@@ -43,13 +43,13 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-800">
-          <Inbox className="h-6 w-6 text-neutral-400 dark:text-neutral-500" />
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-800">
+          <Inbox className="h-6 w-6 text-neutral-500" />
         </div>
-        <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+        <p className="text-sm font-medium text-neutral-300">
           {t("board.backlogEmpty")}
         </p>
-        <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
+        <p className="mt-1 text-xs text-neutral-500">
           {t("board.backlogEmptyDescription")}
         </p>
       </div>
@@ -57,7 +57,7 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
   }
 
   return (
-    <div className="flex flex-col gap-px overflow-hidden rounded-2xl border border-neutral-200/80 bg-neutral-200/40 dark:border-neutral-700/60 dark:bg-neutral-700/30">
+    <div className="flex flex-col gap-px overflow-hidden rounded-2xl border border-neutral-700/60 bg-neutral-700/30">
       {tasks.map((task) => {
         const dueYmd = task.due_date ?? null;
         const isOverdue = dueYmd ? dueYmd < todayYmd : false;
@@ -80,7 +80,7 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
           <button
             key={task.id}
             onClick={() => onTaskClick(task)}
-            className="group flex w-full items-center gap-3 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800/80"
+            className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors bg-neutral-900 hover:bg-neutral-800/80"
           >
             {/* Priority dot */}
             <span
@@ -92,12 +92,12 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
             />
 
             {/* Slug */}
-            <span className="hidden w-20 shrink-0 font-mono text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 sm:block">
+            <span className="hidden w-20 shrink-0 font-mono text-[10px] font-semibold text-neutral-500 sm:block">
               {task.slug}
             </span>
 
             {/* Title */}
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900 dark:text-white">
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-white">
               {task.title}
             </span>
 
@@ -107,7 +107,7 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
                 {task.tags.slice(0, 2).map((tag) => (
                   <span
                     key={tag.id}
-                    className="flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+                    className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium bg-neutral-800 text-neutral-400"
                   >
                     {tag.color && (
                       <span
@@ -147,10 +147,10 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
                 className={cn(
                   "hidden shrink-0 items-center gap-1 text-[11px] font-medium sm:flex",
                   isOverdue
-                    ? "text-red-500 dark:text-red-400"
+                    ? "text-red-400"
                     : isDueToday
-                      ? "text-orange-500 dark:text-orange-400"
-                      : "text-neutral-400 dark:text-neutral-500",
+                      ? "text-orange-400"
+                      : "text-neutral-500",
                 )}
               >
                 {isOverdue ? (
@@ -168,12 +168,12 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
                 src={task.assignee_avatar}
                 alt={task.assignee_name ?? ""}
                 title={task.assignee_name ?? ""}
-                className="h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-white dark:ring-neutral-800"
+                className="h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-neutral-800"
               />
             ) : initials ? (
               <span
                 title={task.assignee_name ?? ""}
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-600 dark:bg-primary-900/40 dark:text-primary-400"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold bg-primary-900/40 text-primary-400"
               >
                 {initials}
               </span>

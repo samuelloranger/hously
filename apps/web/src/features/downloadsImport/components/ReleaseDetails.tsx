@@ -4,9 +4,9 @@ import type { DownloadListRow } from "@/features/downloadsImport/hooks/useDownlo
 export function ReleaseDetails({ row }: { row: DownloadListRow }) {
   const { t } = useTranslation("common");
   return (
-    <div className="px-4 pb-3 pt-2 text-xs text-neutral-600 dark:text-neutral-300 space-y-1 bg-neutral-50/80 dark:bg-white/[0.02]">
+    <div className="px-4 pb-3 pt-2 text-xs text-neutral-300 space-y-1 bg-white/[0.02]">
       <div>
-        <span className="font-semibold text-neutral-800 dark:text-neutral-100">
+        <span className="font-semibold text-neutral-100">
           {t("downloadsImport.details.path")}
         </span>{" "}
         <span className="break-all">{row.file_path}</span>

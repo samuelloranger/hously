@@ -39,33 +39,33 @@ export function qualityBadges(
     file.resolution
       ? {
           label: `${file.resolution}p`,
-          cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
+          cls: "bg-neutral-800 text-neutral-300",
         }
       : null,
     file.source
       ? {
           label: file.source,
-          cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
+          cls: "bg-neutral-800 text-neutral-300",
         }
       : null,
     file.video_codec
       ? {
           label: file.video_codec,
-          cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
+          cls: "bg-neutral-800 text-neutral-300",
         }
       : null,
     file.hdr_format
       ? {
           label: file.hdr_format,
           cls: file.hdr_format.toLowerCase().includes("dolby")
-            ? "bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300"
-            : "bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300",
+            ? "bg-blue-500/15 text-blue-300"
+            : "bg-amber-500/15 text-amber-300",
         }
       : null,
     file.bit_depth === 10
       ? {
           label: "10-bit",
-          cls: "bg-violet-50 dark:bg-violet-500/15 text-violet-600 dark:text-violet-300",
+          cls: "bg-violet-500/15 text-violet-300",
         }
       : null,
   ].filter(Boolean) as { label: string; cls: string }[];

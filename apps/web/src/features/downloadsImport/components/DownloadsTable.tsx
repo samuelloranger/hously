@@ -120,12 +120,12 @@ export function DownloadsTable({
           value={filenameSub}
           onChange={(e) => setFilenameSub(e.target.value)}
           placeholder={t("downloadsImport.toolbar.filenameFilter")}
-          className="flex-1 min-w-[160px] sm:max-w-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-sm"
+          className="flex-1 min-w-[160px] sm:max-w-xs rounded-xl border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 text-sm"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs"
+          className="rounded-xl border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-xs"
         >
           <option value="all">{t("downloadsImport.toolbar.statusAll")}</option>
           <option value="ready">
@@ -140,7 +140,7 @@ export function DownloadsTable({
         </select>
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs"
+          className="inline-flex items-center gap-1 rounded-xl border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-xs"
           onClick={() =>
             setSortDir((d) =>
               d === "size_desc"
@@ -178,12 +178,12 @@ export function DownloadsTable({
       {visible.length > 0 && (
         <div
           ref={parentRef}
-          className="rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+          className="rounded-xl border border-neutral-700 overflow-hidden"
         >
           <div
             className={cn(
               ROW_GRID_TEMPLATE,
-              "bg-neutral-50 dark:bg-white/[0.04] text-xs font-semibold uppercase tracking-wide text-neutral-500 px-2 py-2 gap-x-2 sticky top-0 z-10",
+              "bg-white/[0.04] text-xs font-semibold uppercase tracking-wide text-neutral-500 px-2 py-2 gap-x-2 sticky top-0 z-10",
             )}
           >
             <div />

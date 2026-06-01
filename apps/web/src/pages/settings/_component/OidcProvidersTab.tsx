@@ -15,9 +15,9 @@ import {
 import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 const INPUT_CLASS =
-  "w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono text-sm";
+  "w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono text-sm";
 const LABEL_CLASS =
-  "block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2";
+  "block text-sm font-medium text-neutral-300 mb-2";
 
 interface FormState {
   name: string;
@@ -93,7 +93,7 @@ function ProviderForm({
             readOnly={isEdit}
             disabled={isEdit}
           />
-          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-xs text-neutral-400">
             {t("settings.integrations.sso.providerSlugHelp")}
           </p>
         </div>
@@ -109,7 +109,7 @@ function ProviderForm({
               type="text"
               readOnly
               value={redirectUri}
-              className="flex-1 px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-mono text-sm cursor-default"
+              className="flex-1 px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-800 text-neutral-300 font-mono text-sm cursor-default"
             />
             <button
               type="button"
@@ -117,12 +117,12 @@ function ProviderForm({
                 navigator.clipboard.writeText(redirectUri);
                 toast.success(t("common.copied"));
               }}
-              className="p-2 rounded-lg border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 transition-colors"
+              className="p-2 rounded-lg border border-neutral-600 hover:bg-neutral-700 text-neutral-400 transition-colors"
             >
               <Copy className="size-4" />
             </button>
           </div>
-          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-xs text-neutral-400">
             {t("settings.integrations.sso.redirectUriHelp")}
           </p>
         </div>
@@ -151,20 +151,20 @@ function ProviderForm({
             value={form.icon_url}
             onChange={set("icon_url")}
             placeholder={t("settings.integrations.sso.iconUrlPlaceholder")}
-            className="flex-1 px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono text-sm"
+            className="flex-1 px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono text-sm"
           />
           {form.icon_url && (
             <img
               src={form.icon_url}
               alt=""
-              className="size-8 rounded object-contain bg-neutral-100 dark:bg-neutral-800 p-0.5"
+              className="size-8 rounded object-contain bg-neutral-800 p-0.5"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = "none";
               }}
             />
           )}
         </div>
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-xs text-neutral-400">
           {t("settings.integrations.sso.iconUrlHelp")}
         </p>
       </div>
@@ -207,7 +207,7 @@ function ProviderForm({
             setForm((prev) => ({ ...prev, enabled: checked }))
           }
         />
-        <span className="text-sm text-neutral-700 dark:text-neutral-300">
+        <span className="text-sm text-neutral-300">
           {t("settings.integrations.sso.enabled")}
         </span>
       </div>
@@ -235,7 +235,7 @@ function ProviderRow({
 }) {
   const { t } = useTranslation("common");
   return (
-    <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
+    <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-neutral-700 bg-neutral-800">
       <div className="flex items-center gap-3 min-w-0">
         <img
           src={oidcProviderIconUrl(provider.slug, provider.icon_url)}
@@ -246,18 +246,18 @@ function ProviderRow({
           }}
         />
         <div className="min-w-0">
-          <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
+          <p className="text-sm font-medium text-white truncate">
             {provider.name}
           </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+          <p className="text-xs text-neutral-400 font-mono">
             {provider.slug}
           </p>
         </div>
         <span
           className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
             provider.enabled
-              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              : "bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+              ? "bg-green-900/30 text-green-400"
+              : "bg-neutral-700 text-neutral-400"
           }`}
         >
           {provider.enabled
@@ -269,14 +269,14 @@ function ProviderRow({
         <button
           type="button"
           onClick={onEdit}
-          className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 transition-colors"
+          className="p-2 rounded-lg hover:bg-neutral-700 text-neutral-400 transition-colors"
         >
           <Pencil className="size-4" />
         </button>
         <button
           type="button"
           onClick={onDelete}
-          className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-neutral-500 hover:text-red-600 dark:text-neutral-400 dark:hover:text-red-400 transition-colors"
+          className="p-2 rounded-lg hover:bg-red-900/20 text-neutral-400 hover:text-red-400 transition-colors"
         >
           <Trash2 className="size-4" />
         </button>
@@ -357,14 +357,14 @@ export function OidcProvidersTab() {
           {[1, 2].map((i) => (
             <div
               key={i}
-              className="h-14 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+              className="h-14 rounded-lg bg-neutral-800 animate-pulse"
             />
           ))}
         </div>
       ) : (
         <div className="space-y-2">
           {providers.length === 0 && !adding && (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 py-4 text-center">
+            <p className="text-sm text-neutral-400 py-4 text-center">
               {t("settings.integrations.sso.noProviders")}
             </p>
           )}
@@ -373,16 +373,16 @@ export function OidcProvidersTab() {
             editingId === provider.id ? (
               <div
                 key={provider.id}
-                className="p-4 rounded-lg border border-primary-300 dark:border-primary-700 bg-white dark:bg-neutral-800"
+                className="p-4 rounded-lg border border-primary-700 bg-neutral-800"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                  <p className="text-sm font-medium text-white">
                     {t("settings.integrations.sso.editProvider")}
                   </p>
                   <button
                     type="button"
                     onClick={() => setEditingId(null)}
-                    className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-400"
+                    className="p-1 rounded hover:bg-neutral-700 text-neutral-400"
                   >
                     <X className="size-4" />
                   </button>
@@ -407,14 +407,14 @@ export function OidcProvidersTab() {
             ) : deletingId === provider.id ? (
               <div
                 key={provider.id}
-                className="p-4 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/10"
+                className="p-4 rounded-lg border border-red-800 bg-red-900/10"
               >
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                <p className="text-sm font-medium text-white">
                   {t("settings.integrations.sso.deleteConfirm", {
                     name: provider.name,
                   })}
                 </p>
-                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 text-xs text-neutral-400">
                   {t("settings.integrations.sso.deleteConfirmHelp")}
                 </p>
                 <div className="flex gap-2 mt-3">
@@ -448,15 +448,15 @@ export function OidcProvidersTab() {
           )}
 
           {adding && (
-            <div className="p-4 rounded-lg border border-primary-300 dark:border-primary-700 bg-white dark:bg-neutral-800">
+            <div className="p-4 rounded-lg border border-primary-700 bg-neutral-800">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                <p className="text-sm font-medium text-white">
                   {t("settings.integrations.sso.addProvider")}
                 </p>
                 <button
                   type="button"
                   onClick={() => setAdding(false)}
-                  className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-400"
+                  className="p-1 rounded hover:bg-neutral-700 text-neutral-400"
                 >
                   <X className="size-4" />
                 </button>
@@ -482,7 +482,7 @@ export function OidcProvidersTab() {
             setEditingId(null);
             setAdding(true);
           }}
-          className="gap-2 border-dashed border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-primary-400 hover:text-primary-600 dark:hover:border-primary-500 dark:hover:text-primary-400"
+          className="gap-2 border-dashed border-neutral-600 text-neutral-400 hover:border-primary-500 hover:text-primary-400"
         >
           <Plus className="size-4" />
           {t("settings.integrations.sso.addProvider")}

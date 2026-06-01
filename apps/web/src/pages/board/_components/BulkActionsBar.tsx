@@ -40,18 +40,18 @@ export function BulkActionsBar({
 
   return (
     <div
-      className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-primary-200/80 bg-primary-50/90 px-3 py-2.5 dark:border-primary-800/60 dark:bg-primary-950/40"
+      className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2.5 border-primary-800/60 bg-primary-950/40"
       role="region"
       aria-label={t("board.bulk.barLabel")}
     >
-      <span className="text-xs font-medium text-primary-900 dark:text-primary-100">
+      <span className="text-xs font-medium text-primary-100">
         {t("board.bulk.selectedCount", { count: selectedCount })}
       </span>
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex items-center gap-1.5 text-xs text-primary-800 dark:text-primary-200">
+        <label className="flex items-center gap-1.5 text-xs text-primary-200">
           <span className="sr-only">{t("board.bulk.moveToColumn")}</span>
           <select
-            className="max-w-[11rem] rounded-md border border-primary-200/80 bg-white px-2 py-1 text-xs font-medium text-neutral-800 outline-none dark:border-primary-700/60 dark:bg-neutral-900 dark:text-neutral-100"
+            className="max-w-[11rem] rounded-md border px-2 py-1 text-xs font-medium outline-none border-primary-700/60 bg-neutral-900 text-neutral-100"
             defaultValue=""
             disabled={syncPending}
             onChange={(e) => {
@@ -75,7 +75,7 @@ export function BulkActionsBar({
           type="button"
           variant="outline"
           size="sm"
-          className="h-7 border-primary-200 bg-white text-xs dark:border-primary-700 dark:bg-neutral-900"
+          className="h-7 text-xs border-primary-700 bg-neutral-900"
           disabled={archivePending}
           onClick={onArchive}
         >
@@ -83,22 +83,22 @@ export function BulkActionsBar({
           {t("board.bulk.archive")}
         </Button>
         {deleteConfirmPending ? (
-          <div className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs dark:border-red-900 dark:bg-red-950/40">
-            <span className="text-red-800 dark:text-red-300">
+          <div className="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs border-red-900 bg-red-950/40">
+            <span className="text-red-300">
               {t("board.bulk.deleteConfirm", { count: selectedCount })}
             </span>
             <button
               type="button"
               disabled={deletePending}
               onClick={onConfirmDelete}
-              className="font-semibold text-red-700 hover:underline dark:text-red-400"
+              className="font-semibold hover:underline text-red-400"
             >
               {t("board.bulk.confirmYes")}
             </button>
             <button
               type="button"
               onClick={onCancelDelete}
-              className="text-neutral-500 hover:underline dark:text-neutral-400"
+              className="hover:underline text-neutral-400"
             >
               {t("board.bulk.confirmNo")}
             </button>
@@ -108,7 +108,7 @@ export function BulkActionsBar({
             type="button"
             variant="outline"
             size="sm"
-            className="h-7 border-red-200 bg-white text-xs text-red-700 hover:bg-red-50 dark:border-red-900 dark:bg-neutral-900 dark:text-red-400 dark:hover:bg-red-950/40"
+            className="h-7 text-xs border-red-900 bg-neutral-900 text-red-400 hover:bg-red-950/40"
             disabled={deletePending}
             onClick={onDelete}
           >
@@ -119,7 +119,7 @@ export function BulkActionsBar({
         <button
           type="button"
           onClick={onClear}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary-700 hover:bg-primary-100/80 dark:text-primary-300 dark:hover:bg-primary-900/50"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary-300 hover:bg-primary-900/50"
         >
           <X className="h-3.5 w-3.5" />
           {t("board.bulk.clear")}

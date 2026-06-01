@@ -129,7 +129,7 @@ export function Settings() {
   const renderTab = (tab: TabItem) => (
     <div key={tab.id} className="relative">
       {activeTab === tab.id && (
-        <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-primary-600 dark:bg-primary-400" />
+        <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-primary-400" />
       )}
       <button
         onClick={() => setActiveTab(tab.id)}
@@ -137,8 +137,8 @@ export function Settings() {
         className={cn(
           "w-full flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
           activeTab === tab.id
-            ? "bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-400"
-            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200",
+            ? "bg-primary-500/10 text-primary-400"
+            : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200",
         )}
       >
         <tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -148,13 +148,13 @@ export function Settings() {
   );
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row bg-neutral-50 dark:bg-neutral-900">
+    <div className="flex-1 flex flex-col md:flex-row bg-neutral-900">
       {/* Mobile: select dropdown */}
-      <div className="md:hidden border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
+      <div className="md:hidden border-b border-neutral-800 bg-neutral-900 px-4 py-3">
         <select
           value={activeTab}
           onChange={(e) => setActiveTab(e.target.value as Tab)}
-          className="w-full px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-2 rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
           <optgroup label={t("settings.sections.account")}>
             {userTabs.map((tab) => (
@@ -176,23 +176,23 @@ export function Settings() {
       </div>
 
       {/* Desktop: sidebar */}
-      <aside className="hidden md:block w-64 flex-shrink-0 relative border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+      <aside className="hidden md:block w-64 flex-shrink-0 relative border-r border-neutral-800 bg-neutral-900">
         <div className="overflow-y-auto">
-          <div className="px-6 py-5 border-b border-neutral-100 dark:border-neutral-800">
-            <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+          <div className="px-6 py-5 border-b border-neutral-800">
+            <h1 className="text-lg font-semibold text-neutral-100">
               {t("settings.title")}
             </h1>
           </div>
           <nav className="p-3">
             <div className="mb-4">
-              <p className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1.5 px-3">
+              <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-widest mb-1.5 px-3">
                 {t("settings.sections.account")}
               </p>
               <div className="space-y-0.5">{userTabs.map(renderTab)}</div>
             </div>
             {adminTabs.length > 0 && (
               <div>
-                <p className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1.5 px-3">
+                <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-widest mb-1.5 px-3">
                   {t("settings.sections.admin")}
                 </p>
                 <div className="space-y-0.5">{adminTabs.map(renderTab)}</div>

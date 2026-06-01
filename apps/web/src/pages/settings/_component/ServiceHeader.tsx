@@ -54,14 +54,14 @@ export function ServiceHeader({
             />
           )}
           <div className="flex items-center gap-2.5">
-            <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 capitalize">
+            <h3 className="text-base font-semibold text-neutral-100 capitalize">
               {serviceDisplayName}
             </h3>
             <span
               className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                 service.enabled
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                  : "bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+                  ? "bg-green-900/40 text-green-400"
+                  : "bg-neutral-700 text-neutral-400"
               }`}
             >
               {service.enabled
@@ -72,7 +72,7 @@ export function ServiceHeader({
         </div>
         <button
           onClick={onToggle}
-          className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700"
+          className="p-1.5 text-neutral-400 hover:text-neutral-200 transition-colors rounded-md hover:bg-neutral-700"
           aria-label={isOpen ? t("common.collapse") : t("common.expand")}
         >
           <ChevronDown

@@ -55,10 +55,10 @@ export function RecentActivityTab() {
         description={t("settings.activity.description")}
       />
 
-      <section className="rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm dark:border-neutral-700/60 dark:bg-neutral-900">
+      <section className="rounded-2xl border p-4 shadow-sm border-neutral-700/60 bg-neutral-900">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="space-y-1.5">
-            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+            <span className="text-xs font-medium text-neutral-300">
               {t("dashboard.activityPage.serviceFilter")}
             </span>
             <Select
@@ -87,7 +87,7 @@ export function RecentActivityTab() {
           </label>
 
           <label className="space-y-1.5">
-            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+            <span className="text-xs font-medium text-neutral-300">
               {t("dashboard.activityPage.typeFilter")}
             </span>
             <Select
@@ -116,7 +116,7 @@ export function RecentActivityTab() {
           </label>
         </div>
 
-        <div className="mt-3 flex flex-col gap-2 text-sm text-neutral-500 dark:text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-3 flex flex-col gap-2 text-sm text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
           <p>
             {t("dashboard.activityPage.results", {
               shown: activities.length,
@@ -139,7 +139,7 @@ export function RecentActivityTab() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm dark:border-neutral-700/60 dark:bg-neutral-900">
+      <section className="overflow-hidden rounded-2xl border shadow-sm border-neutral-700/60 bg-neutral-900">
         {isLoading ? (
           <div className="space-y-3 p-4">
             <ListItemSkeleton />
@@ -149,29 +149,29 @@ export function RecentActivityTab() {
           </div>
         ) : activities.length > 0 ? (
           <>
-            <div className="divide-y divide-neutral-200/70 dark:divide-neutral-800">
+            <div className="divide-y divide-neutral-800">
               {activities.map((activity, index) => (
                 <article
                   key={`${activity.type}-${activity.time}-${index}`}
                   className="p-4"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800">
-                      <activity.Icon className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-800">
+                      <activity.Icon className="w-4 h-4 text-neutral-400" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                        <p className="text-sm font-medium text-white">
                           {activity.description}
                         </p>
-                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-medium bg-blue-950/40 text-blue-300">
                           {activity.serviceLabel}
                         </span>
-                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-medium bg-neutral-800 text-neutral-300">
                           {activity.typeLabel}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
+                      <p className="mt-1 text-xs text-neutral-500">
                         {activity.time}
                       </p>
                     </div>
@@ -181,7 +181,7 @@ export function RecentActivityTab() {
             </div>
 
             {data?.has_more ? (
-              <div className="border-t border-neutral-200/70 p-4 dark:border-neutral-800">
+              <div className="border-t p-4 border-neutral-800">
                 <Button
                   onClick={() => setLimit((current) => current + PAGE_SIZE)}
                   disabled={isFetching}

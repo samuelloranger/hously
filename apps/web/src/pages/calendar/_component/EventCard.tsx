@@ -57,11 +57,11 @@ export const EventCard = ({
   const getEventBgClass = (type: CalendarEvent["type"]) => {
     switch (type) {
       case "chore":
-        return "bg-blue-50/60 dark:bg-blue-950/20";
+        return "bg-blue-950/20";
       case "public_holiday":
-        return "bg-amber-50/50 dark:bg-amber-950/20";
+        return "bg-amber-950/20";
       default:
-        return "bg-neutral-50/60 dark:bg-neutral-800/40";
+        return "bg-neutral-800/40";
     }
   };
 
@@ -102,10 +102,10 @@ export const EventCard = ({
         "group relative rounded-xl overflow-hidden transition-all duration-200",
         "hover:shadow-sm",
         event.type === "custom_event"
-          ? "bg-neutral-50/60 dark:bg-neutral-800/40"
+          ? "bg-neutral-800/40"
           : getEventBgClass(event.type),
         highlighted &&
-          "ring-2 ring-primary-500/70 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900",
+          "ring-2 ring-primary-500/70 ring-offset-2 ring-offset-neutral-900",
       )}
     >
       {/* Accent bar */}
@@ -134,7 +134,7 @@ export const EventCard = ({
             <div className="flex-1 min-w-0">
               {/* Title row */}
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                <h4 className="font-semibold text-sm text-neutral-900 dark:text-white truncate">
+                <h4 className="font-semibold text-sm text-white truncate">
                   {event.title}
                 </h4>
                 {event.type === "chore" && (
@@ -147,7 +147,7 @@ export const EventCard = ({
                   />
                 )}
                 {event.type === "chore" && event.metadata?.assigned_to && (
-                  <span className="flex items-center gap-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">
+                  <span className="flex items-center gap-0.5 text-[10px] text-neutral-500">
                     <User className="w-3 h-3" />
                   </span>
                 )}
@@ -155,7 +155,7 @@ export const EventCard = ({
 
               {/* Time */}
               {timeText && (
-                <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+                <div className="flex items-center gap-1 text-xs text-neutral-400 mb-1">
                   <Clock className="w-3 h-3 shrink-0" />
                   <span>{timeText}</span>
                 </div>
@@ -165,7 +165,7 @@ export const EventCard = ({
               {event.description && (
                 <SafeHtml
                   html={event.description}
-                  className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2 [&_p]:m-0"
+                  className="text-xs text-neutral-400 mt-1 line-clamp-2 [&_p]:m-0"
                 />
               )}
             </div>
@@ -176,26 +176,26 @@ export const EventCard = ({
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
               <button
                 onClick={() => onEditEvent(event)}
-                className="p-1.5 rounded-lg hover:bg-neutral-200/60 dark:hover:bg-neutral-600/40 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-neutral-600/40 transition-colors"
                 title={t("calendar.customEventEdit")}
               >
-                <Pencil className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+                <Pencil className="w-3.5 h-3.5 text-neutral-400" />
               </button>
               {onDeleteEvent && (
                 <>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="p-1.5 rounded-lg hover:bg-red-100/60 dark:hover:bg-red-900/30 transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-red-900/30 transition-colors"
                     title={t("calendar.customEventDelete")}
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
                   </button>
                   <Dialog
                     isOpen={showDeleteConfirm}
                     onClose={() => setShowDeleteConfirm(false)}
                     title={t("calendar.customEventDelete")}
                   >
-                    <p className="mb-6 text-neutral-700 dark:text-neutral-300">
+                    <p className="mb-6 text-neutral-300">
                       {t("calendar.customEventDeleteConfirm")}
                     </p>
                     <div className="flex gap-3 justify-end">
@@ -220,11 +220,11 @@ export const EventCard = ({
               )}
             </div>
           ) : event.type === "public_holiday" ? (
-            <span className="text-[10px] font-medium uppercase tracking-wider text-amber-600 dark:text-amber-400/90 shrink-0 mt-0.5">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-amber-400/90 shrink-0 mt-0.5">
               {t("calendar.publicHoliday")}
             </span>
           ) : (
-            <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500 shrink-0 mt-0.5">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-500 shrink-0 mt-0.5">
               {t("calendar.chores")}
             </span>
           )}

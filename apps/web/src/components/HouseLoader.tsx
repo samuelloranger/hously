@@ -17,7 +17,7 @@ export function HouseLoader({ size = "md" }: HouseLoaderProps) {
     <div className="flex flex-col items-center justify-center gap-4">
       {/* Loading text with animated dots */}
       <div
-        className={`${textClasses[size]} text-neutral-500 dark:text-neutral-400 text-[50px] font-medium`}
+        className={`${textClasses[size]} text-neutral-400 text-[50px] font-medium`}
       >
         <span className="inline-flex w-6 justify-start">
           <span

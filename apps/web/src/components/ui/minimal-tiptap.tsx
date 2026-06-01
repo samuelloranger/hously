@@ -70,7 +70,7 @@ export function MinimalTiptap({
           compact
             ? "prose prose-sm max-w-none focus:outline-none"
             : "prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none",
-          "min-h-[120px] p-4 border-0 dark:prose-invert",
+          "min-h-[120px] p-4 border-0 prose-invert",
         ),
       },
     },
@@ -85,7 +85,7 @@ export function MinimalTiptap({
       {editable && (
         <div
           className={cn(
-            "border-b flex flex-wrap items-center bg-neutral-50 dark:bg-neutral-900",
+            "border-b flex flex-wrap items-center bg-neutral-900",
             compact ? "p-1 gap-0.5" : "p-2 gap-1",
           )}
         >

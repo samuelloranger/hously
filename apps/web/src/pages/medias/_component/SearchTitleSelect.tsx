@@ -36,7 +36,7 @@ export function SearchTitleSelect({
       <SelectTrigger
         aria-label={label}
         className={cn(
-          "h-7 w-auto gap-1 rounded-md border-0 border-l-0 bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-700 hover:bg-neutral-200/80 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/80",
+          "h-7 w-auto gap-1 rounded-md border-0 border-l-0 px-2 py-0.5 text-[11px] font-medium bg-neutral-800 text-neutral-200 hover:bg-neutral-700/80",
           triggerClassName,
         )}
       >
@@ -46,7 +46,7 @@ export function SearchTitleSelect({
         {options.map((option) => (
           <SelectItem key={option.query} value={option.query}>
             <span className="font-medium">{option.label}</span>
-            <span className="ml-2 text-xs text-neutral-400 dark:text-neutral-500">
+            <span className="ml-2 text-xs text-neutral-500">
               {option.query}
             </span>
           </SelectItem>

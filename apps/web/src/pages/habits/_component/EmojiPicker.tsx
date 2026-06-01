@@ -80,8 +80,8 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
             className={cn(
               "flex h-10 w-10 items-center justify-center rounded-xl text-xl transition-all duration-200",
               selectedEmoji === emoji
-                ? "bg-primary-100 dark:bg-primary-900/40 scale-110 shadow-sm"
-                : "hover:bg-neutral-100 dark:hover:bg-neutral-700",
+                ? "bg-primary-900/40 scale-110 shadow-sm"
+                : "hover:bg-neutral-700",
             )}
           >
             {emoji}
@@ -89,13 +89,13 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
         ))}
       </div>
 
-      <div className="pt-2 border-t border-neutral-100 dark:border-neutral-700">
+      <div className="pt-2 border-t border-neutral-700">
         <input
           type="text"
           placeholder="Or paste any emoji..."
           value={customEmoji}
           onChange={handleCustomChange}
-          className="w-full h-9 px-3 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+          className="w-full h-9 px-3 rounded-md border border-neutral-600 bg-neutral-800 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
         />
       </div>
     </div>

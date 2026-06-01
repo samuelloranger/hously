@@ -14,7 +14,7 @@ export function ScrutinySection() {
       <div className="flex items-center gap-2.5 mb-3">
         <span className="w-1 h-4 rounded-full bg-rose-500 shrink-0" />
         <HardDrive
-          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          className="w-4 h-4 shrink-0 text-neutral-400"
           strokeWidth={2}
         />
         <SectionTitle>{t("dashboard.scrutiny.title")}</SectionTitle>

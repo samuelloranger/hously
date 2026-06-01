@@ -54,7 +54,7 @@ export function ChoresList() {
         actions={
           <Button
             onClick={() => setParams({ modal: "create" })}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-primary-600 hover:bg-primary-500 text-neutral-950 focus-visible:ring-primary-400"
           >
             <Plus className="w-4 h-4 mr-2" />
             {t("chores.addNewChore")}
@@ -62,14 +62,14 @@ export function ChoresList() {
         }
       />
 
-      <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700/50">
+      <div className="rounded-2xl border border-neutral-700/60 bg-neutral-800 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-neutral-700/50">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+              <h3 className="text-sm font-semibold text-white">
                 {t("chores.currentChores")}
               </h3>
-              <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
+              <span className="text-xs font-medium text-neutral-500">
                 {pendingChores.length}{" "}
                 {pendingChores.length !== 1
                   ? t("chores.choresPlural")
@@ -80,23 +80,23 @@ export function ChoresList() {
         </div>
 
         {isFetching && chores.length === 0 ? (
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
+          <div className="divide-y divide-neutral-700/50">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-3 p-3 pl-6 pr-6">
-                <div className="w-4 h-4 rounded bg-neutral-100 dark:bg-neutral-800 animate-pulse shrink-0" />
-                <div className="w-5 h-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700 shrink-0" />
+                <div className="w-4 h-4 rounded bg-neutral-800 animate-pulse shrink-0" />
+                <div className="w-5 h-5 rounded-full border-2 border-neutral-700 shrink-0" />
                 <div className="flex-1 space-y-1.5 min-w-0">
                   <div
-                    className="h-3.5 w-3/4 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                    className="h-3.5 w-3/4 rounded-full bg-neutral-800 animate-pulse"
                     style={{ animationDelay: `${i * 40}ms` }}
                   />
                   <div
-                    className="h-2.5 w-1/3 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                    className="h-2.5 w-1/3 rounded-full bg-neutral-800 animate-pulse"
                     style={{ animationDelay: `${i * 40 + 20}ms` }}
                   />
                 </div>
                 <div
-                  className="h-7 w-7 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse shrink-0"
+                  className="h-7 w-7 rounded-lg bg-neutral-800 animate-pulse shrink-0"
                   style={{ animationDelay: `${i * 40}ms` }}
                 />
               </div>
@@ -109,7 +109,7 @@ export function ChoresList() {
               const choreIds = newOrder.map((chore) => chore.id);
               reorderMutation.mutate(choreIds);
             }}
-            className="divide-y divide-neutral-100 dark:divide-neutral-700/50"
+            className="divide-y divide-neutral-700/50"
           >
             {(chore, handleProps) => (
               <ChoreRow
@@ -139,14 +139,14 @@ export function ChoresList() {
       />
 
       {completedChores.length > 0 && (
-        <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 overflow-hidden mt-6">
-          <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700/50">
+        <div className="rounded-2xl border border-neutral-700/60 bg-neutral-800 overflow-hidden mt-6">
+          <div className="px-5 py-3.5 border-b border-neutral-700/50">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                <h3 className="text-sm font-semibold text-white">
                   {t("chores.recentlyCompleted")}
                 </h3>
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-700/60 px-1.5 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-700/60 px-1.5 text-[11px] font-semibold text-neutral-400">
                   {completedChores.length}
                 </span>
               </div>
@@ -161,7 +161,7 @@ export function ChoresList() {
             </div>
           </div>
           <div
-            className="divide-y divide-neutral-100 dark:divide-neutral-700/50"
+            className="divide-y divide-neutral-700/50"
             ref={completedChoresRef}
           >
             {completedChores.map((chore) => (

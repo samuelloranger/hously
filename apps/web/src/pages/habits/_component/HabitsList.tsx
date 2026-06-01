@@ -137,7 +137,7 @@ export const HabitsList: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSelectedDate((prev) => addDays(prev, -1))}
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-400 hover:bg-neutral-700/60 transition-colors"
           >
             <ChevronLeft size={18} />
           </button>
@@ -146,8 +146,8 @@ export const HabitsList: React.FC = () => {
             className={cn(
               "text-sm font-semibold capitalize",
               isToday
-                ? "text-primary-600 dark:text-primary-400"
-                : "text-neutral-700 dark:text-neutral-300",
+                ? "text-primary-400"
+                : "text-neutral-300",
             )}
           >
             {isToday ? t("calendar.today", "Today") : formattedDate}
@@ -157,7 +157,7 @@ export const HabitsList: React.FC = () => {
             onClick={() => setSelectedDate((prev) => addDays(prev, 1))}
             disabled={isToday}
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors",
+              "flex h-9 w-9 items-center justify-center rounded-xl text-neutral-400 hover:bg-neutral-700/60 transition-colors",
               isToday && "opacity-30 cursor-not-allowed",
             )}
           >
@@ -168,7 +168,7 @@ export const HabitsList: React.FC = () => {
         {!isToday && (
           <button
             onClick={() => setSelectedDate(todayStr)}
-            className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
+            className="text-xs font-medium text-primary-400 hover:underline"
           >
             {t("calendar.today", "Today")}
           </button>
@@ -181,40 +181,40 @@ export const HabitsList: React.FC = () => {
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="p-4 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700/60"
+                className="p-4 rounded-2xl bg-neutral-800 border border-neutral-700/60"
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-start gap-3">
                     <div
-                      className="h-12 w-12 rounded-2xl bg-neutral-100 dark:bg-neutral-700/60 animate-pulse shrink-0"
+                      className="h-12 w-12 rounded-2xl bg-neutral-700/60 animate-pulse shrink-0"
                       style={{ animationDelay: `${i * 40}ms` }}
                     />
                     <div className="space-y-2 pt-1">
                       <div
-                        className="h-3.5 w-28 rounded-full bg-neutral-100 dark:bg-neutral-700/60 animate-pulse"
+                        className="h-3.5 w-28 rounded-full bg-neutral-700/60 animate-pulse"
                         style={{ animationDelay: `${i * 40}ms` }}
                       />
                       <div
-                        className="h-2.5 w-20 rounded-full bg-neutral-100 dark:bg-neutral-700/60 animate-pulse"
+                        className="h-2.5 w-20 rounded-full bg-neutral-700/60 animate-pulse"
                         style={{ animationDelay: `${i * 40 + 20}ms` }}
                       />
                     </div>
                   </div>
-                  <div className="h-7 w-7 rounded-lg bg-neutral-100 dark:bg-neutral-700/60 animate-pulse shrink-0" />
+                  <div className="h-7 w-7 rounded-lg bg-neutral-700/60 animate-pulse shrink-0" />
                 </div>
                 <div className="space-y-2 mt-4">
                   <div
-                    className="h-2 w-full rounded-full bg-neutral-100 dark:bg-neutral-700/60 animate-pulse"
+                    className="h-2 w-full rounded-full bg-neutral-700/60 animate-pulse"
                     style={{ animationDelay: `${i * 40 + 40}ms` }}
                   />
                   <div className="flex justify-between items-center pt-1">
                     <div className="flex gap-1.5">
-                      <div className="h-5 w-10 rounded-md bg-neutral-100 dark:bg-neutral-700/60 animate-pulse" />
-                      <div className="h-5 w-10 rounded-md bg-neutral-100 dark:bg-neutral-700/60 animate-pulse" />
+                      <div className="h-5 w-10 rounded-md bg-neutral-700/60 animate-pulse" />
+                      <div className="h-5 w-10 rounded-md bg-neutral-700/60 animate-pulse" />
                     </div>
                     <div className="flex gap-1.5">
-                      <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-neutral-700/60 animate-pulse" />
-                      <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-neutral-700/60 animate-pulse" />
+                      <div className="h-8 w-8 rounded-xl bg-neutral-700/60 animate-pulse" />
+                      <div className="h-8 w-8 rounded-xl bg-neutral-700/60 animate-pulse" />
                     </div>
                   </div>
                 </div>

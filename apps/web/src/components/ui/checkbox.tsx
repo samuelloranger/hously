@@ -9,7 +9,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
       ref={ref}
       type="checkbox"
       className={cn(
-        "h-4 w-4 rounded border border-primary-300 accent-primary-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 dark:border-primary-700 dark:accent-primary-500",
+        "h-4 w-4 rounded border cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 border-primary-700 accent-primary-500",
         className,
       )}
       {...props}

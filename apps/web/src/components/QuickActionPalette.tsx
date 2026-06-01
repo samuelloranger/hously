@@ -14,8 +14,6 @@ import {
   Sparkles,
   Bell,
   Settings,
-  Sun,
-  Moon,
   RefreshCw,
   Clapperboard,
   Tv,
@@ -32,7 +30,6 @@ import { navSections } from "@/lib/routing/navigation";
 import { usePrefetchAllRoutes } from "@/lib/routing/usePrefetchAllRoutes";
 import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/ui/input";
-import { useTheme } from "@/lib/app/useTheme";
 import { cn } from "@/lib/utils";
 
 interface QuickActionPaletteProps {
@@ -60,7 +57,6 @@ export function QuickActionPalette({
   const { t } = useTranslation("common");
   const navigate = useNavigate();
   const router = useRouterState();
-  const { isDark, toggleTheme } = useTheme();
   const prefetchAllRoutes = usePrefetchAllRoutes();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -125,19 +121,6 @@ export function QuickActionPalette({
         },
       },
       {
-        id: "theme",
-        title: isDark ? t("common.switchToLight") : t("common.switchToDark"),
-        description: t("common.quickActionsToggleTheme"),
-        icon: isDark ? <Sun size={20} /> : <Moon size={20} />,
-        section: "actions",
-        keywords: ["theme", "dark", "light"],
-        shortcut: "T",
-        action: () => {
-          toggleTheme();
-          handleClose();
-        },
-      },
-      {
         id: "refresh",
         title: t("common.refetch"),
         description: t("common.quickActionsRefreshCurrentPage"),
@@ -150,7 +133,7 @@ export function QuickActionPalette({
         },
       },
     ];
-  }, [handleClose, isDark, navigate, t, toggleTheme]);
+  }, [handleClose, navigate, t]);
 
   const filteredActions = useMemo<QuickAction[]>(() => {
     if (!normalizedQuery) {
@@ -386,8 +369,8 @@ export function QuickActionPalette({
       title={t("common.quickActions")}
       panelClassName="max-w-3xl overflow-hidden p-0"
     >
-      <div className="border-b border-neutral-200 px-5 py-4 dark:border-neutral-700">
-        <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3 dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="border-b px-5 py-4 border-neutral-700">
+        <div className="flex items-center gap-3 rounded-2xl border px-3 border-neutral-700 bg-neutral-900">
           <Search className="h-4 w-4 text-neutral-400" />
           <Input
             ref={inputRef}
@@ -400,11 +383,11 @@ export function QuickActionPalette({
             placeholder={t("common.quickActionsPlaceholder")}
             className="border-0 bg-transparent! px-0 focus:ring-0"
           />
-          <span className="hidden items-center rounded-lg border border-neutral-200 px-2 py-1 text-[11px] font-semibold text-neutral-400 dark:border-neutral-700 sm:inline-flex">
+          <span className="hidden items-center rounded-lg border px-2 py-1 text-[11px] font-semibold text-neutral-400 border-neutral-700 sm:inline-flex">
             ⌘K
           </span>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-neutral-500 dark:text-neutral-400">
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-neutral-400">
           <p>
             {normalizedQuery.length >= 2
               ? t("common.quickActionsSearchCollections")
@@ -416,7 +399,7 @@ export function QuickActionPalette({
 
       <div className="max-h-[60dvh] overflow-y-auto p-3">
         {isSearchingCollections && (
-          <div className="px-3 pb-3 text-xs text-neutral-500 dark:text-neutral-400">
+          <div className="px-3 pb-3 text-xs text-neutral-400">
             {t("common.quickActionsLoadingResults")}
           </div>
         )}
@@ -432,27 +415,27 @@ export function QuickActionPalette({
                 className={cn(
                   "flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors",
                   safeActiveIndex === index
-                    ? "bg-neutral-100 dark:bg-neutral-700/70"
-                    : "hover:bg-neutral-100/80 dark:hover:bg-neutral-700/40",
+                    ? "bg-neutral-700/70"
+                    : "hover:bg-neutral-700/40",
                 )}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-800 text-neutral-400">
                   {action.icon}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-neutral-900 dark:text-white">
+                  <p className="font-medium text-white">
                     {action.title}
                   </p>
-                  <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="truncate text-sm text-neutral-400">
                     {action.description}
                   </p>
                 </div>
                 {action.shortcut ? (
-                  <span className="shrink-0 rounded-lg border border-neutral-200 px-2 py-1 text-[11px] font-semibold text-neutral-400 dark:border-neutral-700">
+                  <span className="shrink-0 rounded-lg border px-2 py-1 text-[11px] font-semibold text-neutral-400 border-neutral-700">
                     {action.shortcut}
                   </span>
                 ) : normalizedQuery ? (
-                  <span className="shrink-0 rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500">
+                  <span className="shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-neutral-800 text-neutral-500">
                     {sectionLabels[action.section]}
                   </span>
                 ) : null}
@@ -460,14 +443,14 @@ export function QuickActionPalette({
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 px-6 py-14 text-center dark:border-neutral-700">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-800">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-14 text-center border-neutral-700">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-800">
               <Sparkles className="h-5 w-5 text-neutral-500" />
             </div>
-            <p className="font-medium text-neutral-900 dark:text-white">
+            <p className="font-medium text-white">
               {t("common.quickActionsNoResults")}
             </p>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="mt-1 text-sm text-neutral-400">
               {t("common.quickActionsNoResultsDescription")}
             </p>
           </div>

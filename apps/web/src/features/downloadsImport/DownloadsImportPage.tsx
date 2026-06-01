@@ -57,7 +57,7 @@ export function DownloadsImportPage() {
       />
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+        <div className="mb-4 rounded-xl border px-3 py-2 text-sm border-red-900 bg-red-950/40 text-red-300">
           {(error as Error).message ?? t("downloadsImport.loadError")}
           <Button
             className="ml-2 align-middle"
@@ -75,7 +75,7 @@ export function DownloadsImportPage() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="h-10 rounded-lg animate-pulse bg-neutral-100 dark:bg-white/10"
+              className="h-10 rounded-lg animate-pulse bg-white/10"
             />
           ))}
         </div>

@@ -13,27 +13,27 @@ const emotions = [
   {
     emoji: "🥵",
     label: "Overwhelmed",
-    color: "bg-red-100 hover:bg-red-200 border-red-300",
+    color: "bg-red-500/15 hover:bg-red-500/25 border-red-500/30",
   },
   {
     emoji: "😢",
     label: "Frustrated",
-    color: "bg-blue-100 hover:bg-blue-200 border-blue-300",
+    color: "bg-blue-500/15 hover:bg-blue-500/25 border-blue-500/30",
   },
   {
     emoji: "😐",
     label: "Neutral",
-    color: "bg-neutral-100 hover:bg-neutral-200 border-neutral-300",
+    color: "bg-neutral-500/15 hover:bg-neutral-500/25 border-neutral-500/30",
   },
   {
     emoji: "😄",
     label: "Happy",
-    color: "bg-yellow-100 hover:bg-yellow-200 border-yellow-300",
+    color: "bg-yellow-500/15 hover:bg-yellow-500/25 border-yellow-500/30",
   },
   {
     emoji: "🔥",
     label: "Energized",
-    color: "bg-orange-100 hover:bg-orange-200 border-orange-300",
+    color: "bg-orange-500/15 hover:bg-orange-500/25 border-orange-500/30",
   },
 ];
 
@@ -61,12 +61,12 @@ export function EmotionModal({
 
   return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[var(--z-modal)] p-4">
-      <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl max-w-md w-full max-h-[90dvh] overflow-y-auto">
-        <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
-          <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
+      <div className="bg-neutral-800 rounded-lg shadow-xl max-w-md w-full max-h-[90dvh] overflow-y-auto">
+        <div className="px-6 py-4 border-b border-neutral-700">
+          <h3 className="text-lg font-medium text-white">
             {t("emotion.howDidYouFeel")}
           </h3>
-          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-neutral-400">
             {t("emotion.afterCompleting")} "{taskName}"
           </p>
         </div>
@@ -86,7 +86,7 @@ export function EmotionModal({
                 }`}
               >
                 <span className="text-2xl mb-1">{emotion.emoji}</span>
-                <span className="text-xs font-medium text-center text-neutral-900 leading-tight">
+                <span className="text-xs font-medium text-center text-neutral-100 leading-tight">
                   {t(`emotion.${emotion.label.toLowerCase()}`)}
                 </span>
               </button>
@@ -96,13 +96,13 @@ export function EmotionModal({
           <div className="flex justify-between">
             <button
               onClick={handleSkip}
-              className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-neutral-300 bg-neutral-700 rounded-md hover:bg-neutral-600 transition-colors"
             >
               {t("emotion.skip")}
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-neutral-900 dark:text-white bg-neutral-200 dark:bg-neutral-600 rounded-md hover:bg-neutral-300 dark:hover:bg-neutral-500 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white bg-neutral-600 rounded-md hover:bg-neutral-500 transition-colors"
             >
               {t("common.cancel")}
             </button>

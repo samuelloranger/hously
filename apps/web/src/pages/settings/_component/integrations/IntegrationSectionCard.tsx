@@ -61,7 +61,7 @@ export function IntegrationSectionCard({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700",
+        "bg-neutral-800 rounded-xl border border-neutral-700",
         className,
       )}
     >
@@ -84,7 +84,7 @@ export function IntegrationSectionCard({
           )}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+              <h3 className="text-base font-semibold text-neutral-100">
                 {title}
               </h3>
               {isDirty && (
@@ -94,7 +94,7 @@ export function IntegrationSectionCard({
                 />
               )}
             </div>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
+            <p className="text-sm text-neutral-400 mt-0.5 truncate">
               {description}
             </p>
           </div>
@@ -108,7 +108,7 @@ export function IntegrationSectionCard({
           <button
             type="button"
             onClick={() => setIsOpen((o) => !o)}
-            className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 rounded-md transition-colors"
+            className="p-1 text-neutral-400 hover:text-neutral-200 rounded-md transition-colors"
           >
             <ChevronDown
               className={cn(
@@ -122,12 +122,12 @@ export function IntegrationSectionCard({
 
       {/* Expandable content */}
       {isOpen && (
-        <div className="border-t border-neutral-200 dark:border-neutral-700 p-6 pt-4">
+        <div className="border-t border-neutral-700 p-6 pt-4">
           <div className="space-y-4">{children}</div>
 
           <div className="mt-6 flex items-center gap-3">
             {isDirty && (
-              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium mr-auto">
+              <span className="text-xs text-amber-400 font-medium mr-auto">
                 {t("settings.integrations.unsavedChanges")}
               </span>
             )}

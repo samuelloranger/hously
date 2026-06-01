@@ -99,7 +99,7 @@ export function CustomFormatForm({
       </div>
 
       {apiError && (
-        <p className="text-sm text-red-600 dark:text-red-400">{apiError}</p>
+        <p className="text-sm text-red-400">{apiError}</p>
       )}
 
       <div className="flex items-center justify-end gap-2 pt-1">

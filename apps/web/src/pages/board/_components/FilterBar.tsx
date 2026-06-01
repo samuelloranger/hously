@@ -28,7 +28,7 @@ export function FilterBar({
   onManageTags,
 }: FilterBarProps) {
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200/80 bg-white px-4 py-3 dark:border-neutral-700/60 dark:bg-neutral-800">
+    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border px-4 py-3 border-neutral-700/60 bg-neutral-800">
       {/* Priority */}
       <FilterSelect
         label="Priority"
@@ -101,7 +101,7 @@ export function FilterBar({
                 "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
                 filters.tags.includes(tag.id)
                   ? "bg-primary-600 text-white"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600",
+                  : "bg-neutral-700 text-neutral-300 hover:bg-neutral-600",
               )}
             >
               {tag.color && (
@@ -123,7 +123,7 @@ export function FilterBar({
       {/* Manage tags link */}
       <button
         onClick={onManageTags}
-        className="ml-auto text-[11px] text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400"
+        className="ml-auto text-[11px] text-neutral-400 hover:text-primary-400"
       >
         Manage tags
       </button>
@@ -132,7 +132,7 @@ export function FilterBar({
       {hasActiveFilters && (
         <button
           onClick={() => onChange(EMPTY_FILTERS)}
-          className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+          className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-200"
         >
           <X className="h-3.5 w-3.5" />
           Clear

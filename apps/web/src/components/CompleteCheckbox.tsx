@@ -37,7 +37,7 @@ export function CompleteCheckbox({
       className={`checkbox relative flex justify-center items-center border-2 min-w-7 min-h-7 w-7 h-7 rounded ${
         completed
           ? "bg-green-500 border-green-500"
-          : "border-neutral-300 dark:border-neutral-600 hover:border-green-400 dark:hover:border-green-500"
+          : "border-neutral-600 hover:border-green-500"
       } focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 ${
         isAnimating ? "checkbox-celebrate" : ""
       } ${className}`}

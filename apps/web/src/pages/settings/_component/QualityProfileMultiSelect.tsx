@@ -50,7 +50,7 @@ export function MultiSelect({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+      <label className="text-sm font-medium text-neutral-300">
         {label}
       </label>
       <Popover open={open} onOpenChange={handleOpenChange}>
@@ -61,13 +61,13 @@ export function MultiSelect({
             className={cn(
               "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-left text-sm transition-colors",
               "border-neutral-200 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30",
-              "dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600",
+              "border-neutral-700 bg-neutral-900 hover:border-neutral-600",
               open &&
-                "ring-2 ring-primary-500/30 border-primary-300 dark:border-primary-600",
+                "ring-2 ring-primary-500/30 border-primary-600",
             )}
           >
             {selected.length === 0 ? (
-              <span className="flex-1 text-neutral-400 dark:text-neutral-500">
+              <span className="flex-1 text-neutral-500">
                 {placeholder}
               </span>
             ) : (
@@ -77,13 +77,13 @@ export function MultiSelect({
                   return (
                     <span
                       key={v}
-                      className="inline-flex items-center gap-1 rounded-md bg-primary-50 px-1.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-500/15 dark:text-primary-300"
+                      className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium bg-primary-500/15 text-primary-300"
                     >
                       {opt?.label ?? v}
                       <button
                         type="button"
                         onClick={(e) => remove(e, v)}
-                        className="rounded hover:text-primary-900 dark:hover:text-primary-100"
+                        className="rounded hover:text-primary-100"
                       >
                         <X size={10} strokeWidth={2.5} />
                       </button>
@@ -117,16 +117,16 @@ export function MultiSelect({
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
                   isSelected
-                    ? "bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300"
-                    : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-700/50",
+                    ? "bg-primary-500/15 text-primary-300"
+                    : "text-neutral-300 hover:bg-neutral-700/50",
                 )}
               >
                 <span
                   className={cn(
                     "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
                     isSelected
-                      ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
-                      : "border-neutral-300 dark:border-neutral-600",
+                      ? "text-white border-primary-400 bg-primary-400"
+                      : "border-neutral-600",
                   )}
                 >
                   {isSelected && <Check size={10} strokeWidth={3} />}
@@ -137,11 +137,11 @@ export function MultiSelect({
           })}
           {selected.length > 0 && (
             <>
-              <div className="my-1 border-t border-neutral-100 dark:border-neutral-700" />
+              <div className="my-1 border-t border-neutral-700" />
               <button
                 type="button"
                 onClick={() => onChange([])}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600 dark:hover:bg-neutral-700/50 dark:hover:text-neutral-300 transition-colors"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs text-neutral-400 hover:bg-neutral-700/50 hover:text-neutral-300 transition-colors"
               >
                 <X size={10} />
                 {t("settings.qualityProfiles.deselectAll")}

@@ -46,8 +46,8 @@ export function ActivityLog({ taskId }: { taskId: number }) {
   if (activities.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <MessageSquare className="h-5 w-5 text-neutral-300 dark:text-neutral-600" />
-        <p className="text-xs text-neutral-400 dark:text-neutral-500">
+        <MessageSquare className="h-5 w-5 text-neutral-600" />
+        <p className="text-xs text-neutral-500">
           {t("board.noActivity")}
         </p>
       </div>
@@ -72,13 +72,13 @@ export function ActivityLog({ taskId }: { taskId: number }) {
                 className="h-6 w-6 shrink-0 rounded-full object-cover"
               />
             ) : (
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-600 dark:bg-primary-900/40 dark:text-primary-400">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold bg-primary-900/40 text-primary-400">
                 {initials}
               </span>
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-[12px] font-medium text-neutral-800 dark:text-neutral-100">
+                <span className="text-[12px] font-medium text-neutral-100">
                   {a.user_name}
                 </span>
                 <span className="text-[11px] text-neutral-400">
@@ -87,7 +87,7 @@ export function ActivityLog({ taskId }: { taskId: number }) {
               </div>
               <p
                 className={cn(
-                  "mt-0.5 text-[12px] text-neutral-600 dark:text-neutral-300",
+                  "mt-0.5 text-[12px] text-neutral-300",
                   a.type === "comment" && "whitespace-pre-wrap",
                 )}
               >

@@ -272,12 +272,12 @@ export function ProfileForm() {
         onSubmit={handleProfileSubmit(onProfileSubmit)}
         className="space-y-6"
       >
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+        <h3 className="text-lg font-medium text-neutral-100">
           {t("settings.profile.personalInfo") || "Personal Information"}
         </h3>
 
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.profile.profilePicture")}
           </label>
           <div className="flex items-center gap-4">
@@ -285,15 +285,15 @@ export function ProfileForm() {
               <img
                 src={avatarPreview || currentUser?.avatar_url || ""}
                 alt={t("settings.profile.profilePictureAlt")}
-                className="h-14 w-14 rounded-full object-cover border border-neutral-300 dark:border-neutral-600"
+                className="h-14 w-14 rounded-full object-cover border border-neutral-600"
               />
             ) : (
-              <div className="h-14 w-14 rounded-full border border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center font-semibold text-sm">
+              <div className="h-14 w-14 rounded-full border border-neutral-600 bg-neutral-700 text-neutral-300 flex items-center justify-center font-semibold text-sm">
                 {`${currentUser?.first_name?.[0] || ""}${currentUser?.last_name?.[0] || ""}`.toUpperCase() ||
                   "U"}
               </div>
             )}
-            <label className="inline-flex cursor-pointer items-center px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-600 transition-colors">
+            <label className="inline-flex cursor-pointer items-center px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-100 hover:bg-neutral-600 transition-colors">
               <span>
                 {uploadAvatarMutation.isPending
                   ? t("settings.profile.uploading")
@@ -308,50 +308,50 @@ export function ProfileForm() {
               />
             </label>
           </div>
-          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mt-2 text-xs text-neutral-400">
             {t("settings.profile.imageRequirements")}
           </p>
         </div>
 
         {/* Email (Read-only) */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.profile.email")}
           </label>
           <input
             type="email"
             value={currentUser?.email || ""}
             disabled
-            className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-500 dark:text-neutral-400 cursor-not-allowed"
+            className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-400 cursor-not-allowed"
           />
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-neutral-400">
             {t("settings.profile.emailReadOnly")}
           </p>
         </div>
 
         {/* First Name */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.profile.firstName")}
           </label>
           <input
             type="text"
             {...registerProfile("first_name")}
             placeholder={t("settings.profile.firstNamePlaceholder")}
-            className="w-full px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
 
         {/* Last Name */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.profile.lastName")}
           </label>
           <input
             type="text"
             {...registerProfile("last_name")}
             placeholder={t("settings.profile.lastNamePlaceholder")}
-            className="w-full px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
 
@@ -368,20 +368,20 @@ export function ProfileForm() {
       </form>
 
       {/* Divider */}
-      <div className="border-t border-neutral-200 dark:border-neutral-700" />
+      <div className="border-t border-neutral-700" />
 
       {/* Password Section */}
       <form
         onSubmit={handlePasswordSubmit(onPasswordSubmit)}
         className="space-y-6"
       >
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+        <h3 className="text-lg font-medium text-neutral-100">
           {t("settings.profile.changePassword") || "Change Password"}
         </h3>
 
         {/* Current Password */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.profile.currentPassword") || "Current Password"}
           </label>
           <input
@@ -395,10 +395,10 @@ export function ProfileForm() {
               t("settings.profile.currentPasswordPlaceholder") ||
               "Enter your current password"
             }
-            className="w-full px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
           {passwordErrors.current_password && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-red-400">
               {passwordErrors.current_password.message}
             </p>
           )}
@@ -406,7 +406,7 @@ export function ProfileForm() {
 
         {/* New Password */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.profile.newPassword")}
           </label>
           <input
@@ -423,21 +423,21 @@ export function ProfileForm() {
               },
             })}
             placeholder={t("settings.profile.newPasswordPlaceholder")}
-            className="w-full px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
           {passwordErrors.new_password && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-red-400">
               {passwordErrors.new_password.message}
             </p>
           )}
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-neutral-400">
             {t("settings.profile.passwordHelp")}
           </p>
         </div>
 
         {/* Confirm New Password */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
             {t("settings.profile.confirmPassword") || "Confirm New Password"}
           </label>
           <input
@@ -455,10 +455,10 @@ export function ProfileForm() {
               t("settings.profile.confirmPasswordPlaceholder") ||
               "Confirm your new password"
             }
-            className="w-full px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
           {passwordErrors.confirm_password && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-red-400">
               {passwordErrors.confirm_password.message}
             </p>
           )}

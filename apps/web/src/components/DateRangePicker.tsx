@@ -199,7 +199,7 @@ export function DateRangePicker({
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal",
-            !dateRange.from && "text-neutral-500 dark:text-neutral-400",
+            !dateRange.from && "text-neutral-400",
             className,
           )}
         >
@@ -208,7 +208,7 @@ export function DateRangePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="bg-white dark:bg-neutral-700 w-auto p-0"
+        className="bg-neutral-700 w-auto p-0"
         align="start"
         side="top"
       >
@@ -223,10 +223,10 @@ export function DateRangePicker({
             }}
           />
           {!allDay && dateRange.from && (
-            <div className="w-full border-t border-neutral-200 dark:border-neutral-700 pt-4 mt-4">
+            <div className="w-full border-t border-neutral-700 pt-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2">
+                  <label className="block text-xs font-medium text-neutral-400 mb-2">
                     {t("common.startTime")}
                   </label>
                   <div className="flex items-center justify-center">
@@ -239,7 +239,7 @@ export function DateRangePicker({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2">
+                  <label className="block text-xs font-medium text-neutral-400 mb-2">
                     {t("common.endTime")}
                   </label>
                   <div className="flex items-center justify-center">

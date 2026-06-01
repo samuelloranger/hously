@@ -129,7 +129,7 @@ export function DiscoverPanel() {
       <div ref={topRef} />
 
       <div className="flex items-baseline gap-2.5 px-0.5">
-        <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2 className="text-base font-semibold text-neutral-100">
           {t("medias.discover.title")}
         </h2>
         {region && (

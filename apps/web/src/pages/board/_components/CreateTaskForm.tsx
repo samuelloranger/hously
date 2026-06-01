@@ -30,9 +30,9 @@ export function CreateTaskForm({
   const { t } = useTranslation("common");
 
   return (
-    <div className="mb-4 flex flex-col gap-3 rounded-xl border border-neutral-200/80 bg-white p-4 dark:border-neutral-700/60 dark:bg-neutral-800 sm:flex-row sm:items-end">
+    <div className="mb-4 flex flex-col gap-3 rounded-xl border p-4 border-neutral-700/60 bg-neutral-800 sm:flex-row sm:items-end">
       <div className="flex-1">
-        <label className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
+        <label className="mb-1 block text-xs font-medium text-neutral-400">
           {t("board.newTaskTitle")}
         </label>
         <input
@@ -44,17 +44,17 @@ export function CreateTaskForm({
             if (e.key === "Escape") onClose();
           }}
           placeholder={t("board.newTaskPlaceholder")}
-          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+          className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 border-neutral-600 bg-neutral-900 text-white"
         />
       </div>
       <div className="w-full sm:w-44">
-        <label className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
+        <label className="mb-1 block text-xs font-medium text-neutral-400">
           {t("board.column")}
         </label>
         <select
           value={createStatus}
           onChange={(e) => onStatusChange(e.target.value as BoardTaskStatusApi)}
-          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+          className="w-full rounded-lg border px-3 py-2 text-sm border-neutral-600 bg-neutral-900 text-white"
         >
           {BOARD_TASK_STATUSES.map((s) => (
             <option key={s} value={s}>

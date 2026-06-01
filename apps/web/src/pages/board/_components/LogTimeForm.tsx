@@ -53,7 +53,7 @@ export function LogTimeForm({ taskId }: { taskId: number }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <div className="flex flex-1 items-center gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 dark:border-neutral-700 dark:bg-neutral-800/60">
+        <div className="flex flex-1 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 border-neutral-700 bg-neutral-800/60">
           <Clock className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
           <input
             value={
@@ -64,15 +64,15 @@ export function LogTimeForm({ taskId }: { taskId: number }) {
             onChange={(e) => !isRunning && setTimeInput(e.target.value)}
             readOnly={isRunning}
             placeholder="e.g. 1h 30m"
-            className="flex-1 bg-transparent text-sm outline-none placeholder-neutral-400 dark:text-neutral-100"
+            className="flex-1 bg-transparent text-sm outline-none placeholder-neutral-400 text-neutral-100"
           />
         </div>
         <button
           onClick={isRunning ? stopTimer : startTimer}
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors ${
             isRunning
-              ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-400"
-              : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+              ? "hover:bg-red-100 border-red-700/40 bg-red-900/20 text-red-400"
+              : "hover:bg-neutral-700 border-neutral-700 bg-neutral-800 text-neutral-300"
           }`}
           title={isRunning ? "Stop timer" : "Start timer"}
         >
@@ -87,7 +87,7 @@ export function LogTimeForm({ taskId }: { taskId: number }) {
         value={note}
         onChange={(e) => setNote(e.target.value)}
         placeholder="Note (optional)"
-        className="rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-sm outline-none placeholder-neutral-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-100"
+        className="rounded-lg border px-2.5 py-1.5 text-sm outline-none placeholder-neutral-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 border-neutral-700 bg-neutral-800/60 text-neutral-100"
       />
       <div className="flex justify-end">
         <Button

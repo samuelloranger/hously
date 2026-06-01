@@ -95,7 +95,7 @@ function TrackerEditor({
   const isBusy = loading || saving;
 
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 space-y-4">
+    <div className="rounded-xl border border-neutral-700 p-4 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <img
@@ -106,7 +106,7 @@ function TrackerEditor({
               event.currentTarget.style.display = "none";
             }}
           />
-          <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          <h4 className="text-sm font-semibold text-neutral-100">
             {title}
           </h4>
         </div>
@@ -119,7 +119,7 @@ function TrackerEditor({
       </div>
 
       {description && (
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="text-xs text-neutral-400">
           {description}
         </p>
       )}
@@ -145,7 +145,7 @@ function TrackerEditor({
       />
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {usernameLabel || t("settings.integrations.trackers.username")}
         </label>
         <input
@@ -155,17 +155,17 @@ function TrackerEditor({
             setState((prev) => ({ ...prev, username: event.target.value }))
           }
           placeholder={usernamePlaceholder}
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white"
         />
         {usernameHelp && (
-          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mt-2 text-xs text-neutral-400">
             {usernameHelp}
           </p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {t("settings.integrations.trackers.password")}
         </label>
         <input
@@ -175,13 +175,13 @@ function TrackerEditor({
             setState((prev) => ({ ...prev, password: event.target.value }))
           }
           placeholder={t("settings.integrations.trackers.passwordPlaceholder")}
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
+          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono"
         />
       </div>
 
       <div className="flex items-center gap-3">
         {isDirty && (
-          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium mr-auto">
+          <span className="text-xs text-amber-400 font-medium mr-auto">
             {t("settings.integrations.unsavedChanges")}
           </span>
         )}
@@ -326,15 +326,15 @@ export function TrackersIntegrationSection() {
   ] as const;
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-5 space-y-4">
+    <div className="bg-neutral-800 rounded-2xl border border-neutral-700 p-5 space-y-4">
       <div>
-        <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+        <h3 className="text-base font-semibold text-neutral-100">
           {t("settings.integrations.trackers.title")}
         </h3>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+        <p className="text-sm text-neutral-400 mt-0.5">
           {t("settings.integrations.trackers.description")}
         </p>
-        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+        <p className="text-xs text-amber-400 mt-1">
           {t("settings.integrations.trackers.disclaimer")}
         </p>
       </div>

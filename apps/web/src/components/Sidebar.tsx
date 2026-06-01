@@ -8,7 +8,7 @@ import { useUpdateProfile } from "@/pages/settings/useUsers";
 import { formatDisplayName } from "@/lib/utils/format";
 import { NotificationsMenu } from "@/components/NotificationsBell";
 import { UserMenu } from "@/components/UserMenu";
-import { Loader, LogOut, Moon, Search, Settings, Sun } from "lucide-react";
+import { Loader, LogOut, Search, Settings } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
 import { useAuth } from "@/lib/auth/useAuth";
 import { useTheme } from "@/lib/app/useTheme";
@@ -33,7 +33,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
   const logoutMutation = useLogout();
   const prefetchRoute = usePrefetchRoute();
   const prefetchAllRoutes = usePrefetchAllRoutes();
-  const { isDark, toggleTheme } = useTheme();
+  useTheme();
   const { setPosition } = useNavPosition();
   const isHorizontal = position === "top" || position === "bottom";
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -117,15 +117,15 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
       <aside
         onContextMenu={handleContextMenu}
         className={cn(
-          "hidden lg:flex fixed z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl theme-transition",
+          "hidden lg:flex fixed z-50 bg-neutral-900/80 backdrop-blur-xl theme-transition",
           {
-            "left-0 top-0 bottom-0 w-60 flex-col border-r border-neutral-950/[0.06] dark:border-white/[0.08]":
+            "left-0 top-0 bottom-0 w-60 flex-col border-r border-white/[0.08]":
               position === "left",
-            "right-0 top-0 bottom-0 w-60 flex-col border-l border-neutral-950/[0.06] dark:border-white/[0.08]":
+            "right-0 top-0 bottom-0 w-60 flex-col border-l border-white/[0.08]":
               position === "right",
-            "top-0 left-0 right-0 h-12 flex-row items-center border-b border-neutral-950/[0.06] dark:border-white/[0.08]":
+            "top-0 left-0 right-0 h-12 flex-row items-center border-b border-white/[0.08]":
               position === "top",
-            "bottom-0 left-0 right-0 h-12 flex-row items-center border-t border-neutral-950/[0.06] dark:border-white/[0.08]":
+            "bottom-0 left-0 right-0 h-12 flex-row items-center border-t border-white/[0.08]":
               position === "bottom",
           },
         )}
@@ -148,7 +148,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               className="h-7 w-7 transition-transform duration-200 group-hover:scale-110"
             />
             {!isHorizontal && (
-              <span className="text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+              <span className="text-lg font-bold tracking-tight text-white">
                 Hously
               </span>
             )}
@@ -170,7 +170,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
             >
               {/* Section label — hidden on horizontal */}
               {!isHorizontal && (
-                <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
                   {t(section.labelKey)}
                 </span>
               )}
@@ -199,15 +199,15 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
                           ? "gap-0 px-3 py-2 justify-center"
                           : "gap-3 px-3 py-2",
                         isActive
-                          ? "text-neutral-900 dark:text-white"
-                          : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200",
+                          ? "text-white"
+                          : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200",
                       )}
                       title={isHorizontal ? t(item.translationKey) : undefined}
                     >
                       {isActive && (
                         <motion.span
                           layoutId="sidebar-active"
-                          className="absolute inset-0 rounded-lg bg-neutral-100 dark:bg-white/[0.08]"
+                          className="absolute inset-0 rounded-lg bg-white/[0.08]"
                           transition={{
                             type: "spring",
                             stiffness: 500,
@@ -219,7 +219,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
                         size={18}
                         className={cn(
                           "relative z-10",
-                          isActive && "text-primary-600 dark:text-primary-400",
+                          isActive && "text-primary-400",
                         )}
                       />
                       {/* Item label — hidden on horizontal */}
@@ -244,7 +244,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               <button
                 type="button"
                 onClick={onOpenQuickActions}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-white/[0.06] transition-colors"
                 aria-label={t("common.quickActions")}
                 title={t("common.quickActions")}
               >
@@ -259,30 +259,22 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150",
                 currentPath.startsWith("/settings")
-                  ? "text-neutral-900 dark:text-white bg-neutral-100 dark:bg-white/[0.08]"
-                  : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06]",
+                  ? "text-white bg-white/[0.08]"
+                  : "text-neutral-400 hover:bg-white/[0.06]",
               )}
             >
               <Settings size={16} />
             </Link>
             <button
               onClick={toggleLanguage}
-              className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
+              className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-400 hover:bg-white/[0.06] hover:text-neutral-200 transition-colors"
               title={t("common.language")}
             >
               {currentLanguage.name}
             </button>
             <button
-              onClick={toggleTheme}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
-              aria-label={t("common.toggleTheme")}
-              title={t("common.toggleTheme")}
-            >
-              {isDark ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-            <button
               onClick={handleLogout}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-white/[0.06] hover:text-red-400 transition-colors"
               aria-label={t("nav.logout")}
               title={t("nav.logout")}
             >
@@ -291,18 +283,18 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
           </div>
         ) : (
           /* Vertical: existing bottom section */
-          <div className="shrink-0 border-t border-neutral-950/[0.06] dark:border-white/[0.08] px-3 py-3 space-y-1">
+          <div className="shrink-0 border-t border-white/[0.08] px-3 py-3 space-y-1">
             {onOpenQuickActions && (
               <button
                 type="button"
                 onClick={onOpenQuickActions}
-                className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-medium text-neutral-500 transition-all duration-150 hover:bg-neutral-50 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-white/[0.04] dark:hover:text-neutral-200"
+                className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-150 text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200"
               >
                 <Search size={18} />
                 <span className="flex-1 text-left">
                   {t("common.quickActions")}
                 </span>
-                <span className="rounded-md border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-400 dark:border-white/[0.08]">
+                <span className="rounded-md border px-1.5 py-0.5 text-[10px] font-semibold text-neutral-400 border-white/[0.08]">
                   ⌘K
                 </span>
               </button>
@@ -311,7 +303,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
             {/* Notifications */}
             <div className="flex items-center">
               <NotificationsMenu />
-              <span className="ml-2 text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
+              <span className="ml-2 text-[13px] font-medium text-neutral-400">
                 {t("notifications.title")}
               </span>
             </div>
@@ -326,14 +318,14 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               className={cn(
                 "relative flex items-center gap-3 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150",
                 currentPath.startsWith("/settings")
-                  ? "text-neutral-900 dark:text-white"
-                  : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200",
+                  ? "text-white"
+                  : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200",
               )}
             >
               {currentPath.startsWith("/settings") && (
                 <motion.span
                   layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-lg bg-neutral-100 dark:bg-white/[0.08]"
+                  className="absolute inset-0 rounded-lg bg-white/[0.08]"
                   transition={{ type: "spring", stiffness: 500, damping: 40 }}
                 />
               )}
@@ -342,7 +334,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
             </Link>
 
             {/* Divider */}
-            <div className="h-px bg-neutral-950/[0.06] dark:bg-white/[0.08] my-1" />
+            <div className="h-px bg-white/[0.08] my-1" />
 
             {/* User section */}
             {user && (
@@ -351,14 +343,14 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
                   <img
                     src={user.avatar_url}
                     alt={formatDisplayName(user)}
-                    className="h-8 w-8 rounded-lg object-cover ring-1 ring-neutral-200/80 dark:ring-white/10 shrink-0"
+                    className="h-8 w-8 rounded-lg object-cover ring-1 ring-white/10 shrink-0"
                   />
                 ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-900/40 text-xs font-semibold text-primary-700 dark:text-primary-300 shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-900/40 text-xs font-semibold text-primary-300 shrink-0">
                     {initials}
                   </div>
                 )}
-                <span className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300 truncate">
+                <span className="text-[13px] font-medium text-neutral-300 truncate">
                   {formatDisplayName(user)}
                 </span>
               </div>
@@ -367,16 +359,8 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
             {/* Quick actions row */}
             <div className="flex items-center gap-1 px-1">
               <button
-                onClick={toggleTheme}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
-                aria-label={t("common.toggleTheme")}
-                title={t("common.toggleTheme")}
-              >
-                {isDark ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
-              <button
                 onClick={toggleLanguage}
-                className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
+                className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-400 hover:bg-white/[0.06] hover:text-neutral-200 transition-colors"
                 title={t("common.language")}
               >
                 {currentLanguage.name}
@@ -384,7 +368,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               <div className="flex-1" />
               <button
                 onClick={handleLogout}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-white/[0.06] hover:text-red-400 transition-colors"
                 aria-label={t("nav.logout")}
                 title={t("nav.logout")}
               >
@@ -402,10 +386,10 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               onClick={() => setPopoverOpen(false)}
             />
             <div
-              className="fixed z-[61] bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl p-3"
+              className="fixed z-[61] bg-neutral-800 border border-neutral-700 rounded-xl shadow-xl p-3"
               style={{ left: popoverCoords.x, top: popoverCoords.y }}
             >
-              <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-2 px-1">
+              <p className="text-xs font-semibold text-neutral-400 mb-2 px-1">
                 Navigation position
               </p>
               <NavPositionPicker
@@ -423,7 +407,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
       {/* Mobile top bar */}
       <div className="lg:hidden">
         <div style={{ height: "calc(56px + env(safe-area-inset-top, 0px))" }} />
-        <nav className="fixed heading-safe-area top-0 left-0 right-0 z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-b border-neutral-950/[0.06] dark:border-white/[0.08] theme-transition">
+        <nav className="fixed heading-safe-area top-0 left-0 right-0 z-50 bg-neutral-900/80 backdrop-blur-xl border-b border-white/[0.08] theme-transition">
           <div className="px-4 sm:px-6">
             <div className="flex items-center justify-between h-14">
               {/* Left: Logo */}
@@ -437,7 +421,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
                   alt=""
                   className="h-7 w-7 transition-transform duration-200 group-hover:scale-110"
                 />
-                <span className="text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+                <span className="text-lg font-bold tracking-tight text-white">
                   Hously
                 </span>
               </Link>
@@ -449,17 +433,17 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
                     <button
                       type="button"
                       onClick={onOpenQuickActions}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/[0.06]"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors text-neutral-400 hover:bg-white/[0.06]"
                       aria-label={t("common.quickActions")}
                       title={t("common.quickActions")}
                     >
                       <Search className="h-4 w-4" />
                     </button>
-                    <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-white/[0.08]" />
+                    <div className="mx-1.5 h-5 w-px bg-white/[0.08]" />
                   </>
                 )}
                 <NotificationsMenu />
-                <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-white/[0.08]" />
+                <div className="mx-1.5 h-5 w-px bg-white/[0.08]" />
                 {!user ? (
                   <div className="flex h-9 w-9 items-center justify-center text-neutral-400">
                     <Loader className="h-4 w-4 animate-spin" />

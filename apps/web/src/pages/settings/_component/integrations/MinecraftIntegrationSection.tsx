@@ -99,7 +99,7 @@ function ServerDialog({
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         {/* Display Name */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+          <label className="block text-sm font-medium text-neutral-300 mb-1">
             Display Name
           </label>
           <input
@@ -108,13 +108,13 @@ function ServerDialog({
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             placeholder="My Minecraft Server"
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm"
+            className="w-full px-3 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white text-sm"
           />
         </div>
 
         {/* Host */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+          <label className="block text-sm font-medium text-neutral-300 mb-1">
             Host
           </label>
           <input
@@ -123,13 +123,13 @@ function ServerDialog({
             value={form.host}
             onChange={(e) => set("host", e.target.value)}
             placeholder="play.example.com"
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm font-mono"
+            className="w-full px-3 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white text-sm font-mono"
           />
         </div>
 
         {/* Port */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+          <label className="block text-sm font-medium text-neutral-300 mb-1">
             Port
           </label>
           <input
@@ -139,13 +139,13 @@ function ServerDialog({
             max={65535}
             value={form.port}
             onChange={(e) => set("port", Number(e.target.value))}
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm font-mono"
+            className="w-full px-3 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white text-sm font-mono"
           />
         </div>
 
         {/* Poll Interval */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+          <label className="block text-sm font-medium text-neutral-300 mb-1">
             Poll Interval
           </label>
           <select
@@ -156,7 +156,7 @@ function ServerDialog({
                 Number(e.target.value) as 5 | 15 | 30 | 60,
               )
             }
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm"
+            className="w-full px-3 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white text-sm"
           >
             {POLL_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -173,11 +173,11 @@ function ServerDialog({
             type="checkbox"
             checked={form.enabled}
             onChange={(e) => set("enabled", e.target.checked)}
-            className="rounded border-neutral-300 dark:border-neutral-600"
+            className="rounded border-neutral-600"
           />
           <label
             htmlFor="server-enabled"
-            className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
+            className="text-sm font-medium text-neutral-300"
           >
             Enabled
           </label>
@@ -222,7 +222,7 @@ function ServerRow({
   pinging,
 }: ServerRowProps) {
   return (
-    <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700">
+    <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-neutral-900/50 border border-neutral-700">
       {/* Online indicator */}
       <span
         className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
@@ -233,16 +233,16 @@ function ServerRow({
 
       {/* Name + address */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+        <p className="text-sm font-medium text-neutral-100 truncate">
           {server.name}
         </p>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono truncate">
+        <p className="text-xs text-neutral-400 font-mono truncate">
           {server.host}:{server.port}
         </p>
       </div>
 
       {/* Badges */}
-      <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300">
+      <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-neutral-700 text-neutral-300">
         {server.poll_interval_minutes}m
       </span>
       {/* Actions */}
@@ -251,7 +251,7 @@ function ServerRow({
         title="Ping server"
         disabled={pinging}
         onClick={() => onPing(server.id)}
-        className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50"
+        className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-500 hover:bg-blue-900/30 transition-colors disabled:opacity-50"
       >
         <SignalIcon className="w-4 h-4" />
       </button>
@@ -259,7 +259,7 @@ function ServerRow({
         type="button"
         title="Edit server"
         onClick={() => onEdit(server)}
-        className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+        className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700 transition-colors"
       >
         <PencilIcon className="w-4 h-4" />
       </button>
@@ -267,7 +267,7 @@ function ServerRow({
         type="button"
         title="Delete server"
         onClick={() => onDelete(server.id)}
-        className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+        className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-900/30 transition-colors"
       >
         <TrashIcon className="w-4 h-4" />
       </button>
@@ -398,11 +398,11 @@ function MinecraftIntegrationSectionImpl({
         <div className="space-y-3">
           {/* Server list */}
           {serversLoading ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm text-neutral-400">
               Loading servers…
             </p>
           ) : servers.length === 0 ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm text-neutral-400">
               No servers configured yet.
             </p>
           ) : (
@@ -425,7 +425,7 @@ function MinecraftIntegrationSectionImpl({
             type="button"
             variant="outline"
             onClick={handleOpenAdd}
-            className="gap-2 w-full border-dashed border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400"
+            className="gap-2 w-full border-dashed border-neutral-600 text-neutral-400 hover:border-primary-400 hover:text-primary-400"
           >
             <PlusIcon className="w-4 h-4" />
             Add Server

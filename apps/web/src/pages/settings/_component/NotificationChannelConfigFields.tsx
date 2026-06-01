@@ -64,7 +64,7 @@ interface ConfigFieldsProps {
 }
 
 const fieldClass =
-  "text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1";
+  "text-sm font-medium text-neutral-300 mb-1";
 
 export function NotificationChannelConfigFields({
   type,

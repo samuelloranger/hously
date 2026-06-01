@@ -25,7 +25,7 @@ export function WidgetEditWrapper({
           type="button"
           onClick={onMoveUp}
           disabled={!canMoveUp}
-          className="flex items-center justify-center w-6 h-6 rounded bg-white/90 dark:bg-zinc-800/90 border border-zinc-200 dark:border-zinc-700 shadow-sm transition-opacity disabled:opacity-30"
+          className="flex items-center justify-center w-6 h-6 rounded bg-neutral-800/90 border border-neutral-700 shadow-sm transition-opacity disabled:opacity-30"
           aria-label={t("dashboard.moveWidgetUp")}
         >
           <ChevronUp size={14} />
@@ -34,7 +34,7 @@ export function WidgetEditWrapper({
           type="button"
           onClick={onMoveDown}
           disabled={!canMoveDown}
-          className="flex items-center justify-center w-6 h-6 rounded bg-white/90 dark:bg-zinc-800/90 border border-zinc-200 dark:border-zinc-700 shadow-sm transition-opacity disabled:opacity-30"
+          className="flex items-center justify-center w-6 h-6 rounded bg-neutral-800/90 border border-neutral-700 shadow-sm transition-opacity disabled:opacity-30"
           aria-label={t("dashboard.moveWidgetDown")}
         >
           <ChevronDown size={14} />

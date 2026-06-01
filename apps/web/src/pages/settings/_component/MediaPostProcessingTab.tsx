@@ -20,7 +20,7 @@ export function MediaPostProcessingTab() {
 
   if (error) {
     return (
-      <p className="text-sm text-red-600 dark:text-red-400">
+      <p className="text-sm text-red-400">
         {t("settings.mediaLibrary.loadError")}
       </p>
     );
@@ -29,7 +29,7 @@ export function MediaPostProcessingTab() {
   const settings = data?.settings;
   if (!settings) {
     return (
-      <p className="text-sm text-red-600 dark:text-red-400">
+      <p className="text-sm text-red-400">
         {t("settings.mediaLibrary.loadError")}
       </p>
     );

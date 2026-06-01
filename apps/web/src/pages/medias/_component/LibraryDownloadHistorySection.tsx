@@ -31,14 +31,14 @@ export function LibraryDownloadHistorySection({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
+        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-neutral-800/40"
         style={{ touchAction: "manipulation" }}
       >
-        <span className="flex items-center gap-2 min-w-0 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+        <span className="flex items-center gap-2 min-w-0 text-xs font-semibold text-neutral-300">
           <Download size={12} className="text-neutral-400 shrink-0" />
           <span className="truncate">{t("library.management.downloads")}</span>
           {items.length > 0 && (
-            <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 px-1 text-[9px] font-bold text-neutral-600 dark:text-neutral-300 tabular-nums">
+            <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-neutral-700 px-1 text-[9px] font-bold text-neutral-300 tabular-nums">
               {items.length}
             </span>
           )}
@@ -53,7 +53,7 @@ export function LibraryDownloadHistorySection({
       </button>
 
       {open && (
-        <div className="border-t border-neutral-100 dark:border-neutral-800 px-4 pb-4 pt-3">
+        <div className="border-t border-neutral-800 px-4 pb-4 pt-3">
           {hasRemovable && (
             <div className="flex justify-end mb-3">
               <button
@@ -71,28 +71,28 @@ export function LibraryDownloadHistorySection({
                     },
                   });
                 }}
-                className="rounded-md px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-100 dark:text-rose-400 dark:hover:bg-rose-950/40 disabled:opacity-50"
+                className="rounded-md px-2.5 py-1 text-xs font-semibold text-rose-400 hover:bg-rose-950/40 disabled:opacity-50"
               >
                 {t("library.management.clearFailedDownloads")}
               </button>
             </div>
           )}
           {isLoading ? (
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs text-neutral-400">
               {t("library.management.searching")}
             </p>
           ) : items.length === 0 ? (
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs text-neutral-400">
               {t("library.management.noDownloads")}
             </p>
           ) : (
             <div className="space-y-2">
               {items.map((row) => {
                 const statusColor = row.failed
-                  ? "border-red-200 dark:border-red-900/60 bg-red-50/50 dark:bg-red-950/10"
+                  ? "border-red-900/60 bg-red-950/10"
                   : row.completed_at
-                    ? "border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/10"
-                    : "border-sky-200 dark:border-sky-900/60 bg-sky-50/50 dark:bg-sky-950/10";
+                    ? "border-emerald-900/60 bg-emerald-950/10"
+                    : "border-sky-900/60 bg-sky-950/10";
 
                 const removable = isRemovableDownloadHistoryEntry(row);
 
@@ -106,7 +106,7 @@ export function LibraryDownloadHistorySection({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p
-                        className="flex items-center gap-1.5 text-[11px] font-medium text-neutral-800 dark:text-neutral-100 leading-snug min-w-0"
+                        className="flex items-center gap-1.5 text-[11px] font-medium text-neutral-100 leading-snug min-w-0"
                         title={row.release_title}
                       >
                         {row.ai_picked && (
@@ -114,7 +114,7 @@ export function LibraryDownloadHistorySection({
                             <Sparkles
                               size={12}
                               strokeWidth={2}
-                              className="shrink-0 text-violet-500 dark:text-violet-400"
+                              className="shrink-0 text-violet-400"
                               aria-hidden
                             />
                           </span>
@@ -133,28 +133,28 @@ export function LibraryDownloadHistorySection({
                               "library.management.removeDownloadHistoryTitle",
                             )}
                             onClick={() => deleteEntry.mutate(row.id)}
-                            className="rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-200/80 hover:text-rose-600 dark:hover:bg-neutral-700 dark:hover:text-rose-400 disabled:opacity-40"
+                            className="rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-rose-400 disabled:opacity-40"
                           >
                             <Trash2 size={13} strokeWidth={2} />
                           </button>
                         )}
                         {row.failed ? (
-                          <Badge className="bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 shrink-0">
+                          <Badge className="bg-red-900/40 text-red-400 shrink-0">
                             {t("library.download.failed")}
                           </Badge>
                         ) : row.completed_at ? (
-                          <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shrink-0">
+                          <Badge className="bg-emerald-900/40 text-emerald-400 shrink-0">
                             {t("library.download.done")}
                           </Badge>
                         ) : (
-                          <Badge className="bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 shrink-0">
+                          <Badge className="bg-sky-900/40 text-sky-400 shrink-0">
                             {t("library.download.active")}
                           </Badge>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 text-[10px] text-neutral-500 dark:text-neutral-400">
+                    <div className="flex items-center gap-3 text-[10px] text-neutral-400">
                       {row.indexer && <span>{row.indexer}</span>}
                       <span className="flex items-center gap-1">
                         <Clock size={8} />
@@ -167,14 +167,14 @@ export function LibraryDownloadHistorySection({
 
                     {row.post_process_error ? (
                       <p
-                        className="text-[10px] text-red-600 dark:text-red-400 leading-snug"
+                        className="text-[10px] text-red-400 leading-snug"
                         title={row.post_process_error}
                       >
                         {row.post_process_error}
                       </p>
                     ) : row.post_process_destination_path ? (
                       <p
-                        className="font-mono text-[9px] text-neutral-500 dark:text-neutral-400 truncate"
+                        className="font-mono text-[9px] text-neutral-400 truncate"
                         title={row.post_process_destination_path}
                       >
                         {row.post_process_destination_path}

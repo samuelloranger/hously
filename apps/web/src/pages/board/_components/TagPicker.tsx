@@ -116,7 +116,7 @@ export function TagPicker({
           // fallback styles when no color
           {...(!tag.color && {
             className:
-              "flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300",
+              "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-neutral-800 text-neutral-300",
           })}
         >
           {tag.color && (
@@ -146,14 +146,14 @@ export function TagPicker({
         onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
         placeholder={selectedTags.length === 0 ? "Add tag…" : ""}
-        className="w-24 min-w-[4rem] bg-transparent text-[12px] text-neutral-600 placeholder-neutral-300 outline-none dark:text-neutral-300 dark:placeholder-neutral-600"
+        className="w-24 min-w-[4rem] bg-transparent text-[12px] outline-none text-neutral-300 placeholder-neutral-600"
       />
 
       {/* Dropdown */}
       {open && (matches.length > 0 || showCreate) && (
         <div
           ref={dropdownRef}
-          className="absolute left-0 top-full z-50 mt-1 min-w-[160px] overflow-hidden rounded-lg border border-neutral-200/80 bg-white shadow-lg dark:border-neutral-700/60 dark:bg-neutral-800"
+          className="absolute left-0 top-full z-50 mt-1 min-w-[160px] overflow-hidden rounded-lg border shadow-lg border-neutral-700/60 bg-neutral-800"
         >
           {matches.map((tag) => (
             <button
@@ -162,7 +162,7 @@ export function TagPicker({
                 e.preventDefault();
                 addTag(tag);
               }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-neutral-200 hover:bg-neutral-700/60"
             >
               <span
                 className="h-2 w-2 shrink-0 rounded-full"
@@ -178,9 +178,9 @@ export function TagPicker({
                 handleCreate();
               }}
               className={cn(
-                "flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20",
+                "flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-primary-400 hover:bg-primary-900/20",
                 matches.length > 0 &&
-                  "border-t border-neutral-100 dark:border-neutral-700/60",
+                  "border-t border-neutral-700/60",
               )}
             >
               <Plus className="h-3 w-3" />

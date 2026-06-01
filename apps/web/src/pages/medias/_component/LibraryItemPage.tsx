@@ -135,9 +135,9 @@ export function LibraryItemPage() {
       <div>
         <div className="relative h-[260px] md:h-[340px] bg-neutral-900 animate-pulse" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-3">
-          <div className="h-2.5 bg-neutral-200 dark:bg-neutral-800 rounded w-20 animate-pulse" />
-          <div className="h-6 bg-neutral-200 dark:bg-neutral-800 rounded w-56 animate-pulse" />
-          <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-80 animate-pulse" />
+          <div className="h-2.5 bg-neutral-800 rounded w-20 animate-pulse" />
+          <div className="h-6 bg-neutral-800 rounded w-56 animate-pulse" />
+          <div className="h-3 bg-neutral-800 rounded w-80 animate-pulse" />
         </div>
       </div>
     );
@@ -150,11 +150,11 @@ export function LibraryItemPage() {
         <button
           type="button"
           onClick={() => goBack()}
-          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 mb-8 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-200 mb-8 transition-colors"
         >
           {t("medias.library.pageTitle", "Library")}
         </button>
-        <p className="text-neutral-500 dark:text-neutral-400">
+        <p className="text-neutral-400">
           {t("library.notFound", "Item not found in library.")}
         </p>
       </div>
@@ -181,7 +181,7 @@ export function LibraryItemPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
         {/* Overview */}
         {overview && (
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-2xl">
+          <p className="text-sm text-neutral-400 leading-relaxed max-w-2xl">
             {overview}
           </p>
         )}

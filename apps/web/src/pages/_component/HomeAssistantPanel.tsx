@@ -10,7 +10,7 @@ import { useState } from "react";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+    <h3 className="text-sm font-semibold text-neutral-100">
       {children}
     </h3>
   );
@@ -22,37 +22,37 @@ function isEntityOn(state: string): boolean {
 
 function HomeAssistantPanelSkeleton() {
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-neutral-800">
         <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
         <Home
-          className="w-4 h-4 shrink-0 text-zinc-300 dark:text-zinc-600"
+          className="w-4 h-4 shrink-0 text-neutral-600"
           strokeWidth={2}
         />
-        <div className="h-3 w-24 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+        <div className="h-3 w-24 rounded-full bg-neutral-800 animate-pulse" />
       </div>
       <div className="px-4 py-3 space-y-2">
         {[0, 1].map((i) => (
           <div
             key={i}
-            className="flex items-center gap-3 rounded-lg border border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/40 px-3 py-2.5"
+            className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-950/40 px-3 py-2.5"
           >
             <div
-              className="size-5 shrink-0 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+              className="size-5 shrink-0 rounded bg-neutral-800 animate-pulse"
               style={{ animationDelay: `${i * 80}ms` }}
             />
             <div className="flex-1 space-y-1.5">
               <div
-                className="h-2.5 w-24 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                className="h-2.5 w-24 rounded-full bg-neutral-800 animate-pulse"
                 style={{ animationDelay: `${i * 80}ms` }}
               />
               <div
-                className="h-2 w-32 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                className="h-2 w-32 rounded-full bg-neutral-800 animate-pulse"
                 style={{ animationDelay: `${i * 80 + 40}ms` }}
               />
             </div>
             <div
-              className="h-7 w-14 shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+              className="h-7 w-14 shrink-0 rounded-lg bg-neutral-800 animate-pulse"
               style={{ animationDelay: `${i * 80}ms` }}
             />
           </div>
@@ -87,20 +87,20 @@ export function HomeAssistantPanel() {
 
   return (
     <section
-      className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden"
+      className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden"
       {...prefetchIntent}
     >
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-neutral-800">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
           <Home
-            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            className="w-4 h-4 shrink-0 text-neutral-400"
             strokeWidth={2}
           />
           <SectionTitle>{t("dashboard.homeAssistant.kicker")}</SectionTitle>
         </div>
         {query.isFetching ? (
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
             …
           </span>
         ) : null}
@@ -108,11 +108,11 @@ export function HomeAssistantPanel() {
 
       <div className="px-4 py-3 space-y-2">
         {entities.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 px-3 py-4 text-center">
-            <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-1">
+          <div className="rounded-lg border border-dashed border-neutral-700 px-3 py-4 text-center">
+            <p className="text-sm font-medium text-neutral-200 mb-1">
               {t("dashboard.homeAssistant.emptyTitle")}
             </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            <p className="text-xs text-neutral-400 leading-relaxed">
               {t("dashboard.homeAssistant.emptyDescription")}
             </p>
           </div>
@@ -124,21 +124,21 @@ export function HomeAssistantPanel() {
             return (
               <div
                 key={e.entity_id}
-                className="flex items-center gap-3 rounded-lg border border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/40 px-3 py-2.5"
+                className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-950/40 px-3 py-2.5"
               >
                 <Icon
                   className={cn(
                     "size-5 shrink-0 transition-colors",
-                    on ? "text-yellow-400" : "text-zinc-400 dark:text-zinc-500",
+                    on ? "text-yellow-400" : "text-neutral-500",
                   )}
                   strokeWidth={1.75}
                   aria-hidden
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                  <p className="text-sm font-medium text-neutral-100 truncate">
                     {e.friendly_name}
                   </p>
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
+                  <p className="text-[10px] text-neutral-400 truncate">
                     {e.domain === "light"
                       ? t("dashboard.homeAssistant.domainLight")
                       : t("dashboard.homeAssistant.domainSwitch")}{" "}
@@ -153,8 +153,8 @@ export function HomeAssistantPanel() {
                   aria-label={`${t("dashboard.homeAssistant.toggle")}: ${e.friendly_name}`}
                   className={cn(
                     "shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors",
-                    "border border-zinc-200 dark:border-zinc-600",
-                    "bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800",
+                    "border border-neutral-600",
+                    "bg-neutral-900 hover:bg-neutral-800",
                     "disabled:opacity-50",
                   )}
                 >

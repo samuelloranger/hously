@@ -141,25 +141,25 @@ export function UsersTab() {
     switch (status) {
       case "pending":
         return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-900 text-yellow-200">
             {t("settings.users.statusPending")}
           </span>
         );
       case "accepted":
         return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-900 text-green-200">
             {t("settings.users.statusAccepted")}
           </span>
         );
       case "revoked":
         return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-900 text-red-200">
             {t("settings.users.statusRevoked")}
           </span>
         );
       case "expired":
         return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-neutral-700 text-neutral-200">
             {t("settings.users.statusExpired")}
           </span>
         );
@@ -181,38 +181,38 @@ export function UsersTab() {
         />
 
         {/* Users List */}
-        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-100">
             {t("settings.users.listTitle")}
           </h2>
 
           {usersLoading ? (
             <LoadingState />
           ) : usersError ? (
-            <div className="text-red-600 dark:text-red-400">
+            <div className="text-red-400">
               {t("settings.users.loadError") || "Failed to load users"}
             </div>
           ) : usersData?.users && usersData.users.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  <tr className="border-b border-neutral-700">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.email")}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.name")}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.role")}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.createdAt")}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.lastLogin")}
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-right py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.actions")}
                     </th>
                   </tr>
@@ -229,14 +229,14 @@ export function UsersTab() {
                     return (
                       <tr
                         key={user.id}
-                        className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+                        className="border-b border-neutral-700 hover:bg-neutral-700/50 transition-colors"
                       >
-                        <td className="py-3 px-4 text-sm text-neutral-900 dark:text-neutral-100">
+                        <td className="py-3 px-4 text-sm text-neutral-100">
                           {user.email}
                         </td>
-                        <td className="py-3 px-4 text-sm text-neutral-900 dark:text-neutral-100">
+                        <td className="py-3 px-4 text-sm text-neutral-100">
                           <div className="flex items-center gap-2.5">
-                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-400 text-xs font-semibold flex-shrink-0">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary-500/20 text-primary-400 text-xs font-semibold flex-shrink-0">
                               {initials}
                             </span>
                             {displayName}
@@ -244,28 +244,28 @@ export function UsersTab() {
                         </td>
                         <td className="py-3 px-4 text-sm">
                           {user.is_admin ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-900 text-purple-200">
                               {t("settings.users.admin")}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-neutral-700 text-neutral-200">
                               {t("settings.users.user")}
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-sm text-neutral-600 dark:text-neutral-400">
+                        <td className="py-3 px-4 text-sm text-neutral-400">
                           {user.created_at
                             ? formatDateTime(user.created_at, i18n.language)
                             : "-"}
                         </td>
-                        <td className="py-3 px-4 text-sm text-neutral-600 dark:text-neutral-400">
+                        <td className="py-3 px-4 text-sm text-neutral-400">
                           {user.last_login
                             ? formatDateTime(user.last_login, i18n.language)
                             : "-"}
                         </td>
                         <td className="py-3 px-4 text-sm text-right">
                           {isCurrentUser ? (
-                            <span className="text-neutral-400 dark:text-neutral-500 text-xs">
+                            <span className="text-neutral-500 text-xs">
                               {t("settings.users.currentUser")}
                             </span>
                           ) : (
@@ -290,15 +290,15 @@ export function UsersTab() {
               </table>
             </div>
           ) : (
-            <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+            <div className="text-center py-8 text-neutral-400">
               {t("settings.users.noUsers") || "No users found"}
             </div>
           )}
         </div>
 
         {/* Pending Invitations */}
-        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-100">
             {t("settings.users.pendingInvitations")}
           </h2>
 
@@ -309,20 +309,20 @@ export function UsersTab() {
             <div className="overflow-x-auto mt-4">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  <tr className="border-b border-neutral-700">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.email")}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.status")}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.invitedAt")}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.expiresAt")}
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <th className="text-right py-3 px-4 text-sm font-medium text-neutral-300">
                       {t("settings.users.actions")}
                     </th>
                   </tr>
@@ -331,18 +331,18 @@ export function UsersTab() {
                   {invitationsData.invitations.map((inv) => (
                     <tr
                       key={inv.id}
-                      className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+                      className="border-b border-neutral-700 hover:bg-neutral-700/50 transition-colors"
                     >
-                      <td className="py-3 px-4 text-sm text-neutral-900 dark:text-neutral-100">
+                      <td className="py-3 px-4 text-sm text-neutral-100">
                         {inv.email}
                       </td>
                       <td className="py-3 px-4 text-sm">
                         {getStatusBadge(inv.status)}
                       </td>
-                      <td className="py-3 px-4 text-sm text-neutral-600 dark:text-neutral-400">
+                      <td className="py-3 px-4 text-sm text-neutral-400">
                         {formatDateTime(inv.created_at, i18n.language)}
                       </td>
-                      <td className="py-3 px-4 text-sm text-neutral-600 dark:text-neutral-400">
+                      <td className="py-3 px-4 text-sm text-neutral-400">
                         {formatDateTime(inv.expires_at, i18n.language)}
                       </td>
                       <td className="py-3 px-4 text-sm text-right">
@@ -390,18 +390,18 @@ export function UsersTab() {
               </table>
             </div>
           ) : (
-            <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+            <div className="text-center py-8 text-neutral-400">
               {t("settings.users.noPendingInvitations") || "No invitations"}
             </div>
           )}
         </div>
 
         {/* Invite User Form */}
-        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-100">
             {t("settings.users.inviteTitle")}
           </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+          <p className="text-neutral-400 mb-6">
             {t("settings.users.inviteDescription")}
           </p>
 
@@ -426,12 +426,12 @@ export function UsersTab() {
             />
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+              <label className="block text-sm font-medium text-neutral-300 mb-2">
                 {t("settings.users.locale")}
               </label>
               <select
                 {...register("locale")}
-                className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-neutral-600 rounded-md text-white bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="en">English</option>
                 <option value="fr">Français</option>
@@ -443,11 +443,11 @@ export function UsersTab() {
                 type="checkbox"
                 id="is_admin"
                 {...register("is_admin")}
-                className="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-neutral-800 focus:ring-2 dark:bg-neutral-700 dark:border-neutral-600"
+                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-600 ring-offset-neutral-800 focus:ring-2 bg-neutral-700 border-neutral-600"
               />
               <label
                 htmlFor="is_admin"
-                className="ml-2 text-sm text-neutral-700 dark:text-neutral-300"
+                className="ml-2 text-sm text-neutral-300"
               >
                 {t("settings.users.isAdmin")}
               </label>

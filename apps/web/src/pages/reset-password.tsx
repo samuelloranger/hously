@@ -87,12 +87,12 @@ function ResetPasswordPage() {
         <div className="max-w-md w-full space-y-8">
           <div>
             <div className="mx-auto h-12 w-12 flex items-center justify-center">
-              <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+              <CheckCircle className="w-10 h-10 text-green-400" />
             </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
               {t("resetPassword.successTitle")}
             </h2>
-            <p className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="mt-4 text-center text-sm text-neutral-400">
               {t("resetPassword.successMessage")}
             </p>
           </div>
@@ -115,19 +115,19 @@ function ResetPasswordPage() {
         <div className="max-w-md w-full space-y-8">
           <div>
             <div className="mx-auto h-12 w-12 flex items-center justify-center">
-              <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
+              <AlertTriangle className="w-10 h-10 text-red-400" />
             </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
               {t("resetPassword.invalidLinkTitle")}
             </h2>
-            <p className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="mt-4 text-center text-sm text-neutral-400">
               {t("resetPassword.invalidLinkMessage")}
             </p>
           </div>
           <div className="text-center">
             <Link
               to="/forgot-password"
-              className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+              className="font-medium text-primary-400 hover:text-primary-300"
             >
               {t("resetPassword.requestNewLink")}
             </Link>
@@ -142,12 +142,12 @@ function ResetPasswordPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center">
-            <Lock className="w-10 h-10 text-primary-600 dark:text-primary-400" />
+            <Lock className="w-10 h-10 text-primary-400" />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             {t("resetPassword.title")}
           </h2>
-          <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mt-2 text-center text-sm text-neutral-400">
             {t("resetPassword.description")}
           </p>
         </div>
@@ -161,7 +161,7 @@ function ResetPasswordPage() {
                 id="password"
                 type="password"
                 autoComplete="new-password"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder={t("resetPassword.newPassword")}
                 {...register("password", {
                   required: true,
@@ -175,7 +175,7 @@ function ResetPasswordPage() {
                 })}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-1 text-sm text-red-400">
                   {errors.password.message || t("login.passwordRequired")}
                 </p>
               )}
@@ -188,7 +188,7 @@ function ResetPasswordPage() {
                 id="confirmPassword"
                 type="password"
                 autoComplete="new-password"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder={t("resetPassword.confirmPassword")}
                 {...register("confirmPassword", {
                   required: true,
@@ -198,7 +198,7 @@ function ResetPasswordPage() {
                 })}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-1 text-sm text-red-400">
                   {errors.confirmPassword.message ||
                     t("resetPassword.confirmPasswordRequired")}
                 </p>
@@ -219,7 +219,7 @@ function ResetPasswordPage() {
           <div className="text-center">
             <Link
               to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+              className="font-medium text-primary-400 hover:text-primary-300"
             >
               {t("resetPassword.backToLogin")}
             </Link>

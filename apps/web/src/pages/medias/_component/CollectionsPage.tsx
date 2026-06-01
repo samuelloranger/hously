@@ -26,17 +26,17 @@ function CollectionCard({
 
   return (
     <>
-      <div className="flex gap-4 rounded-2xl border border-neutral-200 dark:border-neutral-700/60 bg-white dark:bg-neutral-800/50 p-4">
+      <div className="flex gap-4 rounded-2xl border border-neutral-700/60 bg-neutral-800/50 p-4">
         {/* Collection poster */}
         {collection.poster_url ? (
           <img
             src={collection.poster_url}
             alt={collection.name}
-            className="w-20 shrink-0 rounded-xl object-cover shadow-sm ring-1 ring-black/10 dark:ring-white/10 self-start"
+            className="w-20 shrink-0 rounded-xl object-cover shadow-sm ring-1 ring-white/10 self-start"
           />
         ) : (
-          <div className="flex w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-700 aspect-[2/3]">
-            <Clapperboard className="w-7 h-7 text-neutral-400 dark:text-neutral-500" />
+          <div className="flex w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-700 aspect-[2/3]">
+            <Clapperboard className="w-7 h-7 text-neutral-500" />
           </div>
         )}
 
@@ -44,14 +44,14 @@ function CollectionCard({
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           {/* Name + progress */}
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-neutral-900 dark:text-white leading-tight">
+            <h3 className="font-semibold text-white leading-tight">
               {collection.name}
             </h3>
             <span
               className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                 collection.missing_count === 0
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
-                  : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
+                  ? "bg-emerald-500/15 text-emerald-400"
+                  : "bg-amber-500/15 text-amber-400"
               }`}
             >
               {t("medias.collections.ownedOf", {
@@ -79,8 +79,8 @@ function CollectionCard({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-neutral-200 dark:bg-neutral-700">
-                    <Film className="w-3 h-3 text-neutral-400 dark:text-neutral-500" />
+                  <div className="flex h-full w-full items-center justify-center bg-neutral-700">
+                    <Film className="w-3 h-3 text-neutral-500" />
                   </div>
                 )}
                 {/* Status overlay */}
@@ -147,19 +147,19 @@ export function CollectionsPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="flex gap-4 rounded-2xl border border-neutral-200 dark:border-neutral-700/60 bg-white dark:bg-neutral-800/50 p-4 animate-pulse"
+              className="flex gap-4 rounded-2xl border border-neutral-700/60 bg-neutral-800/50 p-4 animate-pulse"
             >
               <div
-                className="w-20 shrink-0 rounded-xl bg-neutral-200 dark:bg-neutral-700"
+                className="w-20 shrink-0 rounded-xl bg-neutral-700"
                 style={{ aspectRatio: "2/3" }}
               />
               <div className="flex flex-1 flex-col gap-3 py-1">
-                <div className="h-4 w-48 rounded bg-neutral-200 dark:bg-neutral-700" />
+                <div className="h-4 w-48 rounded bg-neutral-700" />
                 <div className="flex gap-2">
                   {[1, 2, 3, 4].map((j) => (
                     <div
                       key={j}
-                      className="w-12 rounded-lg bg-neutral-200 dark:bg-neutral-700"
+                      className="w-12 rounded-lg bg-neutral-700"
                       style={{ aspectRatio: "2/3" }}
                     />
                   ))}
@@ -172,11 +172,11 @@ export function CollectionsPage() {
 
       {!isLoading && collections.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-          <Film size={40} className="text-neutral-300 dark:text-neutral-600" />
-          <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+          <Film size={40} className="text-neutral-600" />
+          <p className="text-sm font-medium text-neutral-400">
             {t("medias.collections.empty", "Your collection is complete!")}
           </p>
-          <p className="text-xs text-neutral-400 dark:text-neutral-500">
+          <p className="text-xs text-neutral-500">
             {t(
               "medias.collections.emptyHint",
               "All franchises in your library are fully collected.",

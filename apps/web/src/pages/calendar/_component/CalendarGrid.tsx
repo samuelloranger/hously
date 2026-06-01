@@ -47,25 +47,25 @@ export function CalendarGrid({
 
   return (
     <div className="flex-1 min-w-0">
-      <div className="bg-white dark:bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-200/60 dark:border-neutral-700/50 overflow-hidden">
+      <div className="bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-700/50 overflow-hidden">
         {/* Month Navigation */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200/90 dark:border-neutral-600/60">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-600/60">
           <button
             onClick={onPreviousMonth}
-            className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
+            className="p-2 rounded-xl hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
             aria-label="Previous month"
           >
-            <ChevronLeft className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
+            <ChevronLeft className="w-5 h-5 text-neutral-400" />
           </button>
 
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white tracking-tight">
+            <h2 className="text-lg font-semibold text-white tracking-tight">
               {getMonthName(t, currentMonth - 1)} {currentYear}
             </h2>
             {!isViewingCurrentMonth && (
               <button
                 onClick={onGoToToday}
-                className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+                className="text-xs font-medium text-primary-400 hover:text-primary-300 px-2.5 py-1 rounded-lg bg-primary-900/20 hover:bg-primary-900/30 transition-colors"
               >
                 {t("calendar.today") || "Today"}
               </button>
@@ -74,19 +74,19 @@ export function CalendarGrid({
 
           <button
             onClick={onNextMonth}
-            className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
+            className="p-2 rounded-xl hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
             aria-label="Next month"
           >
-            <ChevronRight className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
+            <ChevronRight className="w-5 h-5 text-neutral-400" />
           </button>
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 border-b border-neutral-200/90 dark:border-neutral-600/60">
+        <div className="grid grid-cols-7 border-b border-neutral-600/60">
           {new Array(7).fill(0).map((_, day) => (
             <div
               key={day}
-              className="py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500"
+              className="py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-neutral-500"
             >
               {getDayName(t, day)}
             </div>
@@ -112,11 +112,11 @@ export function CalendarGrid({
                 key={index}
                 onClick={() => onDayClick(date)}
                 className={cn(
-                  "relative aspect-square min-h-0 p-1 sm:p-1.5 flex flex-col items-stretch transition-all duration-150 border-b border-r border-neutral-200/90 dark:border-neutral-600/55",
+                  "relative aspect-square min-h-0 p-1 sm:p-1.5 flex flex-col items-stretch transition-all duration-150 border-b border-r border-neutral-600/55",
                   !isCurrentMonthDay && "opacity-30",
                   isCurrentMonthDay &&
-                    "hover:bg-primary-50/50 dark:hover:bg-primary-900/10",
-                  isSelectedDate && "bg-primary-50 dark:bg-primary-900/20",
+                    "hover:bg-primary-900/10",
+                  isSelectedDate && "bg-primary-900/20",
                 )}
               >
                 <div className="flex flex-col items-center flex-1 min-h-0 w-full h-full">
@@ -128,13 +128,13 @@ export function CalendarGrid({
                         "bg-primary-600 text-white font-semibold shadow-sm shadow-primary-600/30",
                       isSelectedDate &&
                         !isTodayDay &&
-                        "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold",
+                        "bg-white text-neutral-900 font-semibold",
                       !isTodayDay &&
                         !isSelectedDate &&
                         isCurrentMonthDay &&
-                        "text-neutral-700 dark:text-neutral-300",
+                        "text-neutral-300",
                       !isCurrentMonthDay &&
-                        "text-neutral-400 dark:text-neutral-600",
+                        "text-neutral-600",
                     )}
                   >
                     {date?.getDate()}
@@ -153,7 +153,7 @@ export function CalendarGrid({
                         />
                       ))}
                       {overflow > 0 && (
-                        <span className="text-[9px] font-medium text-neutral-500 dark:text-neutral-400 ml-0.5 tabular-nums">
+                        <span className="text-[9px] font-medium text-neutral-400 ml-0.5 tabular-nums">
                           +{overflow}
                         </span>
                       )}
@@ -175,21 +175,21 @@ export function CalendarGrid({
                             key={item.id}
                             src={item.poster_url}
                             alt=""
-                            className="h-7 w-[18px] sm:h-8 sm:w-[22px] shrink-0 rounded-[3px] object-cover ring-1 ring-black/15 dark:ring-black/50"
+                            className="h-7 w-[18px] sm:h-8 sm:w-[22px] shrink-0 rounded-[3px] object-cover ring-1 ring-black/50"
                           />
                         ) : (
                           <div
                             key={item.id}
-                            className="flex h-7 w-[18px] sm:h-8 sm:w-[22px] shrink-0 items-center justify-center rounded-[3px] bg-neutral-200/80 dark:bg-neutral-700/80"
+                            className="flex h-7 w-[18px] sm:h-8 sm:w-[22px] shrink-0 items-center justify-center rounded-[3px] bg-neutral-700/80"
                             aria-hidden
                           >
-                            <Film className="w-2.5 h-2.5 text-neutral-500 dark:text-neutral-400" />
+                            <Film className="w-2.5 h-2.5 text-neutral-400" />
                           </div>
                         ),
                       )}
                       {dayReleases.length > 2 && (
-                        <div className="flex h-7 w-[18px] sm:h-8 sm:w-[22px] shrink-0 items-center justify-center rounded-[3px] bg-neutral-200/90 dark:bg-neutral-800/90 ring-1 ring-neutral-300/80 dark:ring-neutral-600/80">
-                          <span className="text-[8px] font-bold text-neutral-500 dark:text-neutral-400 tabular-nums">
+                        <div className="flex h-7 w-[18px] sm:h-8 sm:w-[22px] shrink-0 items-center justify-center rounded-[3px] bg-neutral-800/90 ring-1 ring-neutral-600/80">
+                          <span className="text-[8px] font-bold text-neutral-400 tabular-nums">
                             +{dayReleases.length - 2}
                           </span>
                         </div>
@@ -203,7 +203,7 @@ export function CalendarGrid({
         </div>
 
         {/* Legend */}
-        <div className="px-5 py-3 border-t border-neutral-200/90 dark:border-neutral-600/60 flex flex-wrap gap-4 text-xs text-neutral-500 dark:text-neutral-400">
+        <div className="px-5 py-3 border-t border-neutral-600/60 flex flex-wrap gap-4 text-xs text-neutral-400">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
             <span>{t("calendar.chores")}</span>

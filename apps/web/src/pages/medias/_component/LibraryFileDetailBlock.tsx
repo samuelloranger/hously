@@ -46,20 +46,20 @@ function AudioTrackRow({ track }: { track: LibraryAudioTrack }) {
     .join(" · ");
   return (
     <div className="flex items-center gap-2 py-1">
-      <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 w-28 shrink-0 truncate">
+      <span className="text-xs font-medium text-neutral-300 w-28 shrink-0 truncate">
         {langDisplay}
       </span>
-      <span className="text-xs text-neutral-500 dark:text-neutral-400 flex-1 truncate">
+      <span className="text-xs text-neutral-400 flex-1 truncate">
         {details || "—"}
       </span>
       <div className="flex gap-1 shrink-0">
         {track.default && (
-          <Badge className="bg-primary-50 dark:bg-primary-500/15 text-primary-600 dark:text-primary-300">
+          <Badge className="bg-primary-500/15 text-primary-300">
             {t("library.fileDetail.defaultTrack")}
           </Badge>
         )}
         {track.forced && (
-          <Badge className="bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300">
+          <Badge className="bg-amber-500/15 text-amber-300">
             {t("library.fileDetail.forced")}
           </Badge>
         )}
@@ -74,21 +74,21 @@ function SubtitleTrackRow({ track }: { track: LibrarySubtitleTrack }) {
   const langDisplay = frFlag ?? track.language_name ?? track.language;
   return (
     <div className="flex items-center gap-2 py-1">
-      <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 w-28 shrink-0 truncate">
+      <span className="text-xs font-medium text-neutral-300 w-28 shrink-0 truncate">
         {langDisplay}
       </span>
-      <span className="text-xs text-neutral-500 dark:text-neutral-400 flex-1 truncate">
+      <span className="text-xs text-neutral-400 flex-1 truncate">
         {track.format ?? "—"}
         {track.title ? ` · ${track.title}` : ""}
       </span>
       <div className="flex gap-1 shrink-0">
         {track.forced && (
-          <Badge className="bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300">
+          <Badge className="bg-amber-500/15 text-amber-300">
             {t("library.fileDetail.forced")}
           </Badge>
         )}
         {track.hearing_impaired && (
-          <Badge className="bg-neutral-100 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400">
+          <Badge className="bg-neutral-700 text-neutral-400">
             {t("library.fileDetail.hearingImpaired")}
           </Badge>
         )}
@@ -118,8 +118,8 @@ function TrackToggleRow({
       className={cn(
         "w-full flex items-center gap-2 rounded px-2 py-1.5 text-left transition-colors",
         kept
-          ? "bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600"
-          : "bg-transparent border border-dashed border-neutral-300 dark:border-neutral-600 opacity-50",
+          ? "bg-neutral-700 border border-neutral-600"
+          : "bg-transparent border border-dashed border-neutral-600 opacity-50",
         disabled && "cursor-not-allowed",
       )}
     >
@@ -127,13 +127,13 @@ function TrackToggleRow({
         className={cn(
           "w-3 h-3 rounded-sm border shrink-0 flex items-center justify-center transition-colors",
           kept
-            ? "bg-neutral-900 border-neutral-900 dark:bg-white dark:border-white"
-            : "border-neutral-400 dark:border-neutral-500",
+            ? "bg-white border-white"
+            : "border-neutral-500",
         )}
       >
         {kept && (
           <svg
-            className="w-2 h-2 text-white dark:text-neutral-900"
+            className="w-2 h-2 text-neutral-900"
             viewBox="0 0 8 8"
             fill="none"
           >
@@ -147,10 +147,10 @@ function TrackToggleRow({
           </svg>
         )}
       </span>
-      <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 w-24 shrink-0 truncate">
+      <span className="text-xs font-medium text-neutral-300 w-24 shrink-0 truncate">
         {lang}
       </span>
-      <span className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+      <span className="text-xs text-neutral-400 truncate">
         {details}
       </span>
     </button>
@@ -240,14 +240,14 @@ function RemuxPanel({
   };
 
   return (
-    <div className="mt-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 p-3 space-y-3">
-      <p className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wide">
+    <div className="mt-3 rounded-lg border border-neutral-700 bg-neutral-800/50 p-3 space-y-3">
+      <p className="text-[11px] font-semibold text-neutral-300 uppercase tracking-wide">
         {t("library.fileDetail.remux.title")}
       </p>
 
       <div className="space-y-3">
         <div className="space-y-1">
-          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-1.5">
+          <p className="text-[11px] text-neutral-400 mb-1.5">
             {t("library.fileDetail.remux.keepAudioTracks")}
           </p>
           {audioTracks.map((tr) => {
@@ -275,7 +275,7 @@ function RemuxPanel({
 
         {subtitleTracks.length > 0 && (
           <div className="space-y-1">
-            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-1.5">
+            <p className="text-[11px] text-neutral-400 mb-1.5">
               {t("library.fileDetail.remux.keepSubtitleTracks")}
             </p>
             {subtitleTracks.map((tr) => {
@@ -308,7 +308,7 @@ function RemuxPanel({
 
       <div className="flex items-center gap-2 pt-1">
         {isRunning ? (
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">
+          <span className="text-xs text-neutral-400">
             {t("library.fileDetail.remux.running")}
           </span>
         ) : (
@@ -317,14 +317,14 @@ function RemuxPanel({
               type="button"
               onClick={() => void onStart()}
               disabled={remuxMut.isPending || keptIndices.size === 0}
-              className="rounded px-2.5 py-1 text-xs font-medium bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 disabled:opacity-50 transition-colors"
+              className="rounded px-2.5 py-1 text-xs font-medium bg-white text-neutral-900 hover:bg-neutral-200 disabled:opacity-50 transition-colors"
             >
               {t("library.fileDetail.remux.startButton")}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+              className="text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
             >
               {t("common.cancel")}
             </button>
@@ -372,7 +372,7 @@ export function FileDetailBlock({
         />
         {editingGroup ? (
           <div className="flex gap-2 text-xs items-center">
-            <span className="w-[34%] shrink-0 text-neutral-500 dark:text-neutral-400">
+            <span className="w-[34%] shrink-0 text-neutral-400">
               {t("library.fileDetail.releaseGroup")}
             </span>
             <input
@@ -399,7 +399,7 @@ export function FileDetailBlock({
                   setGroupValue(file.release_group ?? "");
                 }
               }}
-              className="flex-1 rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-1.5 py-0.5 text-xs text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              className="flex-1 rounded border border-neutral-600 bg-neutral-900 px-1.5 py-0.5 text-xs text-neutral-200 focus:outline-none focus:ring-1 focus:ring-primary-500"
             />
           </div>
         ) : (
@@ -408,12 +408,12 @@ export function FileDetailBlock({
             onClick={() => setEditingGroup(true)}
             title="Click to edit release group"
           >
-            <span className="w-[34%] shrink-0 text-neutral-500 dark:text-neutral-400">
+            <span className="w-[34%] shrink-0 text-neutral-400">
               {t("library.fileDetail.releaseGroup")}
             </span>
-            <span className="min-w-0 flex-1 text-neutral-800 dark:text-neutral-200">
+            <span className="min-w-0 flex-1 text-neutral-200">
               {file.release_group ?? (
-                <span className="text-neutral-400 dark:text-neutral-600 italic text-[10px]">
+                <span className="text-neutral-600 italic text-[10px]">
                   —
                 </span>
               )}
@@ -479,7 +479,7 @@ export function FileDetailBlock({
               count: audioTracks.length,
             })}
           />
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60 rounded-lg border border-neutral-100 dark:border-neutral-800 overflow-hidden">
+          <div className="divide-y divide-neutral-800/60 rounded-lg border border-neutral-800 overflow-hidden">
             {audioTracks.map((tr) => (
               <div key={tr.index} className="px-2.5">
                 <AudioTrackRow track={tr} />
@@ -497,7 +497,7 @@ export function FileDetailBlock({
               count: subtitleTracks.length,
             })}
           />
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60 rounded-lg border border-neutral-100 dark:border-neutral-800 overflow-hidden">
+          <div className="divide-y divide-neutral-800/60 rounded-lg border border-neutral-800 overflow-hidden">
             {subtitleTracks.map((tr) => (
               <div key={tr.index} className="px-2.5">
                 <SubtitleTrackRow track={tr} />
@@ -508,7 +508,7 @@ export function FileDetailBlock({
       )}
 
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+        <span className="text-[10px] text-neutral-500">
           <Clock size={9} className="inline mr-1" />
           {t("library.fileDetail.scanned", { date: scannedDate })}
         </span>
@@ -516,7 +516,7 @@ export function FileDetailBlock({
           <button
             type="button"
             onClick={() => setShowRemux(true)}
-            className="flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+            className="flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-neutral-800 text-neutral-300 hover:bg-neutral-700 transition-colors"
           >
             <Shuffle size={10} />
             {t("library.fileDetail.remux.openButton")}

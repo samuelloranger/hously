@@ -40,20 +40,20 @@ function ReleaseRow({ release }: { release: GitHubRelease }) {
   const body = useMemo(() => release.body?.trim() ?? "", [release.body]);
 
   return (
-    <article className="min-w-0 rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-800">
+    <article className="min-w-0 rounded-xl border p-5 border-neutral-700 bg-neutral-800">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="min-w-0 break-words text-base font-semibold text-neutral-950 dark:text-neutral-50">
+            <h3 className="min-w-0 break-words text-base font-semibold text-neutral-50">
               {release.name || release.tag_name}
             </h3>
             {release.prerelease && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+              <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-amber-900/30 text-amber-300">
                 Pre-release
               </span>
             )}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-400">
             <span className="inline-flex min-w-0 items-center gap-1.5">
               <Tag className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="min-w-0 break-all">{release.tag_name}</span>
@@ -79,7 +79,7 @@ function ReleaseRow({ release }: { release: GitHubRelease }) {
           target="_blank"
           rel="noreferrer"
           className={cn(
-            "inline-flex h-9 items-center justify-center gap-2 self-start whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:hover:text-neutral-50",
+            "inline-flex h-9 items-center justify-center gap-2 self-start whitespace-nowrap rounded-md border px-3 text-sm font-medium transition-colors border-neutral-600 bg-neutral-800 hover:bg-neutral-700 hover:text-neutral-50",
           )}
         >
           <ExternalLink className="h-4 w-4 flex-shrink-0" />
@@ -88,7 +88,7 @@ function ReleaseRow({ release }: { release: GitHubRelease }) {
       </div>
 
       {body && (
-        <div className="prose prose-sm mt-4 max-w-none break-words text-neutral-700 dark:prose-invert dark:text-neutral-300 prose-a:break-all prose-a:text-blue-600 prose-a:underline dark:prose-a:text-blue-400 prose-code:break-all prose-pre:whitespace-pre-wrap prose-pre:break-words">
+        <div className="prose prose-sm mt-4 max-w-none break-words prose-invert text-neutral-300 prose-a:break-all prose-a:underline prose-a:text-blue-400 prose-code:break-all prose-pre:whitespace-pre-wrap prose-pre:break-words">
           <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{body}</ReactMarkdown>
         </div>
       )}
@@ -101,7 +101,7 @@ function ReleaseRow({ release }: { release: GitHubRelease }) {
               href={asset.browser_download_url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-md border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-medium border-neutral-800 text-neutral-300 hover:bg-neutral-800"
             >
               <Package className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="min-w-0 break-all">{asset.name}</span>
@@ -166,35 +166,35 @@ export function ReleasesTab() {
         }
       />
 
-      <div className="min-w-0 rounded-xl border border-neutral-200 bg-white p-4 text-sm dark:border-neutral-700 dark:bg-neutral-800">
+      <div className="min-w-0 rounded-xl border p-4 text-sm border-neutral-700 bg-neutral-800">
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="min-w-0">
-            <p className="text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs font-medium uppercase text-neutral-400">
               {t("settings.releases.repo")}
             </p>
-            <p className="mt-1 break-all font-medium text-neutral-900 dark:text-neutral-100">
+            <p className="mt-1 break-all font-medium text-neutral-100">
               {data?.sync.repo_full_name ?? "—"}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs font-medium uppercase text-neutral-400">
               {t("settings.releases.lastSynced")}
             </p>
-            <p className="mt-1 break-words font-medium text-neutral-900 dark:text-neutral-100">
+            <p className="mt-1 break-words font-medium text-neutral-100">
               {formatDate(data?.sync.last_synced_at ?? null)}
             </p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs font-medium uppercase text-neutral-400">
               {t("settings.releases.cached")}
             </p>
-            <p className="mt-1 font-medium text-neutral-900 dark:text-neutral-100">
+            <p className="mt-1 font-medium text-neutral-100">
               {releases.length}
             </p>
           </div>
         </div>
         {(isError || data?.sync.last_error) && (
-          <div className="mt-4 flex gap-2 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">
+          <div className="mt-4 flex gap-2 rounded-md p-3 text-sm bg-red-950/30 text-red-300">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span className="min-w-0 break-words">
               {data?.sync.last_error ||

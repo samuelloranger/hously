@@ -210,7 +210,7 @@ function ChoreFormInner({
         <div>
           <label
             htmlFor={`${idPrefix}chore_name`}
-            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+            className="block text-sm font-medium text-neutral-300"
           >
             {t("chores.choreName")}
           </label>
@@ -218,11 +218,11 @@ function ChoreFormInner({
             type="text"
             id={`${idPrefix}chore_name`}
             {...register("chore_name", { required: true })}
-            className="mt-1 w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            className="mt-1 w-full px-3 py-2 border border-neutral-600 rounded-md placeholder-neutral-400 text-white bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             placeholder={t("chores.choreNamePlaceholder")}
           />
           {errors.chore_name && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-red-400">
               {t("chores.choreNameRequired") || "Chore name is required"}
             </p>
           )}
@@ -230,7 +230,7 @@ function ChoreFormInner({
         <div>
           <label
             htmlFor={`${idPrefix}assigned_to`}
-            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+            className="block text-sm font-medium text-neutral-300"
           >
             {t("chores.assignTo")}
           </label>
@@ -239,7 +239,7 @@ function ChoreFormInner({
             {...register("assigned_to", {
               setValueAs: (v) => (v === "" ? null : Number(v)),
             })}
-            className="mt-1 w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            className="mt-1 w-full px-3 py-2 border border-neutral-600 rounded-md text-white bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="">{t("chores.anyoneCanDo")}</option>
             {users.map((user) => (
@@ -260,7 +260,7 @@ function ChoreFormInner({
       <div>
         <label
           htmlFor={`${idPrefix}description`}
-          className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+          className="block text-sm font-medium text-neutral-300 mb-2"
         >
           {t("chores.description")}
         </label>
@@ -281,7 +281,7 @@ function ChoreFormInner({
       <div>
         <label
           htmlFor={`${idPrefix}image`}
-          className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+          className="block text-sm font-medium text-neutral-300 mb-2"
         >
           {t("chores.image")}
         </label>
@@ -291,7 +291,7 @@ function ChoreFormInner({
               src={getChoreThumbnailUrl(chore.image_path) || ""}
               alt={chore.chore_name}
               onClick={onImageClick}
-              className={`w-12 h-12 object-cover rounded border border-neutral-300 dark:border-neutral-600 ${
+              className={`w-12 h-12 object-cover rounded border border-neutral-600 ${
                 onImageClick ? "cursor-pointer" : ""
               }`}
             />
@@ -310,7 +310,7 @@ function ChoreFormInner({
                   },
                 );
               }}
-              className="text-sm text-red-600 dark:text-red-400 hover:underline"
+              className="text-sm text-red-400 hover:underline"
             >
               {t("chores.removeImage")}
             </button>
@@ -321,12 +321,12 @@ function ChoreFormInner({
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-12 h-12 object-cover rounded border border-neutral-300 dark:border-neutral-600"
+              className="w-12 h-12 object-cover rounded border border-neutral-600"
             />
             <button
               type="button"
               onClick={handleRemoveImage}
-              className="text-sm text-red-600 dark:text-red-400 hover:underline"
+              className="text-sm text-red-400 hover:underline"
             >
               {t("chores.removeImage")}
             </button>
@@ -337,16 +337,14 @@ function ChoreFormInner({
           id={`${idPrefix}image`}
           accept="image/*"
           onChange={handleImageChange}
-          className="mt-1 w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="mt-1 w-full px-3 py-2 border border-neutral-600 rounded-md text-white bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
         />
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-          {t("chores.imageHelp")}
-        </p>
+        <p className="mt-1 text-xs text-neutral-400">{t("chores.imageHelp")}</p>
       </div>
 
-      <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+      <div className="border-t border-neutral-700 pt-4">
         {!subscription && (
-          <p className="text-xs text-yellow-600 dark:text-yellow-400 mb-4">
+          <p className="text-xs text-yellow-400 mb-4">
             {t("chores.noSubscriptionWarning")}
           </p>
         )}
@@ -354,11 +352,11 @@ function ChoreFormInner({
           <div>
             <label
               htmlFor={`${idPrefix}reminder_enabled`}
-              className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+              className="block text-sm font-medium text-neutral-300"
             >
               {t("chores.enableReminder")}
             </label>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+            <p className="text-xs text-neutral-400 mt-1">
               {t("chores.reminderDescription")}
             </p>
           </div>
@@ -370,14 +368,14 @@ function ChoreFormInner({
               onChange={(e) => handleToggleReminder(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-primary-600"></div>
+            <div className="w-11 h-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-800 rounded-full peer bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-neutral-600 peer-checked:bg-primary-600"></div>
           </label>
         </div>
         {reminderEnabled && (
           <div>
             <label
               htmlFor={`${idPrefix}reminder_datetime`}
-              className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+              className="block text-sm font-medium text-neutral-300 mb-2"
             >
               {t("chores.reminderDateTime")}
             </label>
@@ -398,16 +396,16 @@ function ChoreFormInner({
         )}
       </div>
 
-      <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+      <div className="border-t border-neutral-700 pt-4">
         <div className="flex items-center justify-between mb-4">
           <div>
             <label
               htmlFor={`${idPrefix}recurrence_enabled`}
-              className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+              className="block text-sm font-medium text-neutral-300"
             >
               {t("chores.enableRecurrence") || "Récurrence"}
             </label>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+            <p className="text-xs text-neutral-400 mt-1">
               {t("chores.recurrenceDescription") ||
                 "Créez automatiquement une nouvelle tâche selon un planning"}
             </p>
@@ -427,13 +425,13 @@ function ChoreFormInner({
               }}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-primary-600"></div>
+            <div className="w-11 h-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-800 rounded-full peer bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-neutral-600 peer-checked:bg-primary-600"></div>
           </label>
         </div>
         {recurrenceEnabled && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+              <label className="block text-sm font-medium text-neutral-300 mb-2">
                 {t("chores.recurrenceType") || "Type de récurrence"}
               </label>
               <div className="flex gap-4">
@@ -448,7 +446,7 @@ function ChoreFormInner({
                     }}
                     className="mr-2"
                   />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <span className="text-sm text-neutral-300">
                     {t("chores.dailyInterval") || "Tous les X jours"}
                   </span>
                 </label>
@@ -463,7 +461,7 @@ function ChoreFormInner({
                     }}
                     className="mr-2"
                   />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <span className="text-sm text-neutral-300">
                     {t("chores.weekly") || "Hebdomadaire"}
                   </span>
                 </label>
@@ -473,7 +471,7 @@ function ChoreFormInner({
               <div>
                 <label
                   htmlFor={`${idPrefix}recurrence_interval_days`}
-                  className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
                 >
                   {t("chores.intervalDays") || "Nombre de jours"}
                 </label>
@@ -485,7 +483,7 @@ function ChoreFormInner({
                     valueAsNumber: true,
                     min: 1,
                   })}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-neutral-600 rounded-md text-white bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
             )}
@@ -493,7 +491,7 @@ function ChoreFormInner({
               <div>
                 <label
                   htmlFor={`${idPrefix}recurrence_weekday`}
-                  className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
                 >
                   {t("chores.weekday") || "Jour de la semaine"}
                 </label>
@@ -502,7 +500,7 @@ function ChoreFormInner({
                   {...register("recurrence_weekday", {
                     valueAsNumber: true,
                   })}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-neutral-600 rounded-md text-white bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value={0}>{t("chores.monday") || "Lundi"}</option>
                   <option value={1}>{t("chores.tuesday") || "Mardi"}</option>
@@ -525,7 +523,7 @@ function ChoreFormInner({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            className="px-4 py-2 text-sm font-medium text-neutral-300 bg-neutral-700 hover:bg-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             {t("common.cancel")}
           </button>
@@ -546,7 +544,7 @@ function ChoreFormInner({
           <button
             type="submit"
             disabled={submitMutation.isPending || isUploadingImage}
-            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
+            className="px-6 py-2 bg-primary-600 hover:bg-primary-500 text-neutral-950 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
           >
             <Plus size={16} className="mr-1.5 inline" />
             {isUploadingImage

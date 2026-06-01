@@ -108,26 +108,26 @@ export const HabitCard: React.FC<HabitCardProps> = ({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden p-4 rounded-2xl bg-white dark:bg-neutral-800 border transition-all duration-300",
+        "group relative overflow-hidden p-4 rounded-2xl bg-neutral-800 border transition-all duration-300",
         isFullyCompleted
-          ? "border-green-500/30 bg-green-50/10 dark:bg-green-500/5 shadow-sm"
+          ? "border-green-500/30 bg-green-500/5 shadow-sm"
           : isAccountedForToday
-            ? "border-rose-500/30 bg-rose-50/40 dark:bg-rose-500/5 shadow-sm"
-            : "border-neutral-200/80 dark:border-neutral-700/60 hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5",
+            ? "border-rose-500/30 bg-rose-500/5 shadow-sm"
+            : "border-neutral-700/60 hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5",
         !habit.active && "opacity-60 grayscale-[0.3]",
       )}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-700/60 text-2xl shrink-0 group-hover:scale-110 transition-transform duration-300">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-700/60 text-2xl shrink-0 group-hover:scale-110 transition-transform duration-300">
             {habit.emoji}
           </div>
           <div>
-            <h3 className="font-bold text-neutral-900 dark:text-white leading-tight">
+            <h3 className="font-bold text-white leading-tight">
               {habit.name}
             </h3>
             {habit.description && (
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-1">
+              <p className="text-xs text-neutral-400 mt-1 line-clamp-1">
                 {habit.description}
               </p>
             )}
@@ -146,7 +146,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
             {habit.schedules.map((s) => (
               <span
                 key={s.id}
-                className="px-1.5 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-700/60 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700"
+                className="px-1.5 py-0.5 rounded-md bg-neutral-700/60 text-[10px] font-semibold text-neutral-400 border border-neutral-700"
               >
                 {s.time}
               </span>
@@ -164,8 +164,8 @@ export const HabitCard: React.FC<HabitCardProps> = ({
               className={cn(
                 "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 border",
                 isAccountedForToday
-                  ? "border-rose-200 bg-rose-50 text-rose-400 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-500 cursor-default"
-                  : "border-rose-200 bg-white hover:bg-rose-50 text-rose-500 dark:border-rose-900/40 dark:bg-neutral-900 dark:hover:bg-rose-950/20 shadow-sm active:scale-90",
+                  ? "border-rose-900/40 bg-rose-950/30 text-rose-500 cursor-default"
+                  : "text-rose-500 border-rose-900/40 bg-neutral-900 hover:bg-rose-950/20 shadow-sm active:scale-90",
               )}
               aria-label={t("habits.notDone")}
             >
@@ -182,9 +182,9 @@ export const HabitCard: React.FC<HabitCardProps> = ({
               className={cn(
                 "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
                 isFullyCompleted
-                  ? "bg-green-500/20 text-green-600 dark:text-green-400 cursor-default"
+                  ? "bg-green-500/20 text-green-400 cursor-default"
                   : isAccountedForToday
-                    ? "bg-neutral-200 text-neutral-400 dark:bg-neutral-700 dark:text-neutral-500 cursor-default"
+                    ? "bg-neutral-700 text-neutral-500 cursor-default"
                     : "bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/20 active:scale-90",
               )}
               aria-label={t("habits.done")}
@@ -203,7 +203,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-3 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+      <div className="mt-3 flex items-center gap-3 text-[11px] font-medium text-neutral-400">
         <span>{t("habits.doneCount", { count: habit.today_completions })}</span>
         <span>{t("habits.notDoneCount", { count: habit.today_skips })}</span>
         <span>

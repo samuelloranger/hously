@@ -21,10 +21,9 @@ interface MediaPostProcessingSettingsBodyProps {
 }
 
 const SELECT_CLASS =
-  "w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40";
+  "w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40";
 
-const LABEL_CLASS =
-  "block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5";
+const LABEL_CLASS = "block text-sm font-medium text-neutral-300 mb-1.5";
 
 function CardSection({
   title,
@@ -38,16 +37,12 @@ function CardSection({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 dark:border-neutral-700/60 px-6 py-4">
+    <div className="overflow-hidden rounded-xl border border-neutral-700 bg-neutral-800">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-700/60 px-6 py-4">
         <div>
-          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-            {title}
-          </h2>
+          <h2 className="text-sm font-semibold text-neutral-100">{title}</h2>
           {description && (
-            <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-              {description}
-            </p>
+            <p className="mt-0.5 text-xs text-neutral-400">{description}</p>
           )}
         </div>
         {actions}
@@ -146,12 +141,12 @@ export function MediaPostProcessingSettingsBody({
         title={t("settings.mediaLibrary.title")}
         description={t("settings.mediaLibrary.description")}
       >
-        <label className="flex items-center gap-2 text-sm font-medium text-neutral-800 dark:text-neutral-200">
+        <label className="flex items-center gap-2 text-sm font-medium text-neutral-200">
           <input
             type="checkbox"
             checked={postProcessingEnabled}
             onChange={(e) => setPostProcessingEnabled(e.target.checked)}
-            className="rounded border-neutral-300"
+            className="rounded border-neutral-700"
           />
           {t("settings.mediaLibrary.postProcessingToggle")}
         </label>
@@ -199,7 +194,7 @@ export function MediaPostProcessingSettingsBody({
             value={movieTemplate}
             onChange={(e) => setMovieTemplate(e.target.value)}
             rows={2}
-            className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm font-mono text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm font-mono text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
           />
         </div>
 
@@ -211,7 +206,7 @@ export function MediaPostProcessingSettingsBody({
             value={episodeTemplate}
             onChange={(e) => setEpisodeTemplate(e.target.value)}
             rows={2}
-            className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm font-mono text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm font-mono text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
           />
         </div>
 
@@ -229,7 +224,7 @@ export function MediaPostProcessingSettingsBody({
             {t("settings.mediaLibrary.activeIndexerManager")}
           </label>
           {indexerOptions.length === 0 ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm text-neutral-400">
               {t("settings.mediaLibrary.noIndexerConfigured")}
             </p>
           ) : (
@@ -276,12 +271,12 @@ export function MediaPostProcessingSettingsBody({
               </option>
             ))}
           </select>
-          <p className="mt-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1.5 text-xs text-neutral-400">
             {t("settings.mediaLibrary.defaultQualityProfileHint")}
           </p>
         </div>
 
-        <div className="pt-2 border-t border-neutral-100 dark:border-neutral-700/60">
+        <div className="pt-2 border-t border-neutral-700/60">
           <Button
             type="button"
             onClick={() => void onSave()}
@@ -334,8 +329,8 @@ export function MediaPostProcessingSettingsBody({
             : t("settings.mediaLibrary.scanRun")}
         </Button>
         {lastScan && lastScan.unmatched.length > 0 && (
-          <div className="rounded-lg border border-neutral-100 dark:border-neutral-700/60 bg-neutral-50 dark:bg-neutral-900/40 p-3 text-xs text-neutral-600 dark:text-neutral-400">
-            <p className="font-medium text-neutral-800 dark:text-neutral-200 mb-1.5">
+          <div className="rounded-lg border border-neutral-700/60 bg-neutral-900/40 p-3 text-xs text-neutral-400">
+            <p className="font-medium text-neutral-200 mb-1.5">
               {t("settings.mediaLibrary.scanUnmatched")} (
               {lastScan.unmatched.length})
             </p>
@@ -369,9 +364,9 @@ function ReindexLanguagesSection() {
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-      <div className="border-b border-neutral-100 dark:border-neutral-700/60 px-6 py-4">
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+    <div className="overflow-hidden rounded-xl border border-neutral-700 bg-neutral-800">
+      <div className="border-b border-neutral-700/60 px-6 py-4">
+        <h2 className="text-sm font-semibold text-neutral-100">
           {t("medias.library.reindexLanguagesButton")}
         </h2>
       </div>
@@ -390,7 +385,7 @@ function ReindexLanguagesSection() {
             : t("medias.library.reindexLanguagesButton")}
         </Button>
         {status?.state === "completed" && status.result && (
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="text-xs text-neutral-400">
             {t("medias.library.reindexLanguagesDone", {
               updated: status.result.updated,
               errors: status.result.errors,
@@ -398,9 +393,7 @@ function ReindexLanguagesSection() {
           </p>
         )}
         {status?.state === "failed" && status.error && (
-          <p className="text-xs text-red-600 dark:text-red-400">
-            {status.error}
-          </p>
+          <p className="text-xs text-red-400">{status.error}</p>
         )}
       </div>
     </div>

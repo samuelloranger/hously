@@ -43,10 +43,10 @@ function defaultValueForType(type: ConditionType): CustomFormatCondition["value"
 // ─── Styling constants (mirrors QualityProfileForm.tsx) ──────────────────────
 
 const selectClass =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
+  "w-full rounded-lg border px-3 py-2 text-sm border-neutral-700 bg-neutral-900 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
 
 const inputClass =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
+  "w-full rounded-lg border px-3 py-2 text-sm border-neutral-700 bg-neutral-900 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
 
 // ─── Regex validity check ─────────────────────────────────────────────────────
 
@@ -196,7 +196,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
           className={cn(
             inputClass,
             showRegexError &&
-              "border-red-400 dark:border-red-500 focus:ring-red-500/30",
+              "border-red-500 focus:ring-red-500/30",
           )}
           spellCheck={false}
         />
@@ -214,7 +214,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-neutral-50/50 p-3 dark:border-neutral-700 dark:bg-neutral-800/40">
+    <div className="flex flex-col gap-2 rounded-lg border p-3 border-neutral-700 bg-neutral-800/40">
       {/* Row 1: type + operator + value */}
       <div className="flex items-start gap-2">
         {/* Type select */}
@@ -253,7 +253,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
         {/* Value input(s) */}
         <div className="flex-1 min-w-0">
           {renderValueInput() ?? (
-            <div className="h-[38px] flex items-center px-3 text-xs text-neutral-400 dark:text-neutral-500 rounded-lg border border-dashed border-neutral-200 dark:border-neutral-700">
+            <div className="h-[38px] flex items-center px-3 text-xs text-neutral-500 rounded-lg border border-dashed border-neutral-700">
               {/* no value needed */}
             </div>
           )}
@@ -263,7 +263,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
         <button
           type="button"
           onClick={onRemove}
-          className="flex-shrink-0 mt-0.5 flex h-[38px] w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-red-500 dark:hover:bg-neutral-700 dark:hover:text-red-400 transition-colors"
+          className="flex-shrink-0 mt-0.5 flex h-[38px] w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-700 hover:text-red-400 transition-colors"
           aria-label="remove condition"
         >
           <Trash2 size={14} />
@@ -277,8 +277,8 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
             className={cn(
               "flex h-4 w-4 items-center justify-center rounded border transition-colors",
               negate
-                ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
-                : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
+                ? "text-white border-primary-400 bg-primary-400"
+                : "border-neutral-600 group-hover:border-neutral-400",
             )}
           >
             {negate && <Check size={10} strokeWidth={3} />}
@@ -290,7 +290,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
             onChange={(e) => handleNegateChange(e.target.checked)}
             aria-label={t("customFormats.negate")}
           />
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">
+          <span className="text-xs text-neutral-400">
             {t("customFormats.negate")}
           </span>
         </label>
@@ -329,7 +329,7 @@ export function ConditionBuilder({ conditions, onChange }: ConditionBuilderProps
     <div className="flex flex-col gap-3">
       {/* Group header */}
       {conditions.length > 0 && (
-        <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+        <p className="text-xs font-medium text-neutral-400 uppercase tracking-wide">
           {t("customFormats.allOf")}
         </p>
       )}
@@ -348,7 +348,7 @@ export function ConditionBuilder({ conditions, onChange }: ConditionBuilderProps
       <button
         type="button"
         onClick={handleAdd}
-        className="flex items-center gap-1.5 self-start rounded-lg border border-dashed border-neutral-300 px-3 py-2 text-sm text-neutral-500 hover:border-neutral-400 hover:text-neutral-700 dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-neutral-300 transition-colors"
+        className="flex items-center gap-1.5 self-start rounded-lg border border-dashed px-3 py-2 text-sm border-neutral-600 text-neutral-400 hover:border-neutral-500 hover:text-neutral-300 transition-colors"
       >
         <Plus size={14} />
         {t("customFormats.addCondition")}

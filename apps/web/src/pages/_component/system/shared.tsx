@@ -16,7 +16,7 @@ export function gb(mib: number | null | undefined) {
 
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+    <h3 className="text-sm font-semibold text-neutral-100">
       {children}
     </h3>
   );
@@ -50,14 +50,14 @@ export function MetricRow({
   return (
     <div className="flex items-center gap-2.5 py-1.5">
       <StatusDot status={status} />
-      <span className="w-16 shrink-0 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+      <span className="w-16 shrink-0 text-xs font-medium text-neutral-300">
         {label}
       </span>
-      <span className="font-mono text-xs font-semibold tabular-nums text-zinc-800 dark:text-zinc-100">
+      <span className="font-mono text-xs font-semibold tabular-nums text-neutral-100">
         {value}
       </span>
       {sub && (
-        <span className="ml-auto font-mono text-[11px] text-zinc-500 dark:text-zinc-400 tabular-nums">
+        <span className="ml-auto font-mono text-[11px] text-neutral-400 tabular-nums">
           {sub}
         </span>
       )}
@@ -74,7 +74,7 @@ export function MiniBar({
 }) {
   const safe = Math.max(0, Math.min(100, pct));
   return (
-    <div className="h-[3px] w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden mt-0.5 mb-1">
+    <div className="h-[3px] w-full rounded-full bg-neutral-800 overflow-hidden mt-0.5 mb-1">
       <div
         className={`h-full rounded-full transition-all duration-700 ${accent}`}
         style={{ width: `${safe}%` }}

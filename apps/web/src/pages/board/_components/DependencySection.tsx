@@ -23,11 +23,11 @@ function DepList({
   const { t } = useTranslation("common");
   return (
     <div>
-      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-neutral-500">
         {label}
       </p>
       {items.length === 0 && (
-        <p className="text-[12px] text-neutral-400 dark:text-neutral-500">
+        <p className="text-[12px] text-neutral-500">
           {t("common.none")}
         </p>
       )}
@@ -36,7 +36,7 @@ function DepList({
           <span className="font-mono text-[10px] text-neutral-400">
             {dep.slug}
           </span>
-          <span className="flex-1 truncate text-[12px] text-neutral-700 dark:text-neutral-200">
+          <span className="flex-1 truncate text-[12px] text-neutral-200">
             {dep.title}
           </span>
           {"is_resolved" in dep && !dep.is_resolved && (
@@ -88,7 +88,7 @@ function AddDepInput({
 
   return (
     <div className="relative mt-2">
-      <div className="flex items-center gap-1.5 rounded-lg border border-dashed border-neutral-200 px-2 py-1.5 dark:border-neutral-700">
+      <div className="flex items-center gap-1.5 rounded-lg border border-dashed px-2 py-1.5 border-neutral-700">
         <Plus className="h-3 w-3 shrink-0 text-neutral-400" />
         <input
           value={query}
@@ -99,11 +99,11 @@ function AddDepInput({
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder={`Add "${label}" by slug or title…`}
-          className="flex-1 bg-transparent text-[12px] text-neutral-600 placeholder-neutral-400 outline-none dark:text-neutral-300"
+          className="flex-1 bg-transparent text-[12px] placeholder-neutral-400 outline-none text-neutral-300"
         />
       </div>
       {open && matches.length > 0 && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-full overflow-hidden rounded-lg border border-neutral-200/80 bg-white shadow-lg dark:border-neutral-700/60 dark:bg-neutral-800">
+        <div className="absolute left-0 top-full z-50 mt-1 w-full overflow-hidden rounded-lg border shadow-lg border-neutral-700/60 bg-neutral-800">
           {matches.map((t) => (
             <button
               key={t.id}
@@ -113,12 +113,12 @@ function AddDepInput({
                 setOpen(false);
               }}
               disabled={isPending}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-neutral-50 dark:hover:bg-neutral-700/60"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-neutral-700/60"
             >
               <span className="font-mono text-[10px] text-neutral-400">
                 {t.slug}
               </span>
-              <span className="truncate text-[12px] text-neutral-700 dark:text-neutral-200">
+              <span className="truncate text-[12px] text-neutral-200">
                 {t.title}
               </span>
             </button>
@@ -158,7 +158,7 @@ export function DependencySection({ task, allTasks }: DependencySectionProps) {
         />
       </div>
 
-      <div className="border-t border-neutral-100 pt-4 dark:border-neutral-800">
+      <div className="border-t pt-4 border-neutral-800">
         <DepList
           label="Blocked by"
           items={task.blocked_by}

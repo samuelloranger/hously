@@ -49,7 +49,7 @@ function ExploreCardHeroMeta({
       <h2
         className={cn(
           "text-xl font-semibold leading-snug",
-          heroBackdropUrl ? "text-white" : "text-neutral-900 dark:text-white",
+          heroBackdropUrl ? "text-white" : "text-white",
         )}
       >
         {item.title}
@@ -61,7 +61,7 @@ function ExploreCardHeroMeta({
             "text-sm italic leading-snug",
             heroBackdropUrl
               ? "text-white/85"
-              : "text-neutral-600 dark:text-neutral-400",
+              : "text-neutral-400",
           )}
         >
           {detailsData.tagline}
@@ -79,7 +79,7 @@ function ExploreCardHeroMeta({
               "text-xs",
               heroBackdropUrl
                 ? "text-white/75"
-                : "text-neutral-500 dark:text-neutral-400",
+                : "text-neutral-400",
             )}
           >
             {item.release_year}
@@ -91,7 +91,7 @@ function ExploreCardHeroMeta({
               "flex items-center gap-0.5 text-xs",
               heroBackdropUrl
                 ? "text-white/75"
-                : "text-neutral-500 dark:text-neutral-400",
+                : "text-neutral-400",
             )}
           >
             <Clock size={10} />
@@ -104,7 +104,7 @@ function ExploreCardHeroMeta({
               "flex items-center gap-0.5 text-xs",
               heroBackdropUrl
                 ? "text-white/75"
-                : "text-neutral-500 dark:text-neutral-400",
+                : "text-neutral-400",
             )}
           >
             <Film size={10} />
@@ -182,7 +182,7 @@ function ExploreCardHeroMeta({
               className={cn(
                 heroBackdropUrl
                   ? "text-white/90"
-                  : "text-neutral-700 dark:text-neutral-300",
+                  : "text-neutral-300",
               )}
             >
               {ratingsData.metacritic}
@@ -200,7 +200,7 @@ function ExploreCardHeroMeta({
                 "rounded-md px-1.5 py-0.5 text-[10px] font-medium",
                 heroBackdropUrl
                   ? "bg-white/15 text-white ring-1 ring-white/25"
-                  : "bg-neutral-200/90 text-neutral-700 dark:bg-neutral-700/70 dark:text-neutral-300",
+                  : "bg-neutral-700/70 text-neutral-300",
               )}
             >
               {g.name}
@@ -216,14 +216,14 @@ function ExploreCardHeroMeta({
               "text-xs",
               heroBackdropUrl
                 ? "text-white/80"
-                : "text-neutral-500 dark:text-neutral-400",
+                : "text-neutral-400",
             )}
           >
             <span
               className={
                 heroBackdropUrl
                   ? "text-white/55"
-                  : "text-neutral-400 dark:text-neutral-500"
+                  : "text-neutral-500"
               }
             >
               {t("medias.detail.releaseDate")}{" "}
@@ -241,7 +241,7 @@ function ExploreCardHeroMeta({
               "text-xs",
               heroBackdropUrl
                 ? "text-white/80"
-                : "text-neutral-500 dark:text-neutral-400",
+                : "text-neutral-400",
             )}
           >
             {[
@@ -264,14 +264,14 @@ function ExploreCardHeroMeta({
             "text-xs",
             heroBackdropUrl
               ? "text-white/80"
-              : "text-neutral-500 dark:text-neutral-400",
+              : "text-neutral-400",
           )}
         >
           <span
             className={
               heroBackdropUrl
                 ? "text-white/55"
-                : "text-neutral-400 dark:text-neutral-500"
+                : "text-neutral-500"
             }
           >
             {t("medias.detail.director")}{" "}
@@ -281,7 +281,7 @@ function ExploreCardHeroMeta({
               "font-medium",
               heroBackdropUrl
                 ? "text-white"
-                : "text-neutral-600 dark:text-neutral-300",
+                : "text-neutral-300",
             )}
           >
             {creditsData.directors.join(", ")}
@@ -297,7 +297,7 @@ function ExploreCardHeroMeta({
               "inline-flex min-w-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
               heroBackdropUrl
                 ? "border-white/30 bg-white/10 text-white"
-                : "border-primary-500/25 bg-primary-500/8 text-primary-600 dark:text-primary-400",
+                : "border-primary-500/25 bg-primary-500/8 text-primary-400",
             )}
           >
             <span className="shrink-0">
@@ -357,7 +357,7 @@ export function ExploreCardHero({
       {heroBackdropUrl ? (
         <>
           <div
-            className="absolute inset-0 bg-neutral-900 dark:bg-neutral-950"
+            className="absolute inset-0 bg-neutral-950"
             aria-hidden
           />
           <img
@@ -402,7 +402,7 @@ export function ExploreCardHero({
                 "w-[88px] rounded-xl object-cover shadow-md ring-1 transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none",
                 heroBackdropUrl
                   ? "ring-white/25"
-                  : "ring-black/10 dark:ring-white/10",
+                  : "ring-white/10",
                 posterLoaded
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-1",
@@ -417,10 +417,10 @@ export function ExploreCardHero({
                 heroVisualReady ? "opacity-100" : "opacity-80",
                 heroBackdropUrl
                   ? "bg-white/15 ring-1 ring-white/20"
-                  : "bg-neutral-200 dark:bg-neutral-700",
+                  : "bg-neutral-700",
               )}
             >
-              <Film className="w-7 h-7 text-neutral-400 dark:text-neutral-500" />
+              <Film className="w-7 h-7 text-neutral-500" />
             </div>
           )}
         </div>

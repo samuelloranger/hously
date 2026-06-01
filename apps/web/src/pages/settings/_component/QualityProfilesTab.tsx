@@ -60,13 +60,13 @@ export function QualityProfilesTab() {
       />
 
       {/* ── List ───────────────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden">
-        <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-700/60 flex flex-wrap items-center justify-between gap-3">
+      <div className="rounded-xl border border-neutral-700 bg-neutral-800 overflow-hidden">
+        <div className="px-6 py-4 border-b border-neutral-700/60 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            <h2 className="text-sm font-semibold text-neutral-100">
               {t("settings.qualityProfiles.listTitle")}
             </h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            <p className="text-xs text-neutral-400 mt-0.5">
               {t("settings.qualityProfiles.listDescription")}
             </p>
           </div>
@@ -75,7 +75,7 @@ export function QualityProfilesTab() {
               {t("settings.qualityProfiles.create")}
             </Button>
             {profiles.length > 0 && (
-              <span className="rounded-full bg-neutral-100 dark:bg-neutral-700 px-2.5 py-0.5 text-xs font-medium text-neutral-600 dark:text-neutral-300 tabular-nums">
+              <span className="rounded-full bg-neutral-700 px-2.5 py-0.5 text-xs font-medium text-neutral-300 tabular-nums">
                 {profiles.length}
               </span>
             )}
@@ -86,11 +86,11 @@ export function QualityProfilesTab() {
           {isLoading ? (
             <LoadingState />
           ) : error ? (
-            <p className="text-sm text-red-600 dark:text-red-400 px-2">
+            <p className="text-sm text-red-400 px-2">
               {t("settings.qualityProfiles.loadError")}
             </p>
           ) : profiles.length === 0 ? (
-            <p className="text-sm text-neutral-400 dark:text-neutral-500 px-2 py-4 text-center">
+            <p className="text-sm text-neutral-500 px-2 py-4 text-center">
               {t("settings.qualityProfiles.empty")}
             </p>
           ) : (
@@ -101,26 +101,26 @@ export function QualityProfilesTab() {
                   className={cn(
                     "rounded-lg border px-4 py-3 flex items-start justify-between gap-4 transition-colors",
                     draft?.kind === "edit" && draft.id === p.id
-                      ? "border-primary-200 bg-primary-50/50 dark:border-primary-700/50 dark:bg-primary-500/5"
-                      : "border-neutral-100 dark:border-neutral-700/60 hover:border-neutral-200 dark:hover:border-neutral-600",
+                      ? "border-primary-700/50 bg-primary-500/5"
+                      : "border-neutral-700/60 hover:border-neutral-600",
                   )}
                 >
                   <div className="min-w-0 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                      <p className="text-sm font-medium text-neutral-100">
                         {p.name}
                       </p>
-                      <span className="rounded-md bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 text-xs font-semibold tracking-wide text-neutral-600 dark:text-neutral-300">
+                      <span className="rounded-md bg-neutral-700 px-1.5 py-0.5 text-xs font-semibold tracking-wide text-neutral-300">
                         {p.min_resolution}p
                         {p.cutoff_resolution ? `→${p.cutoff_resolution}p` : ""}
                       </span>
                       {p.require_hdr && (
-                        <span className="rounded-md bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+                        <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-xs font-medium text-amber-300">
                           {t("settings.qualityProfiles.hdrRequired")}
                         </span>
                       )}
                       {!p.require_hdr && p.prefer_hdr && (
-                        <span className="rounded-md bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                        <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-400">
                           {t("settings.qualityProfiles.hdrPreferred")}
                         </span>
                       )}
@@ -129,7 +129,7 @@ export function QualityProfilesTab() {
                       {p.preferred_sources.map((s) => (
                         <span
                           key={s}
-                          className="rounded-md bg-primary-50 dark:bg-primary-500/10 px-1.5 py-0.5 text-xs font-medium text-primary-600 dark:text-primary-400"
+                          className="rounded-md bg-primary-500/10 px-1.5 py-0.5 text-xs font-medium text-primary-400"
                         >
                           {s}
                         </span>
@@ -137,7 +137,7 @@ export function QualityProfilesTab() {
                       {p.preferred_codecs.map((c) => (
                         <span
                           key={c}
-                          className="rounded-md bg-sky-50 dark:bg-sky-500/10 px-1.5 py-0.5 text-xs font-medium text-sky-600 dark:text-sky-400"
+                          className="rounded-md bg-sky-500/10 px-1.5 py-0.5 text-xs font-medium text-sky-400"
                         >
                           {c}
                         </span>
@@ -145,14 +145,14 @@ export function QualityProfilesTab() {
                       {p.preferred_languages.map((l) => (
                         <span
                           key={l}
-                          className="rounded-md bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                          className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-xs font-medium text-emerald-400"
                         >
                           {LANGUAGE_OPTIONS.find((o) => o.value === l)?.label ??
                             l}
                         </span>
                       ))}
                       {p.max_size_gb != null && (
-                        <span className="rounded-md bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                        <span className="rounded-md bg-neutral-700 px-1.5 py-0.5 text-xs font-medium text-neutral-400">
                           ≤ {p.max_size_gb} Go
                         </span>
                       )}
@@ -171,8 +171,8 @@ export function QualityProfilesTab() {
                       className={cn(
                         "rounded-md p-1.5 transition-colors",
                         draft?.kind === "edit" && draft.id === p.id
-                          ? "bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400"
-                          : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300",
+                          ? "bg-primary-500/20 text-primary-400"
+                          : "text-neutral-400 hover:bg-neutral-700 hover:text-neutral-300",
                       )}
                       title={t("settings.qualityProfiles.edit")}
                     >
@@ -181,7 +181,7 @@ export function QualityProfilesTab() {
                     <button
                       type="button"
                       onClick={() => void onDelete(p)}
-                      className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-colors"
+                      className="rounded-md p-1.5 text-neutral-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
                       title={t("settings.qualityProfiles.delete")}
                     >
                       <Trash2 size={13} />

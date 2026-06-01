@@ -40,7 +40,7 @@ export function ServiceCard({
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="bg-white dark:bg-neutral-800/60 rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+      className="bg-neutral-800/60 rounded-xl border border-neutral-700 overflow-hidden"
     >
       <CollapsibleTrigger asChild>
         <button className="w-full text-left">

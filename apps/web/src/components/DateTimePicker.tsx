@@ -119,7 +119,7 @@ export function DateTimePicker({
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal",
-            !date && "text-neutral-500 dark:text-neutral-400",
+            !date && "text-neutral-400",
             className,
           )}
         >
@@ -128,7 +128,7 @@ export function DateTimePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="bg-white dark:bg-neutral-700 w-auto p-0"
+        className="bg-neutral-700 w-auto p-0"
         align="start"
         side="top"
       >
@@ -143,7 +143,7 @@ export function DateTimePicker({
             }}
           />
           {!allDay && (
-            <div className="w-full flex items-center justify-center border-t border-neutral-200 dark:border-neutral-700 pt-4">
+            <div className="w-full flex items-center justify-center border-t border-neutral-700 pt-4">
               <TimePicker
                 hours={time.hours}
                 minutes={time.minutes}

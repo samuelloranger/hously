@@ -97,9 +97,9 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
   };
 
   const inputClass =
-    "w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-primary-500";
+    "w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-200 focus:outline-none focus:ring-1 focus:ring-primary-500";
   const labelClass =
-    "text-[10px] font-medium text-neutral-500 dark:text-neutral-400";
+    "text-[10px] font-medium text-neutral-400";
 
   return (
     <Card>
@@ -109,19 +109,19 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
           if (!open) setFormState(initialState);
           setOpen((v) => !v);
         }}
-        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors"
+        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-neutral-800/40 transition-colors"
       >
         <Pencil
           size={11}
-          className="text-neutral-400 dark:text-neutral-500 shrink-0"
+          className="text-neutral-500 shrink-0"
         />
-        <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+        <span className="text-xs font-medium text-neutral-300">
           {t("library.management.editInfo.title", "Edit info")}
         </span>
       </button>
 
       {open && (
-        <div className="px-4 pb-4 space-y-3 border-t border-neutral-100 dark:border-neutral-800 pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t border-neutral-800 pt-3">
           <div className="space-y-1">
             <div className="flex items-center gap-1">
               <span className={labelClass}>
@@ -264,7 +264,7 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+              className="text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
             >
               {t("common.cancel")}
             </button>

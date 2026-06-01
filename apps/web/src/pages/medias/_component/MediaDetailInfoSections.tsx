@@ -38,7 +38,7 @@ function Section({
 }) {
   return (
     <div>
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
         {title}
       </p>
       <div className="flex flex-col gap-2">{children}</div>
@@ -50,8 +50,8 @@ function FactLine({ label, value }: { label: string; value: ReactNode }) {
   if (value == null || value === "") return null;
   return (
     <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-sm">
-      <span className="text-neutral-500 dark:text-neutral-500">{label}</span>
-      <span className="min-w-0 text-neutral-800 dark:text-neutral-200">
+      <span className="text-neutral-500">{label}</span>
+      <span className="min-w-0 text-neutral-200">
         {value}
       </span>
     </div>
@@ -64,7 +64,7 @@ function OutLink({ href, label }: { href: string; label: string }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 hover:underline dark:text-sky-400"
+      className="inline-flex items-center gap-1 text-sm font-medium hover:underline text-sky-400"
     >
       {label}
       <ExternalLink size={12} className="shrink-0 opacity-70" />
@@ -167,14 +167,14 @@ export function MediaDetailInfoSections({
           )}
           {companies.length > 0 && (
             <div>
-              <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">
+              <p className="mb-1.5 text-xs text-neutral-500">
                 {t("medias.detail.companies")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {companies.map((c) => (
                   <span
                     key={c.id}
-                    className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-neutral-200/80 bg-white/80 px-2 py-1 text-xs text-neutral-800 dark:border-neutral-700/60 dark:bg-neutral-900/50 dark:text-neutral-200"
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-lg border px-2 py-1 text-xs border-neutral-700/60 bg-neutral-900/50 text-neutral-200"
                   >
                     {c.logo_url ? (
                       <img
@@ -230,14 +230,14 @@ export function MediaDetailInfoSections({
         <Section title={t("medias.detail.sections.tv")}>
           {nets.length > 0 && (
             <div>
-              <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">
+              <p className="mb-1.5 text-xs text-neutral-500">
                 {t("medias.detail.networks")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {nets.map((n) => (
                   <span
                     key={n.id}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200/80 bg-white/80 px-2 py-1 text-xs dark:border-neutral-700/60 dark:bg-neutral-900/50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs border-neutral-700/60 bg-neutral-900/50"
                   >
                     {n.logo_url ? (
                       <img
@@ -254,7 +254,7 @@ export function MediaDetailInfoSections({
           )}
           {creators.length > 0 && (
             <div>
-              <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">
+              <p className="mb-1.5 text-xs text-neutral-500">
                 {t("medias.detail.createdBy")}
               </p>
               <div className="flex flex-wrap gap-3">
@@ -267,11 +267,11 @@ export function MediaDetailInfoSections({
                         className="h-9 w-9 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700">
-                        <UserCircle className="w-5 h-5 text-neutral-400 dark:text-neutral-500" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-700">
+                        <UserCircle className="w-5 h-5 text-neutral-500" />
                       </div>
                     )}
-                    <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                    <span className="font-medium text-neutral-200">
                       {c.name}
                     </span>
                   </div>
@@ -286,14 +286,14 @@ export function MediaDetailInfoSections({
             />
           )}
           {details.next_episode_to_air && (
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm dark:bg-emerald-500/10">
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+            <div className="rounded-lg border border-emerald-500/20 px-3 py-2 text-sm bg-emerald-500/10">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
                 {t("medias.detail.nextEpisode")}
               </p>
-              <p className="font-medium text-neutral-900 dark:text-neutral-100">
+              <p className="font-medium text-neutral-100">
                 {details.next_episode_to_air.name ?? "—"}
               </p>
-              <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+              <p className="mt-0.5 text-xs text-neutral-400">
                 {[
                   details.next_episode_to_air.season_number != null &&
                   details.next_episode_to_air.episode_number != null
@@ -310,14 +310,14 @@ export function MediaDetailInfoSections({
             </div>
           )}
           {details.last_episode_to_air && (
-            <div className="rounded-lg border border-neutral-200/80 bg-neutral-50/80 px-3 py-2 text-sm dark:border-neutral-700/60 dark:bg-neutral-900/40">
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+            <div className="rounded-lg border px-3 py-2 text-sm border-neutral-700/60 bg-neutral-900/40">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
                 {t("medias.detail.lastEpisode")}
               </p>
-              <p className="font-medium text-neutral-900 dark:text-neutral-100">
+              <p className="font-medium text-neutral-100">
                 {details.last_episode_to_air.name ?? "—"}
               </p>
-              <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+              <p className="mt-0.5 text-xs text-neutral-400">
                 {[
                   details.last_episode_to_air.season_number != null &&
                   details.last_episode_to_air.episode_number != null

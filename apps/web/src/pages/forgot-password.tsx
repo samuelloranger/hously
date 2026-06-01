@@ -47,19 +47,19 @@ function ForgotPasswordPage() {
         <div className="max-w-md w-full space-y-8">
           <div>
             <div className="mx-auto h-12 w-12 flex items-center justify-center">
-              <Mail className="w-10 h-10 text-primary-600 dark:text-primary-400" />
+              <Mail className="w-10 h-10 text-primary-400" />
             </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
               {t("forgotPassword.checkEmail")}
             </h2>
-            <p className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="mt-4 text-center text-sm text-neutral-400">
               {t("forgotPassword.emailSent")}
             </p>
           </div>
           <div className="text-center">
             <Link
               to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+              className="font-medium text-primary-400 hover:text-primary-300"
             >
               {t("forgotPassword.backToLogin")}
             </Link>
@@ -74,12 +74,12 @@ function ForgotPasswordPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center">
-            <KeyRound className="w-10 h-10 text-primary-600 dark:text-primary-400" />
+            <KeyRound className="w-10 h-10 text-primary-400" />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             {t("forgotPassword.title")}
           </h2>
-          <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mt-2 text-center text-sm text-neutral-400">
             {t("forgotPassword.description")}
           </p>
         </div>
@@ -92,7 +92,7 @@ function ForgotPasswordPage() {
               id="email"
               type="email"
               autoComplete="email"
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-neutral-600 placeholder-neutral-400 text-white bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
               placeholder={t("login.email")}
               {...register("email", {
                 required: true,
@@ -103,7 +103,7 @@ function ForgotPasswordPage() {
               })}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <p className="mt-1 text-sm text-red-400">
                 {errors.email.message || t("login.emailRequired")}
               </p>
             )}
@@ -124,7 +124,7 @@ function ForgotPasswordPage() {
           <div className="text-center">
             <Link
               to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+              className="font-medium text-primary-400 hover:text-primary-300"
             >
               {t("forgotPassword.backToLogin")}
             </Link>

@@ -15,13 +15,13 @@ function ChoreRow({
   description?: string | null;
 }) {
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-      <span className="w-4 h-4 rounded border-2 border-zinc-300 dark:border-zinc-600 shrink-0" />
-      <span className="flex-1 text-sm font-medium text-zinc-700 dark:text-zinc-200 truncate">
+    <div className="flex items-center gap-3 py-2 border-b border-neutral-800 last:border-0">
+      <span className="w-4 h-4 rounded border-2 border-neutral-600 shrink-0" />
+      <span className="flex-1 text-sm font-medium text-neutral-200 truncate">
         {name}
       </span>
       {description && (
-        <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[140px]">
+        <span className="text-xs text-neutral-400 truncate max-w-[140px]">
           {description}
         </span>
       )}
@@ -38,18 +38,18 @@ export function ChoresPanel() {
   );
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden h-full">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden h-full">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-emerald-500 shrink-0" />
           <ListChecks
-            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            className="w-4 h-4 shrink-0 text-neutral-400"
             strokeWidth={2}
           />
-          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+          <h3 className="text-sm font-semibold text-neutral-100">
             {t("nav.chores")}
             {pendingChores.length > 0 && (
-              <span className="ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400">
+              <span className="ml-2 text-xs font-normal text-neutral-400">
                 {t("dashboard.home.choresPending", {
                   count: pendingChores.length,
                 })}
@@ -59,7 +59,7 @@ export function ChoresPanel() {
         </div>
         <Link
           to="/chores"
-          className="flex items-center gap-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+          className="flex items-center gap-0.5 text-xs font-medium text-neutral-400 hover:text-emerald-400 transition-colors"
         >
           {t("dashboard.view")}
           <ChevronRight size={12} />
@@ -72,13 +72,13 @@ export function ChoresPanel() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-5 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                className="h-5 rounded bg-neutral-800 animate-pulse"
               />
             ))}
           </div>
         ) : pendingChores.length === 0 ? (
           <div className="py-6 text-center">
-            <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-neutral-400">
               <CheckCircle size={14} className="text-green-500" />
               {t("dashboard.home.choresAllCaughtUp")}
             </p>
@@ -95,7 +95,7 @@ export function ChoresPanel() {
             {pendingChores.length > 7 && (
               <Link
                 to="/chores"
-                className="block py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                className="block py-2 text-xs font-medium text-neutral-400 hover:text-emerald-400 transition-colors"
               >
                 {t("dashboard.home.choresMore", {
                   count: pendingChores.length - 7,
@@ -129,18 +129,18 @@ export function HabitsPanel() {
   ).length;
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-orange-500 shrink-0" />
           <Target
-            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            className="w-4 h-4 shrink-0 text-neutral-400"
             strokeWidth={2}
           />
-          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+          <h3 className="text-sm font-semibold text-neutral-100">
             {t("dashboard.home.habitsToday")}
             {habits.length > 0 && (
-              <span className="ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400">
+              <span className="ml-2 text-xs font-normal text-neutral-400">
                 {doneCount}/{habits.length}
               </span>
             )}
@@ -148,7 +148,7 @@ export function HabitsPanel() {
         </div>
         <Link
           to="/habits"
-          className="flex items-center gap-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+          className="flex items-center gap-0.5 text-xs font-medium text-neutral-400 hover:text-orange-400 transition-colors"
         >
           {t("dashboard.view")}
           <ChevronRight size={12} />
@@ -161,7 +161,7 @@ export function HabitsPanel() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-6 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                className="h-6 rounded bg-neutral-800 animate-pulse"
               />
             ))}
           </div>
@@ -173,7 +173,7 @@ export function HabitsPanel() {
             return (
               <div
                 key={habit.id}
-                className="flex items-center gap-3 py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0"
+                className="flex items-center gap-3 py-2.5 border-b border-neutral-800 last:border-0"
               >
                 <span className="text-base leading-none shrink-0">
                   {habit.emoji}
@@ -181,8 +181,8 @@ export function HabitsPanel() {
                 <span
                   className={`flex-1 text-sm font-medium truncate ${
                     allDone
-                      ? "line-through text-zinc-400 dark:text-zinc-600"
-                      : "text-zinc-700 dark:text-zinc-200"
+                      ? "line-through text-neutral-600"
+                      : "text-neutral-200"
                   }`}
                 >
                   {habit.name}
@@ -193,8 +193,8 @@ export function HabitsPanel() {
                       key={i}
                       className={`w-2.5 h-2.5 rounded-full transition-colors ${
                         i < done
-                          ? "bg-orange-500 dark:bg-orange-400"
-                          : "bg-zinc-200 dark:bg-zinc-700"
+                          ? "bg-orange-400"
+                          : "bg-neutral-700"
                       }`}
                     />
                   ))}

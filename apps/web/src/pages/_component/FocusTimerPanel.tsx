@@ -119,14 +119,14 @@ export function FocusTimerPanel() {
   const activeColor = PRESETS[preset].color;
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-neutral-800">
         <span className={cn("w-1 h-4 rounded-full shrink-0", activeColor)} />
         <Timer
-          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          className="w-4 h-4 shrink-0 text-neutral-400"
           strokeWidth={2}
         />
-        <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+        <h3 className="text-sm font-semibold text-neutral-100">
           {t("dashboard.focusTimer.title")}
         </h3>
       </div>
@@ -142,7 +142,7 @@ export function FocusTimerPanel() {
                 "px-3 py-1 text-xs font-semibold rounded-full transition-colors",
                 preset === idx
                   ? cn(p.color, "text-white")
-                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700",
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700",
               )}
             >
               {t(`dashboard.focusTimer.preset${p.label}`)} {p.minutes}m
@@ -164,7 +164,7 @@ export function FocusTimerPanel() {
               r="36"
               fill="none"
               stroke="currentColor"
-              className="text-zinc-100 dark:text-zinc-800"
+              className="text-neutral-800"
               strokeWidth="6"
             />
             <circle
@@ -186,7 +186,7 @@ export function FocusTimerPanel() {
           <span
             className={cn(
               "absolute text-2xl font-bold tabular-nums tracking-tight",
-              done ? "text-emerald-500" : "text-zinc-800 dark:text-zinc-100",
+              done ? "text-emerald-500" : "text-neutral-100",
             )}
           >
             {done ? t("dashboard.focusTimer.done") : formatTime(remaining)}
@@ -197,7 +197,7 @@ export function FocusTimerPanel() {
         <div className="flex items-center gap-3">
           <button
             onClick={reset}
-            className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="p-2 rounded-lg text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
             title={t("dashboard.focusTimer.reset")}
           >
             <RotateCcw size={16} />

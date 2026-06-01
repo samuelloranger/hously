@@ -57,9 +57,9 @@ function StatsRow({
   if (isLoading) {
     return (
       <div className="flex items-center gap-4">
-        <div className="h-4 w-24 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+        <div className="h-4 w-24 rounded-full bg-neutral-800 animate-pulse" />
         <div
-          className="h-4 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+          className="h-4 w-20 rounded-full bg-neutral-800 animate-pulse"
           style={{ animationDelay: "80ms" }}
         />
       </div>
@@ -76,14 +76,14 @@ function StatsRow({
       label: t("dashboard.home.statsEventsToday", {
         count: stats.events_today,
       }),
-      color: "hover:text-amber-600 dark:hover:text-amber-400",
+      color: "hover:text-amber-400",
     },
     {
       href: "/chores" as const,
       icon: <CheckSquare2 size={11} />,
       value: stats.chores_count,
       label: t("dashboard.home.statsChores", { count: stats.chores_count }),
-      color: "hover:text-emerald-600 dark:hover:text-emerald-400",
+      color: "hover:text-emerald-400",
     },
   ].filter((c) => c.value > 0);
 
@@ -97,7 +97,7 @@ function StatsRow({
         <Link
           key={chip.href}
           to={chip.href}
-          className={`flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 transition-colors ${chip.color}`}
+          className={`flex items-center gap-1.5 text-sm text-neutral-400 transition-colors ${chip.color}`}
         >
           {chip.icon}
           <span className="font-mono font-semibold tabular-nums">
@@ -107,7 +107,7 @@ function StatsRow({
         </Link>
       ))}
       {streak > 0 && (
-        <span className="flex items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <span className="flex items-center gap-1 text-sm text-neutral-400">
           <Flame size={11} className="text-orange-400" />
           <span className="font-mono font-semibold tabular-nums text-orange-500">
             {t("dashboard.home.streakDays", { count: streak })}

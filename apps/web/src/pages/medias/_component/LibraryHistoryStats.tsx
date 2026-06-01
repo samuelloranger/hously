@@ -11,7 +11,7 @@ import {
 } from "./LibraryHistoryCharts";
 
 const panelClassName =
-  "rounded-lg border border-neutral-100 bg-neutral-50/70 dark:border-neutral-700/60 dark:bg-neutral-900/50";
+  "rounded-lg border border-neutral-700/60 bg-neutral-900/50";
 
 // ─── Stats section components ─────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ export function StatCard({
 }) {
   return (
     <Card className={cn(panelClassName, "px-4 py-3")}>
-      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400">
+      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
         {label}
       </p>
       <p className={cn("mt-1 text-2xl font-bold tabular-nums", color)}>
@@ -50,7 +50,7 @@ export function StatsSection() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+              className="h-20 rounded-lg bg-neutral-800 animate-pulse"
             />
           ))}
         </div>
@@ -58,7 +58,7 @@ export function StatsSection() {
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="h-28 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+              className="h-28 rounded-lg bg-neutral-800 animate-pulse"
             />
           ))}
         </div>
@@ -77,36 +77,36 @@ export function StatsSection() {
         <StatCard
           label={t("medias.history.statTotal")}
           value={stats.total_grabs.toLocaleString()}
-          color="text-neutral-800 dark:text-neutral-100"
+          color="text-neutral-100"
         />
         <StatCard
           label={t("medias.history.statCompleted")}
           value={stats.completed_grabs.toLocaleString()}
-          color="text-emerald-600 dark:text-emerald-400"
+          color="text-emerald-400"
         />
         <StatCard
           label={t("medias.history.statFailed")}
           value={stats.failed_grabs.toLocaleString()}
           color={
             stats.failed_grabs > 0
-              ? "text-rose-600 dark:text-rose-400"
-              : "text-neutral-800 dark:text-neutral-100"
+              ? "text-rose-400"
+              : "text-neutral-100"
           }
         />
         <StatCard
           label={t("medias.history.statActive")}
           value={stats.active_grabs.toLocaleString()}
-          color="text-sky-600 dark:text-sky-400"
+          color="text-sky-400"
         />
         <StatCard
           label={t("medias.history.statSuccessRate")}
           value={stats.success_rate !== null ? `${stats.success_rate}%` : "—"}
           color={
             stats.success_rate != null && stats.success_rate >= 80
-              ? "text-emerald-600 dark:text-emerald-400"
+              ? "text-emerald-400"
               : stats.success_rate != null && stats.success_rate >= 50
-                ? "text-amber-600 dark:text-amber-400"
-                : "text-neutral-800 dark:text-neutral-100"
+                ? "text-amber-400"
+                : "text-neutral-100"
           }
         />
       </div>
@@ -118,7 +118,7 @@ export function StatsSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {stats.top_indexers.length > 0 && (
             <Card className={cn(panelClassName, "px-4 py-3 space-y-2")}>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400 flex items-center gap-1.5">
                 <TrendingUp size={10} />
                 {t("medias.history.topIndexers")}
               </p>
@@ -127,12 +127,12 @@ export function StatsSection() {
           )}
           {stats.grabs_by_day.length > 0 && (
             <Card className={cn(panelClassName, "px-4 py-3 space-y-2")}>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400 flex items-center gap-1.5">
                 <Activity size={10} />
                 {t("medias.history.last14Days")}
               </p>
               <GrabsAreaChart data={stats.grabs_by_day} />
-              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">
+              <p className="text-[10px] text-neutral-500">
                 {stats.grabs_by_day
                   .reduce((s, d) => s + d.count, 0)
                   .toLocaleString()}{" "}

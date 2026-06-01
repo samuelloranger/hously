@@ -41,24 +41,24 @@ export function HistoryRow({
   const { t } = useTranslation("common");
 
   const statusEl = item.failed ? (
-    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/30 rounded-full px-2 py-0.5 shrink-0 whitespace-nowrap">
+    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-rose-300 bg-rose-900/30 rounded-full px-2 py-0.5 shrink-0 whitespace-nowrap">
       <XCircle size={9} />
       {t("library.download.failed")}
     </span>
   ) : item.completed_at ? (
-    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 rounded-full px-2 py-0.5 shrink-0 whitespace-nowrap">
+    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300 bg-emerald-900/30 rounded-full px-2 py-0.5 shrink-0 whitespace-nowrap">
       <CheckCircle2 size={9} />
       {t("library.download.done")}
     </span>
   ) : (
-    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/30 rounded-full px-2 py-0.5 shrink-0 whitespace-nowrap">
+    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-sky-300 bg-sky-900/30 rounded-full px-2 py-0.5 shrink-0 whitespace-nowrap">
       <Clock size={9} />
       {t("library.download.active")}
     </span>
   );
 
   return (
-    <div className="px-4 py-3 flex items-start gap-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
+    <div className="px-4 py-3 flex items-start gap-3 hover:bg-neutral-800/40 transition-colors">
       <div className="min-w-0 flex-1 space-y-0.5">
         {item.media_title && (
           <div className="flex items-center gap-1.5">
@@ -71,25 +71,25 @@ export function HistoryRow({
               <Link
                 to="/library/$libraryId"
                 params={{ libraryId: String(item.media_id) }}
-                className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors truncate"
+                className="text-[11px] font-semibold text-neutral-200 hover:text-primary-400 transition-colors truncate"
               >
                 {item.media_title}
               </Link>
             ) : (
-              <span className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-200 truncate">
+              <span className="text-[11px] font-semibold text-neutral-200 truncate">
                 {item.media_title}
               </span>
             )}
           </div>
         )}
         <p
-          className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate font-mono"
+          className="text-[11px] text-neutral-400 truncate font-mono"
           title={item.release_title}
         >
           {item.release_title}
         </p>
         {(item.fail_reason || item.post_process_error) && (
-          <p className="text-[10px] text-rose-600 dark:text-rose-400 truncate">
+          <p className="text-[10px] text-rose-400 truncate">
             {item.fail_reason ?? item.post_process_error}
           </p>
         )}
@@ -97,7 +97,7 @@ export function HistoryRow({
 
       <div className="flex flex-col items-end gap-1 shrink-0">
         {statusEl}
-        <div className="flex items-center gap-2 text-[10px] text-neutral-400 dark:text-neutral-500">
+        <div className="flex items-center gap-2 text-[10px] text-neutral-500">
           {item.indexer && <span>{item.indexer}</span>}
           <span className="font-mono">
             {formatRelativeShort(item.grabbed_at)}

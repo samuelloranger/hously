@@ -48,7 +48,7 @@ function formatCountdown(isoString: string, now: number): string {
 
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">
+    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-400">
       {children}
     </span>
   );
@@ -137,15 +137,15 @@ export function RssStatusPanel() {
   const buttonDisabled = isCoolingDown || isPolling || triggerRss.isPending;
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-neutral-800">
         <span className="w-1 h-4 rounded-full bg-orange-400 shrink-0" />
         <Rss
-          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          className="w-4 h-4 shrink-0 text-neutral-400"
           strokeWidth={2}
         />
-        <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+        <h3 className="text-sm font-semibold text-neutral-100">
           {t("dashboard.rss.title")}
         </h3>
         <button
@@ -155,7 +155,7 @@ export function RssStatusPanel() {
           }}
           disabled={buttonDisabled}
           aria-label={t("dashboard.rss.checkNow")}
-          className="ml-auto flex items-center gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="ml-auto flex items-center gap-1 text-xs font-medium text-neutral-400 hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isPolling ? (
             <Loader2 className="w-3 h-3 animate-spin" />
@@ -177,16 +177,16 @@ export function RssStatusPanel() {
         {isLoading && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <div className="h-2 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+              <div className="h-2 w-16 rounded-full bg-neutral-800 animate-pulse" />
               <div className="flex items-center justify-between gap-3">
-                <div className="h-3.5 w-20 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-                <div className="h-5 w-14 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+                <div className="h-3.5 w-20 rounded bg-neutral-800 animate-pulse" />
+                <div className="h-5 w-14 rounded-full bg-neutral-800 animate-pulse" />
               </div>
-              <div className="h-2.5 w-40 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+              <div className="h-2.5 w-40 rounded-full bg-neutral-800 animate-pulse" />
             </div>
             <div className="space-y-2">
-              <div className="h-2 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-              <div className="h-3.5 w-16 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+              <div className="h-2 w-10 rounded-full bg-neutral-800 animate-pulse" />
+              <div className="h-3.5 w-16 rounded bg-neutral-800 animate-pulse" />
             </div>
           </div>
         )}
@@ -196,23 +196,23 @@ export function RssStatusPanel() {
           <div>
             <Kicker>{t("dashboard.rss.lastRun")}</Kicker>
             {!lastRun && (
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="mt-1 text-sm text-neutral-400">
                 {t("dashboard.rss.neverRan")}
               </p>
             )}
             {lastRun && (
               <div className="mt-1.5 space-y-1">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-zinc-700 dark:text-zinc-200 font-mono tabular-nums">
+                  <span className="text-sm text-neutral-200 font-mono tabular-nums">
                     {formatRelative(lastRun.completed_at, now)}
                   </span>
                   {lastRun.status === "success" ? (
-                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 rounded-full px-2 py-0.5">
+                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300 bg-emerald-900/30 rounded-full px-2 py-0.5">
                       <CheckCircle2 size={10} />
                       {t("dashboard.rss.statusOk")}
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/30 rounded-full px-2 py-0.5">
+                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-rose-300 bg-rose-900/30 rounded-full px-2 py-0.5">
                       <XCircle size={10} />
                       {t("dashboard.rss.statusError")}
                     </span>
@@ -220,14 +220,14 @@ export function RssStatusPanel() {
                 </div>
                 {lastRun.status === "error" && lastRun.error && (
                   <p
-                    className="text-xs text-rose-600 dark:text-rose-400 truncate"
+                    className="text-xs text-rose-400 truncate"
                     title={lastRun.error}
                   >
                     {lastRun.error}
                   </p>
                 )}
                 {lastRun.status === "success" && (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-neutral-400">
                     {t("dashboard.rss.releasesFound", {
                       count: lastRun.releases_found,
                     })}
@@ -235,7 +235,7 @@ export function RssStatusPanel() {
                       <>
                         {" "}
                         ·{" "}
-                        <span className="text-sky-600 dark:text-sky-400 font-medium">
+                        <span className="text-sky-400 font-medium">
                           {t("dashboard.rss.releasesGrabbed", {
                             count: lastRun.releases_grabbed,
                           })}
@@ -267,10 +267,10 @@ export function RssStatusPanel() {
               {lastRun.indexers.map((idx) => (
                 <span
                   key={idx.name}
-                  className="text-xs text-zinc-600 dark:text-zinc-300"
+                  className="text-xs text-neutral-300"
                 >
                   <span className="font-medium">{idx.name}</span>
-                  <span className="font-mono tabular-nums text-zinc-500 dark:text-zinc-400">
+                  <span className="font-mono tabular-nums text-neutral-400">
                     {" "}
                     {idx.releases_found}
                   </span>
@@ -285,12 +285,12 @@ export function RssStatusPanel() {
           <div>
             <Kicker>{t("dashboard.rss.nextRun")}</Kicker>
             {isExecuting ? (
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-orange-500 dark:text-orange-400 font-medium">
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-orange-400 font-medium">
                 <Loader2 size={13} className="animate-spin" />
                 {t("dashboard.rss.executing")}
               </p>
             ) : (
-              <p className="mt-1 text-sm font-mono tabular-nums text-zinc-700 dark:text-zinc-200">
+              <p className="mt-1 text-sm font-mono tabular-nums text-neutral-200">
                 {formatCountdown(nextRunAt, now)}
               </p>
             )}
@@ -301,7 +301,7 @@ export function RssStatusPanel() {
       {/* Footer */}
       <Link
         to="/library"
-        className="block px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors border-t border-zinc-100 dark:border-zinc-800 text-center"
+        className="block px-4 py-2.5 text-xs font-medium text-neutral-400 hover:text-orange-400 transition-colors border-t border-neutral-800 text-center"
       >
         {t("dashboard.rss.openLibraryLink")}
       </Link>

@@ -177,23 +177,23 @@ export function InteractiveSearchMobileDrawer({
               stiffness: 380,
               mass: 0.9,
             }}
-            className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[88dvh] flex-col rounded-t-2xl bg-white shadow-2xl dark:bg-neutral-900"
+            className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[88dvh] flex-col rounded-t-2xl shadow-2xl bg-neutral-900"
           >
             {/* Drag handle */}
             <div className="flex shrink-0 justify-center pb-1 pt-3">
-              <div className="h-1 w-10 rounded-full bg-neutral-200 dark:bg-neutral-700" />
+              <div className="h-1 w-10 rounded-full bg-neutral-700" />
             </div>
 
             {/* Header */}
-            <div className="flex shrink-0 items-center justify-between border-b border-neutral-100 px-5 py-3 dark:border-neutral-800">
-              <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            <div className="flex shrink-0 items-center justify-between border-b px-5 py-3 border-neutral-800">
+              <span className="text-sm font-semibold text-neutral-100">
                 {t("medias.interactive.filtersTitle")}
               </span>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label={t("common.close")}
-                className="rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+                className="rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
               >
                 <X size={15} />
               </button>
@@ -218,14 +218,14 @@ export function InteractiveSearchMobileDrawer({
               {/* Status strip */}
               {!needsSearchQuery && (
                 <section className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                  <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                  <span className="text-sm font-semibold text-neutral-200">
                     {t("medias.interactive.resultsVisible", {
                       visible: visibleCount,
                       total: totalReleases,
                     })}
                   </span>
                   {hiddenCount > 0 && (
-                    <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                    <span className="rounded-md px-2 py-0.5 text-xs bg-neutral-800 text-neutral-400">
                       {t("medias.interactive.hiddenCount", {
                         count: hiddenCount,
                       })}
@@ -244,7 +244,7 @@ export function InteractiveSearchMobileDrawer({
                       />
                     ) : (
                       <span
-                        className="truncate rounded-md bg-neutral-100 px-2 py-1 font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                        className="truncate rounded-md px-2 py-1 font-medium bg-neutral-800 text-neutral-200"
                         title={searchApiQuery}
                       >
                         {searchApiQuery || "…"}
@@ -257,7 +257,7 @@ export function InteractiveSearchMobileDrawer({
               {/* Season selector */}
               {isShow && availableSeasons.length > 0 && (
                 <section>
-                  <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+                  <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                     {t("medias.interactive.seasonSearch")}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -268,7 +268,7 @@ export function InteractiveSearchMobileDrawer({
                         "min-h-[40px] rounded-xl px-4 py-2 text-sm font-medium transition-all",
                         selectedSeason === null
                           ? "bg-primary-600 text-white shadow-sm"
-                          : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+                          : "bg-neutral-800 text-neutral-300",
                       )}
                     >
                       {t("medias.interactive.seasonAll")}
@@ -284,7 +284,7 @@ export function InteractiveSearchMobileDrawer({
                           "min-h-[40px] rounded-xl px-4 py-2 text-sm font-medium transition-all",
                           selectedSeason === s
                             ? "bg-primary-600 text-white shadow-sm"
-                            : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+                            : "bg-neutral-800 text-neutral-300",
                         )}
                       >
                         S{String(s).padStart(2, "0")}
@@ -301,7 +301,7 @@ export function InteractiveSearchMobileDrawer({
                         "min-h-[40px] rounded-xl px-4 py-2 text-sm font-medium transition-all",
                         selectedSeason === "complete"
                           ? "bg-violet-600 text-white shadow-sm"
-                          : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+                          : "bg-neutral-800 text-neutral-300",
                       )}
                     >
                       {t("medias.interactive.completeSeries")}
@@ -312,7 +312,7 @@ export function InteractiveSearchMobileDrawer({
 
               {/* Sort */}
               <section>
-                <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+                <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                   {t("medias.interactive.sortLabel")}
                 </p>
                 <div className="mb-3 flex flex-wrap gap-2">
@@ -332,8 +332,8 @@ export function InteractiveSearchMobileDrawer({
                       className={cn(
                         "min-h-[40px] rounded-xl px-3.5 py-2 text-sm font-medium transition-all",
                         sortBy === key
-                          ? "bg-neutral-900 text-white shadow-sm dark:bg-neutral-100 dark:text-neutral-900"
-                          : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+                          ? "shadow-sm bg-neutral-100 text-neutral-900"
+                          : "bg-neutral-800 text-neutral-300",
                       )}
                     >
                       {t(`medias.interactive.sortOptions.${key}`)}
@@ -347,8 +347,8 @@ export function InteractiveSearchMobileDrawer({
                     className={cn(
                       "flex min-h-[40px] items-center justify-center gap-2 rounded-xl text-sm font-medium transition-all",
                       sortDir === "asc"
-                        ? "bg-neutral-900 text-white shadow-sm dark:bg-neutral-100 dark:text-neutral-900"
-                        : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+                        ? "shadow-sm bg-neutral-100 text-neutral-900"
+                        : "bg-neutral-800 text-neutral-300",
                     )}
                   >
                     <ArrowDownAZ size={14} />
@@ -360,8 +360,8 @@ export function InteractiveSearchMobileDrawer({
                     className={cn(
                       "flex min-h-[40px] items-center justify-center gap-2 rounded-xl text-sm font-medium transition-all",
                       sortDir === "desc"
-                        ? "bg-neutral-900 text-white shadow-sm dark:bg-neutral-100 dark:text-neutral-900"
-                        : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+                        ? "shadow-sm bg-neutral-100 text-neutral-900"
+                        : "bg-neutral-800 text-neutral-300",
                     )}
                   >
                     <ArrowUpZA size={14} />
@@ -373,7 +373,7 @@ export function InteractiveSearchMobileDrawer({
               {/* Advanced filters */}
               <section>
                 <div className="mb-2.5 flex items-center justify-between">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                     {t("medias.interactive.filtersButton")}
                     {totalActiveFilters > 0 && (
                       <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-[9px] font-bold text-white">
@@ -385,13 +385,13 @@ export function InteractiveSearchMobileDrawer({
                     <button
                       type="button"
                       onClick={onClearFilters}
-                      className="text-[11px] font-medium text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
+                      className="text-[11px] font-medium text-primary-400 hover:text-primary-200"
                     >
                       {t("medias.interactive.clearFilters")}
                     </button>
                   )}
                 </div>
-                <div className="space-y-4 divide-y divide-neutral-100 dark:divide-neutral-800">
+                <div className="space-y-4 divide-y divide-neutral-800">
                   <FilterSection
                     title={t("medias.interactive.trackersInclude")}
                     badge={includedTrackers.length}
@@ -435,7 +435,7 @@ export function InteractiveSearchMobileDrawer({
 
             {/* Footer */}
             <div
-              className="flex shrink-0 items-center gap-3 border-t border-neutral-100 px-5 py-4 dark:border-neutral-800"
+              className="flex shrink-0 items-center gap-3 border-t px-5 py-4 border-neutral-800"
               style={{
                 paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
               }}
@@ -444,7 +444,7 @@ export function InteractiveSearchMobileDrawer({
                 <button
                   type="button"
                   onClick={onResetView}
-                  className="text-sm text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-300"
+                  className="text-sm text-neutral-400 transition-colors hover:text-neutral-300"
                 >
                   {t("medias.interactive.resetView")}
                 </button>

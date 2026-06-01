@@ -38,7 +38,7 @@ function SeasonList({
 
   return (
     <div>
-      <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+      <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
         {t("medias.detail.seasons", "Seasons")}
       </p>
       <div className="flex flex-col gap-4">
@@ -54,8 +54,8 @@ function SeasonList({
           return (
             <div key={s.season_number}>
               {/* Season header */}
-              <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-neutral-200 pb-1.5 dark:border-neutral-800">
-                <span className="text-[13px] font-medium text-neutral-800 dark:text-neutral-200">
+              <div className="mb-1.5 flex items-center justify-between gap-2 border-b pb-1.5 border-neutral-800">
+                <span className="text-[13px] font-medium text-neutral-200">
                   {s.name}
                 </span>
                 {libraryEpisodes?.in_library && onDisk != null ? (
@@ -63,8 +63,8 @@ function SeasonList({
                     className={cn(
                       "inline-flex shrink-0 items-center gap-1 text-[11px] tabular-nums",
                       complete
-                        ? "font-semibold text-emerald-600 dark:text-emerald-400"
-                        : "text-neutral-500 dark:text-neutral-400",
+                        ? "font-semibold text-emerald-400"
+                        : "text-neutral-400",
                     )}
                     title={t("medias.detail.seasonOnDiskTitle")}
                   >
@@ -81,7 +81,7 @@ function SeasonList({
                     )}
                   </span>
                 ) : !libraryEpisodes?.in_library && s.episode_count != null ? (
-                  <span className="shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500">
+                  <span className="shrink-0 text-[11px] text-neutral-500">
                     {t("medias.detail.seasonEpisodes", {
                       count: s.episode_count,
                     })}
@@ -97,10 +97,10 @@ function SeasonList({
                       key={ep.episode_number}
                       className={cn(
                         "grid grid-cols-[2rem_minmax(0,1fr)_1rem] items-center gap-x-2 rounded px-1 py-1 text-[12px] transition-colors",
-                        "text-neutral-700 dark:text-neutral-300",
+                        "text-neutral-300",
                       )}
                     >
-                      <span className="shrink-0 tabular-nums text-right font-mono text-[11px] text-neutral-400 dark:text-neutral-600">
+                      <span className="shrink-0 tabular-nums text-right font-mono text-[11px] text-neutral-600">
                         {`E${String(ep.episode_number).padStart(2, "0")}`}
                       </span>
                       <span className="min-w-0 truncate leading-snug">
@@ -108,7 +108,7 @@ function SeasonList({
                       </span>
                       <Check
                         size={11}
-                        className="shrink-0 text-emerald-500 dark:text-emerald-400"
+                        className="shrink-0 text-emerald-400"
                         aria-hidden
                       />
                     </div>
@@ -164,12 +164,12 @@ export function ExploreCardInfoTab({
 
       {/* Overview */}
       {overview && (
-        <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm leading-relaxed text-neutral-400">
           {overview}
         </p>
       )}
       {!overview && (
-        <p className="text-sm italic text-neutral-400 dark:text-neutral-500">
+        <p className="text-sm italic text-neutral-500">
           {t("medias.detail.noOverview")}
         </p>
       )}
@@ -186,7 +186,7 @@ export function ExploreCardInfoTab({
       {/* Cast */}
       {creditsData && creditsData.cast.length > 0 && (
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
             {t("medias.detail.cast", "Cast")}
           </p>
           <div
@@ -202,18 +202,18 @@ export function ExploreCardInfoTab({
                   <img
                     src={member.profile_url}
                     alt={member.name}
-                    className="h-[54px] w-[54px] rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-700"
+                    className="h-[54px] w-[54px] rounded-full object-cover ring-1 ring-neutral-700"
                   />
                 ) : (
-                  <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700">
-                    <UserCircle className="w-7 h-7 text-neutral-400 dark:text-neutral-500" />
+                  <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-700">
+                    <UserCircle className="w-7 h-7 text-neutral-500" />
                   </div>
                 )}
-                <p className="line-clamp-2 text-center text-[10px] font-medium leading-tight text-neutral-700 dark:text-neutral-300">
+                <p className="line-clamp-2 text-center text-[10px] font-medium leading-tight text-neutral-300">
                   {member.name}
                 </p>
                 {member.character && (
-                  <p className="line-clamp-1 text-center text-[9px] leading-tight text-neutral-400 dark:text-neutral-500">
+                  <p className="line-clamp-1 text-center text-[9px] leading-tight text-neutral-500">
                     {member.character}
                   </p>
                 )}
@@ -226,7 +226,7 @@ export function ExploreCardInfoTab({
       {/* Where to watch */}
       {hasProviders && (
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
             {t("medias.detail.whereToWatch")}
           </p>
           <div className="flex flex-col gap-2">
@@ -251,7 +251,7 @@ export function ExploreCardInfoTab({
               .filter(({ list }) => list.length > 0)
               .map(({ list, label }) => (
                 <div key={label} className="flex items-center gap-2">
-                  <span className="w-12 shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500">
+                  <span className="w-12 shrink-0 text-[11px] text-neutral-500">
                     {label}
                   </span>
                   <div className="flex flex-wrap gap-1.5">

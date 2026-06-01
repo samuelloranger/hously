@@ -25,14 +25,14 @@ type TrackerInfo = {
 };
 
 function ratioTextColor(ratio: number | null) {
-  if (ratio == null) return "text-zinc-400 dark:text-zinc-500";
-  if (ratio >= 1.5) return "text-emerald-500 dark:text-emerald-400";
-  if (ratio >= 1.0) return "text-amber-500 dark:text-amber-400";
-  return "text-rose-500 dark:text-rose-400";
+  if (ratio == null) return "text-neutral-500";
+  if (ratio >= 1.5) return "text-emerald-400";
+  if (ratio >= 1.0) return "text-amber-400";
+  return "text-rose-400";
 }
 
 function ratioBarGradient(ratio: number | null) {
-  if (ratio == null) return "from-zinc-300 to-zinc-400";
+  if (ratio == null) return "from-neutral-300 to-neutral-400";
   if (ratio >= 1.5) return "from-emerald-400 to-emerald-500";
   if (ratio >= 1.0) return "from-amber-400 to-amber-500";
   return "from-rose-400 to-rose-500";
@@ -40,9 +40,9 @@ function ratioBarGradient(ratio: number | null) {
 
 function ratioCardTint(ratio: number | null) {
   if (ratio == null) return "";
-  if (ratio >= 1.5) return "bg-emerald-500/[0.04] dark:bg-emerald-500/[0.07]";
-  if (ratio >= 1.0) return "bg-amber-500/[0.04] dark:bg-amber-500/[0.07]";
-  return "bg-rose-500/[0.04] dark:bg-rose-500/[0.07]";
+  if (ratio >= 1.5) return "bg-emerald-500/[0.07]";
+  if (ratio >= 1.0) return "bg-amber-500/[0.07]";
+  return "bg-rose-500/[0.07]";
 }
 
 function TrackerCard({
@@ -78,13 +78,13 @@ function TrackerCard({
                 e.currentTarget.style.display = "none";
               }}
             />
-            <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-zinc-400 dark:text-zinc-500">
+            <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-neutral-500">
               {tracker.label}
             </span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             {tracker.connected && tracker.updated_at && (
-              <span className="text-[9px] text-zinc-400 dark:text-zinc-600 tabular-nums">
+              <span className="text-[9px] text-neutral-600 tabular-nums">
                 {formatRelativeTime(tracker.updated_at, { locale })}
               </span>
             )}
@@ -112,13 +112,13 @@ function TrackerCard({
               >
                 {formatRatio(tracker.ratio)}
               </span>
-              <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-zinc-400 dark:text-zinc-600 mt-1">
+              <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-neutral-600 mt-1">
                 ratio
               </span>
             </div>
 
             {/* Vertical divider */}
-            <div className="w-px bg-zinc-100 dark:bg-zinc-800 mx-3.5 shrink-0" />
+            <div className="w-px bg-neutral-800 mx-3.5 shrink-0" />
 
             {/* dl / ul */}
             <div className="flex flex-col justify-center gap-1.5">
@@ -128,7 +128,7 @@ function TrackerCard({
                   className="text-sky-400 shrink-0"
                   strokeWidth={2.5}
                 />
-                <span className="font-mono text-[12px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">
+                <span className="font-mono text-[12px] font-semibold tabular-nums text-neutral-200">
                   {formatGo(tracker.downloaded_go)}
                 </span>
               </div>
@@ -138,7 +138,7 @@ function TrackerCard({
                   className="text-emerald-400 shrink-0"
                   strokeWidth={2.5}
                 />
-                <span className="font-mono text-[12px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">
+                <span className="font-mono text-[12px] font-semibold tabular-nums text-neutral-200">
                   {formatGo(tracker.uploaded_go)}
                 </span>
               </div>
@@ -151,7 +151,7 @@ function TrackerCard({
               className="text-rose-400 shrink-0"
               strokeWidth={2}
             />
-            <span className="text-xs italic text-rose-400 dark:text-rose-500">
+            <span className="text-xs italic text-rose-500">
               {tracker.error ?? t("dashboard.home.trackerNotConnected")}
             </span>
           </div>
@@ -159,7 +159,7 @@ function TrackerCard({
       </div>
 
       {/* Bottom health bar */}
-      <div className="h-1 bg-zinc-100 dark:bg-zinc-800">
+      <div className="h-1 bg-neutral-800">
         {tracker.connected && tracker.ratio != null && (
           <div
             className={cn(
@@ -240,25 +240,25 @@ export function TrackersPanel() {
   const connectedCount = enabledTrackers.filter((tr) => tr.connected).length;
 
   return (
-    <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+    <section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-neutral-800">
         <span className="w-1 h-4 rounded-full bg-purple-500 shrink-0" />
         <Radio
-          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          className="w-4 h-4 shrink-0 text-neutral-400"
           strokeWidth={2}
         />
-        <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+        <h3 className="text-sm font-semibold text-neutral-100">
           {t("dashboard.home.privateTrackersTitle")}
         </h3>
-        <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800">
+        <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-800">
           <span
             className={cn(
               "w-1.5 h-1.5 rounded-full shrink-0",
               connectedCount > 0 ? "bg-emerald-500" : "bg-rose-500",
             )}
           />
-          <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+          <span className="text-[11px] font-medium text-neutral-400">
             {connectedCount > 0
               ? t("dashboard.trackers.onlineCount", {
                   connected: connectedCount,
@@ -269,7 +269,7 @@ export function TrackersPanel() {
         </div>
       </div>
 
-      <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+      <div className="divide-y divide-neutral-800">
         {enabledTrackers.map((tracker) => (
           <TrackerCard key={tracker.key} tracker={tracker} locale={locale} />
         ))}

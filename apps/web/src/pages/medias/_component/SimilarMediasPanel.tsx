@@ -38,7 +38,7 @@ export function SimilarMediasPanel({
 
   if (items.length === 0) {
     return (
-      <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 py-12">
+      <p className="text-center text-sm text-neutral-400 py-12">
         {t("medias.similar.empty")}
       </p>
     );

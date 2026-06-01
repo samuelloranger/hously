@@ -59,7 +59,7 @@ export function EditNotificationChannelModal({ channel, onClose }: Props) {
     >
       <div className="space-y-4 pt-2">
         <div>
-          <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+          <h3 className="text-sm font-medium text-neutral-300 mb-1">
             Label
           </h3>
           <Input

@@ -39,7 +39,7 @@ export function LibraryItemInfoTab({
   if (isPending && !detailsData) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-neutral-200 border-t-primary-600 dark:border-neutral-700 dark:border-t-primary-400" />
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-neutral-700 border-t-primary-400" />
       </div>
     );
   }
@@ -65,7 +65,7 @@ export function LibraryItemInfoTab({
       {/* Cast */}
       {creditsData && creditsData.cast.length > 0 && (
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
             {t("medias.detail.cast", "Cast")}
           </p>
           <div
@@ -81,18 +81,18 @@ export function LibraryItemInfoTab({
                   <img
                     src={member.profile_url}
                     alt={member.name}
-                    className="h-[54px] w-[54px] rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-700"
+                    className="h-[54px] w-[54px] rounded-full object-cover ring-1 ring-neutral-700"
                   />
                 ) : (
-                  <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700">
-                    <UserCircle className="w-7 h-7 text-neutral-400 dark:text-neutral-500" />
+                  <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-700">
+                    <UserCircle className="w-7 h-7 text-neutral-500" />
                   </div>
                 )}
-                <p className="line-clamp-2 text-center text-[10px] font-medium leading-tight text-neutral-700 dark:text-neutral-300">
+                <p className="line-clamp-2 text-center text-[10px] font-medium leading-tight text-neutral-300">
                   {member.name}
                 </p>
                 {member.character && (
-                  <p className="line-clamp-1 text-center text-[9px] leading-tight text-neutral-400 dark:text-neutral-500">
+                  <p className="line-clamp-1 text-center text-[9px] leading-tight text-neutral-500">
                     {member.character}
                   </p>
                 )}
@@ -105,7 +105,7 @@ export function LibraryItemInfoTab({
       {/* Where to watch */}
       {hasProviders && (
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
             {t("medias.detail.whereToWatch")}
           </p>
           <div className="flex flex-col gap-2">
@@ -118,7 +118,7 @@ export function LibraryItemInfoTab({
               .filter(({ list }) => list.length > 0)
               .map(({ list, label }) => (
                 <div key={label} className="flex items-center gap-2">
-                  <span className="w-12 shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500">
+                  <span className="w-12 shrink-0 text-[11px] text-neutral-500">
                     {label}
                   </span>
                   <div className="flex flex-wrap gap-1.5">

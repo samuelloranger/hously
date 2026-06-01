@@ -87,7 +87,7 @@ function AdguardIntegrationSectionImpl({
       />
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {t("settings.integrations.adguard.username")}
         </label>
         <input
@@ -95,12 +95,12 @@ function AdguardIntegrationSectionImpl({
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           placeholder="admin"
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {t("settings.integrations.adguard.password")}
         </label>
         <input
@@ -108,7 +108,7 @@ function AdguardIntegrationSectionImpl({
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder={t("settings.integrations.adguard.passwordPlaceholder")}
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
+          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono"
         />
       </div>
     </IntegrationSectionCard>

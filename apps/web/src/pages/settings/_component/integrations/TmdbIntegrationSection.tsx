@@ -72,7 +72,7 @@ function TmdbIntegrationSectionImpl({
       logoUrl="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg"
     >
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {t("settings.integrations.tmdb.apiKey")}
         </label>
         <input
@@ -80,11 +80,11 @@ function TmdbIntegrationSectionImpl({
           value={apiKey}
           onChange={(event) => setApiKey(event.target.value)}
           placeholder={t("settings.integrations.tmdb.apiKeyPlaceholder")}
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
+          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-300 mb-2">
           {t("settings.integrations.tmdb.popularityThreshold")}
         </label>
         <input
@@ -97,9 +97,9 @@ function TmdbIntegrationSectionImpl({
               Math.max(0, Math.min(100, Number(event.target.value) || 0)),
             )
           }
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white"
         />
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-xs text-neutral-400">
           {t("settings.integrations.tmdb.popularityThresholdHelp")}
         </p>
       </div>
