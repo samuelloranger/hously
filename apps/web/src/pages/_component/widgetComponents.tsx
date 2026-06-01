@@ -4,7 +4,8 @@ import { DownloadsPanel } from "@/pages/_component/DownloadsPanel";
 import { FocusTimerPanel } from "@/pages/_component/FocusTimerPanel";
 import { HomeAssistantPanel } from "@/pages/_component/HomeAssistantPanel";
 import { JellyfinRandomPanel } from "@/pages/_component/JellyfinRandomPanel";
-import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
+import { JellyfinReadyPanel } from "@/pages/_component/JellyfinReadyPanel";
+import { UpcomingShelf } from "@/pages/_component/MediaShelves";
 import { LibraryAttentionPanel } from "@/pages/_component/LibraryAttentionPanel";
 import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
 import { QuickLinksPanel } from "@/pages/_component/QuickLinksPanel";
@@ -20,7 +21,7 @@ export const WIDGET_COMPONENTS: Record<
   weather: WeatherPanel,
   quick_links: QuickLinksPanel,
   chores: ChoresPanel,
-  jellyfin_shelf: JellyfinShelf,
+  jellyfin_shelf: JellyfinReadyPanel,
   library_alerts: LibraryAttentionPanel,
   homeassistant: HomeAssistantPanel,
   habits: HabitsPanel,
