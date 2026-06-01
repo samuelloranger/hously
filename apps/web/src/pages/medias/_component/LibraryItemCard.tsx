@@ -1,9 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, Loader2, Search } from "lucide-react";
-import {
-  MediaPosterCard,
-} from "@/components/MediaPosterCard";
+import { MediaPosterCard } from "@/components/MediaPosterCard";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@hously/shared/utils/date";
 import type { LibraryMedia } from "@hously/shared/types";
@@ -103,25 +101,27 @@ export function LibraryItemCard({
                 {t("medias.library.digitalRelease", { date: digitalLabel })}
               </p>
             )}
-            {p.quickAction === "search" && onMovieSearch && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  onMovieSearch(item.id);
-                }}
-                disabled={movieSearchPending}
-                className="mt-1 opacity-0 transition-opacity group-hover/card:opacity-100 motion-reduce:opacity-100 inline-flex items-center gap-1 rounded-md bg-primary-600 px-2 py-1 text-[11px] font-semibold text-neutral-950 disabled:opacity-50"
-              >
-                {movieSearchPending ? (
-                  <Loader2 size={10} className="animate-spin" />
-                ) : (
-                  <Search size={10} />
-                )}
-                {t("library.management.searchNow")}
-              </button>
-            )}
+            {p.quickAction === "search" &&
+              item.type === "movie" &&
+              onMovieSearch && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onMovieSearch(item.id);
+                  }}
+                  disabled={movieSearchPending}
+                  className="mt-1 opacity-0 transition-opacity group-hover/card:opacity-100 motion-reduce:opacity-100 inline-flex items-center gap-1 rounded-md bg-primary-600 px-2 py-1 text-[11px] font-semibold text-neutral-950 disabled:opacity-50"
+                >
+                  {movieSearchPending ? (
+                    <Loader2 size={10} className="animate-spin" />
+                  ) : (
+                    <Search size={10} />
+                  )}
+                  {t("library.management.searchNow")}
+                </button>
+              )}
           </div>
         )}
       </MediaPosterCard>
