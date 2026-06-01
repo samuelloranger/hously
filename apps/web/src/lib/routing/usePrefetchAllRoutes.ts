@@ -1,31 +1,38 @@
 import { useCallback } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { getQueryClient } from "@/lib/api/queryClient";
-import { prefetchRouteDataOptimistic } from "@/lib/routing/prefetch";
 import { navSections } from "@/lib/routing/navigation";
 
 const ALL_NAV_PATHS = navSections.flatMap((s) => s.items.map((i) => i.path));
 
+function runWhenIdle(fn: () => void): void {
+  if (typeof window === "undefined") return;
+  const ric = (
+    window as typeof window & {
+      requestIdleCallback?: (
+        cb: () => void,
+        opts?: { timeout: number },
+      ) => number;
+    }
+  ).requestIdleCallback;
+  if (ric) ric(fn, { timeout: 3000 });
+  else setTimeout(fn, 1500);
+}
+
 /**
- * Prefetch all nav routes at once — fire and forget.
- * Warms both the JS bundle (router.preloadRoute) and the React Query
- * cache (prefetchRouteDataOptimistic) for every nav item.
- * Use on sidebar mount and mobile menu open for instant navigation everywhere.
+ * Warm every nav route (JS chunk + its loader data) — fire and forget,
+ * deferred to browser idle. NOTE: router.preloadRoute runs each route's
+ * loader, so this DOES fetch route data. Heavy at scale — only the
+ * QuickActionPalette uses it (on open). The Sidebar relies on
+ * defaultPreload:"intent" (hover) instead, to keep the dashboard light.
  */
 export function usePrefetchAllRoutes() {
   const router = useRouter();
 
   return useCallback(() => {
-    const queryClient = getQueryClient();
-
-    for (const path of ALL_NAV_PATHS) {
-      // Preload the lazy JS chunk for this route
-      void router.preloadRoute({ to: path });
-
-      // Warm the React Query cache with API data
-      if (queryClient) {
-        prefetchRouteDataOptimistic(queryClient, path);
+    runWhenIdle(() => {
+      for (const path of ALL_NAV_PATHS) {
+        void router.preloadRoute({ to: path });
       }
-    }
+    });
   }, [router]);
 }

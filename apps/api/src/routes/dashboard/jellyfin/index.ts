@@ -3,7 +3,10 @@ import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { toPositiveInt } from "@hously/shared/utils";
-import { mapJellyfinApiItem } from "@hously/api/utils/dashboard/jellyfin";
+import {
+  mapJellyfinApiItem,
+  appendJellyfinImageSizing,
+} from "@hously/api/utils/dashboard/jellyfin";
 import { normalizeJellyfinConfig } from "@hously/api/utils/integrations/normalizers";
 import { badGateway, notFound, serverError } from "@hously/api/errors";
 
@@ -73,6 +76,7 @@ export const dashboardJellyfinRoutes = new Elysia()
           if (candidate.tag) {
             imageUrl.searchParams.set("tag", candidate.tag);
           }
+          appendJellyfinImageSizing(imageUrl, candidate.imageType);
 
           const response = await fetch(imageUrl.toString(), {
             headers: {

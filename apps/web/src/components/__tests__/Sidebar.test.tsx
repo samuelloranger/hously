@@ -67,9 +67,6 @@ vi.mock("@/components/UserMenu", () => ({
 vi.mock("@/lib/routing/usePrefetchRoute", () => ({
   usePrefetchRoute: () => vi.fn(),
 }));
-vi.mock("@/lib/routing/usePrefetchAllRoutes", () => ({
-  usePrefetchAllRoutes: () => vi.fn(),
-}));
 vi.mock("@/lib/app/useTheme", () => ({
   useTheme: () => ({}),
 }));
