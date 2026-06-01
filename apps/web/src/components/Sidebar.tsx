@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { clearUser } from "@/lib/auth";
 import { useLogout } from "@/lib/auth/useAuth";
 import { useUpdateProfile } from "@/pages/settings/useUsers";
@@ -14,7 +14,6 @@ import { useAuth } from "@/lib/auth/useAuth";
 import { useTheme } from "@/lib/app/useTheme";
 import { cn } from "@/lib/utils";
 import { navSections } from "@/lib/routing/navigation";
-import { usePrefetchAllRoutes } from "@/lib/routing/usePrefetchAllRoutes";
 import type { NavPosition } from "@hously/shared/types";
 import { NavPositionPicker } from "@/components/NavPositionPicker";
 import { useNavPosition } from "@/pages/settings/useNavPosition";
@@ -32,16 +31,13 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
   const navigate = useNavigate();
   const logoutMutation = useLogout();
   const prefetchRoute = usePrefetchRoute();
-  const prefetchAllRoutes = usePrefetchAllRoutes();
+
   useTheme();
   const { setPosition } = useNavPosition();
   const isHorizontal = position === "top" || position === "bottom";
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverCoords, setPopoverCoords] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    prefetchAllRoutes();
-  }, [prefetchAllRoutes]);
   const updateProfile = useUpdateProfile();
 
   const languages = [
