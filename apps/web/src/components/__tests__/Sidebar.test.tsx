@@ -64,14 +64,8 @@ vi.mock("@/components/NotificationsBell", () => ({
 vi.mock("@/components/UserMenu", () => ({
   UserMenu: () => <div data-testid="usermenu" />,
 }));
-vi.mock("@tanstack/react-query", () => ({
-  useQueryClient: () => ({}),
-}));
 vi.mock("@/lib/routing/usePrefetchRoute", () => ({
   usePrefetchRoute: () => vi.fn(),
-}));
-vi.mock("@/lib/routing/prefetch", () => ({
-  prefetchRouteData: () => Promise.resolve(),
 }));
 vi.mock("@/lib/app/useTheme", () => ({
   useTheme: () => ({}),
