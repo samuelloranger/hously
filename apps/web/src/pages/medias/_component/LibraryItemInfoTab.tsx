@@ -7,6 +7,7 @@ import type {
   TmdbWatchProvidersResponse,
 } from "@hously/shared/types";
 import { MediaDetailInfoSections } from "./MediaDetailInfoSections";
+import { Eyebrow } from "./LibrarySharedUI";
 
 type Props = {
   item: { title: string; tmdb_id: number; type: "movie" | "show" };
@@ -65,9 +66,9 @@ export function LibraryItemInfoTab({
       {/* Cast */}
       {creditsData && creditsData.cast.length > 0 && (
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+          <Eyebrow className="mb-2.5">
             {t("medias.detail.cast", "Cast")}
-          </p>
+          </Eyebrow>
           <div
             className="flex gap-3 overflow-x-auto pb-1"
             style={{ scrollbarWidth: "none" }}
@@ -81,10 +82,10 @@ export function LibraryItemInfoTab({
                   <img
                     src={member.profile_url}
                     alt={member.name}
-                    className="h-[54px] w-[54px] rounded-full object-cover ring-1 ring-neutral-700"
+                    className="h-[54px] w-[54px] rounded-full object-cover ring-1 ring-border-strong transition hover:ring-primary-500/40"
                   />
                 ) : (
-                  <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-700">
+                  <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-700 ring-1 ring-border-strong transition hover:ring-primary-500/40">
                     <UserCircle className="w-7 h-7 text-neutral-500" />
                   </div>
                 )}
@@ -105,9 +106,9 @@ export function LibraryItemInfoTab({
       {/* Where to watch */}
       {hasProviders && (
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+          <Eyebrow className="mb-2.5">
             {t("medias.detail.whereToWatch")}
-          </p>
+          </Eyebrow>
           <div className="flex flex-col gap-2">
             {[
               { list: providers!.streaming, label: t("medias.detail.stream") },

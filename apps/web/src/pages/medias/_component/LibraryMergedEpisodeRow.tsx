@@ -147,7 +147,7 @@ export function MergedEpisodeRow({
   return (
     <div
       className={cn(
-        "border-b last:border-b-0 border-neutral-800",
+        "border-b last:border-b-0 border-border",
         "border-l-2",
         statusBorderColor[ep.status] ?? statusBorderColor.wanted,
       )}
@@ -158,8 +158,7 @@ export function MergedEpisodeRow({
         className={cn(
           "w-full text-left transition-colors",
           "px-3 pr-2 py-2.5 mobile-max:px-4 mobile-max:py-2",
-          file &&
-            "cursor-pointer hover:bg-neutral-800/40",
+          file && "cursor-pointer hover:bg-neutral-800/40",
           !file && "cursor-default",
           !ep.monitored && "opacity-50",
         )}
@@ -220,7 +219,7 @@ export function MergedEpisodeRow({
                   title={t("library.management.retrySearchTitle")}
                   onClick={handleRetry}
                   disabled={retryEpMut.isPending}
-                  className="rounded-md p-2.5 text-neutral-400 hover:text-amber-400 hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+                  className="rounded-md p-2.5 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 disabled:opacity-50 transition-colors"
                 >
                   <RefreshCw size={14} />
                 </button>
@@ -313,7 +312,7 @@ export function MergedEpisodeRow({
                 title={t("library.management.retrySearchTitle")}
                 onClick={handleRetry}
                 disabled={retryEpMut.isPending}
-                className="rounded p-1 text-neutral-400 hover:text-amber-400 hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+                className="rounded p-1 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 disabled:opacity-50 transition-colors"
               >
                 <RefreshCw size={11} />
               </button>
@@ -358,7 +357,7 @@ export function MergedEpisodeRow({
       </button>
 
       {expanded && file && (
-        <div className="px-3 pb-3 pt-2 mobile-max:px-4 border-t border-neutral-800 bg-neutral-900/20">
+        <div className="px-3 pb-3 pt-2 mobile-max:px-4 border-t border-border bg-neutral-900/20">
           <FileDetailBlock file={file} />
         </div>
       )}

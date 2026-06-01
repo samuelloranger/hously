@@ -181,7 +181,7 @@ export function LibraryItemPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
         {/* Overview */}
         {overview && (
-          <p className="text-sm text-neutral-400 leading-relaxed max-w-2xl">
+          <p className="text-sm text-neutral-300 leading-relaxed max-w-2xl">
             {overview}
           </p>
         )}
@@ -195,6 +195,10 @@ export function LibraryItemPage() {
           }))}
           value={activeTab}
           onChange={setActiveTab}
+          // underline indicator color is hardcoded on-palette (bg-primary-500) in segmented-tabs.tsx — no prop to override
+          activeItemClassName="text-primary-300"
+          inactiveItemClassName="text-neutral-400 hover:text-neutral-200"
+          activeIconClassName="text-primary-400"
         />
 
         {/* Tab panels */}

@@ -32,7 +32,7 @@ export function LibraryManagementPanel({
   onUpgradeManualSearch,
 }: LibraryManagementPanelProps) {
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-3">
       <LibraryInfoOverridesSection libraryId={libraryId} item={item} />
       <LibraryQualityProfileSection
         libraryId={libraryId}

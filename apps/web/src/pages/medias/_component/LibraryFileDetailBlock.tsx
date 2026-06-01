@@ -59,7 +59,7 @@ function AudioTrackRow({ track }: { track: LibraryAudioTrack }) {
           </Badge>
         )}
         {track.forced && (
-          <Badge className="bg-amber-500/15 text-amber-300">
+          <Badge className="bg-neutral-700 text-neutral-300">
             {t("library.fileDetail.forced")}
           </Badge>
         )}
@@ -83,7 +83,7 @@ function SubtitleTrackRow({ track }: { track: LibrarySubtitleTrack }) {
       </span>
       <div className="flex gap-1 shrink-0">
         {track.forced && (
-          <Badge className="bg-amber-500/15 text-amber-300">
+          <Badge className="bg-neutral-700 text-neutral-300">
             {t("library.fileDetail.forced")}
           </Badge>
         )}
@@ -126,9 +126,7 @@ function TrackToggleRow({
       <span
         className={cn(
           "w-3 h-3 rounded-sm border shrink-0 flex items-center justify-center transition-colors",
-          kept
-            ? "bg-white border-white"
-            : "border-neutral-500",
+          kept ? "bg-white border-white" : "border-neutral-500",
         )}
       >
         {kept && (
@@ -150,9 +148,7 @@ function TrackToggleRow({
       <span className="text-xs font-medium text-neutral-300 w-24 shrink-0 truncate">
         {lang}
       </span>
-      <span className="text-xs text-neutral-400 truncate">
-        {details}
-      </span>
+      <span className="text-xs text-neutral-400 truncate">{details}</span>
     </button>
   );
 }
@@ -240,7 +236,7 @@ function RemuxPanel({
   };
 
   return (
-    <div className="mt-3 rounded-lg border border-neutral-700 bg-neutral-800/50 p-3 space-y-3">
+    <div className="mt-3 rounded-lg border border-border bg-neutral-800/50 p-3 space-y-3">
       <p className="text-[11px] font-semibold text-neutral-300 uppercase tracking-wide">
         {t("library.fileDetail.remux.title")}
       </p>
@@ -413,9 +409,7 @@ export function FileDetailBlock({
             </span>
             <span className="min-w-0 flex-1 text-neutral-200">
               {file.release_group ?? (
-                <span className="text-neutral-600 italic text-[10px]">
-                  —
-                </span>
+                <span className="text-neutral-600 italic text-[10px]">—</span>
               )}
               <Pencil
                 size={9}
@@ -479,7 +473,7 @@ export function FileDetailBlock({
               count: audioTracks.length,
             })}
           />
-          <div className="divide-y divide-neutral-800/60 rounded-lg border border-neutral-800 overflow-hidden">
+          <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
             {audioTracks.map((tr) => (
               <div key={tr.index} className="px-2.5">
                 <AudioTrackRow track={tr} />
@@ -497,7 +491,7 @@ export function FileDetailBlock({
               count: subtitleTracks.length,
             })}
           />
-          <div className="divide-y divide-neutral-800/60 rounded-lg border border-neutral-800 overflow-hidden">
+          <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
             {subtitleTracks.map((tr) => (
               <div key={tr.index} className="px-2.5">
                 <SubtitleTrackRow track={tr} />

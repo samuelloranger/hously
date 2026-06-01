@@ -112,7 +112,7 @@ export function LibraryItemCard({
                     onMovieSearch(item.id);
                   }}
                   disabled={movieSearchPending}
-                  className="mt-1 opacity-0 transition-opacity group-hover/card:opacity-100 motion-reduce:opacity-100 inline-flex items-center gap-1 rounded-md bg-primary-600 px-2 py-1 text-[11px] font-semibold text-neutral-950 disabled:opacity-50"
+                  className="mt-1 inline-flex items-center gap-1 rounded-md bg-primary-600 px-2 py-1 text-[11px] font-semibold text-neutral-950 disabled:opacity-50"
                 >
                   {movieSearchPending ? (
                     <Loader2 size={10} className="animate-spin" />
