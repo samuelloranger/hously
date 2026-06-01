@@ -19,10 +19,10 @@ export type MediaPosterCardStatus =
 const STATUS_BORDER_COLORS: Record<MediaPosterCardStatus, string> = {
   downloaded: "bg-emerald-400",
   downloading: "bg-sky-400",
-  missing: "bg-amber-400",
-  returning: "bg-violet-400",
-  in_production: "bg-indigo-400",
-  planned: "bg-teal-400",
+  missing: "bg-rose-400",
+  returning: "bg-primary-400",
+  in_production: "bg-amber-400",
+  planned: "bg-neutral-400",
 };
 
 export type MediaPosterCardProps = {
