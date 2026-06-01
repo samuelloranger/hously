@@ -1,7 +1,5 @@
 import { useCallback } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { getQueryClient } from "@/lib/api/queryClient";
-import { prefetchRouteDataOptimistic } from "@/lib/routing/prefetch";
 import { navSections } from "@/lib/routing/navigation";
 
 const ALL_NAV_PATHS = navSections.flatMap((s) => s.items.map((i) => i.path));
@@ -16,20 +14,19 @@ function runWhenIdle(fn: () => void): void {
 }
 
 /**
- * Prefetch all nav routes — fire and forget, but DEFERRED to browser idle so
- * it never competes with the current page's critical render/data. Warms both
- * the lazy JS chunk (router.preloadRoute) and the React Query cache
- * (prefetchRouteDataOptimistic) for every nav item.
+ * Warm the lazy JS chunk for every nav route — fire and forget, deferred to
+ * browser idle. We intentionally do NOT prefetch route DATA here: heavy
+ * payloads (e.g. /api/library ~900 KB) would bloat the dashboard's initial
+ * load. Route data is fetched on navigation, and warmed on hover/touch via
+ * usePrefetchRoute (intent-based), which keeps navigation feeling instant.
  */
 export function usePrefetchAllRoutes() {
   const router = useRouter();
 
   return useCallback(() => {
     runWhenIdle(() => {
-      const queryClient = getQueryClient();
       for (const path of ALL_NAV_PATHS) {
         void router.preloadRoute({ to: path });
-        if (queryClient) prefetchRouteDataOptimistic(queryClient, path);
       }
     });
   }, [router]);

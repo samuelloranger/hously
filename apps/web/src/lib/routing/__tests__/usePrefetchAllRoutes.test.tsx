@@ -34,11 +34,11 @@ describe("usePrefetchAllRoutes", () => {
     expect(prefetchRouteDataOptimistic).not.toHaveBeenCalled();
   });
 
-  it("prefetches every nav path once the idle timer fires", () => {
+  it("warms JS chunks on idle but does NOT prefetch route data", () => {
     const { result } = renderHook(() => usePrefetchAllRoutes());
     result.current();
     vi.runAllTimers();
     expect(preloadRoute).toHaveBeenCalledTimes(2);
-    expect(prefetchRouteDataOptimistic).toHaveBeenCalledTimes(2);
+    expect(prefetchRouteDataOptimistic).not.toHaveBeenCalled();
   });
 });
