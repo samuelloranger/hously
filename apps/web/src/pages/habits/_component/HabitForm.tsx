@@ -123,7 +123,7 @@ export const HabitForm: React.FC<HabitFormProps> = ({
         <ScheduleTimePicker times={times} onChange={setTimes} />
 
         <div className="rounded-xl border px-4 py-3 text-sm border-neutral-700 bg-neutral-800/60 text-neutral-300">
-          <div className="font-semibold text-white">
+          <div className="font-semibold text-neutral-50">
             {t("habits.timesPerDay")}
           </div>
           <div className="mt-1">
@@ -143,7 +143,7 @@ export const HabitForm: React.FC<HabitFormProps> = ({
             />
             <div
               className={cn(
-                "w-11 h-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-800 rounded-full peer bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-neutral-600 peer-checked:bg-primary-600",
+                "w-11 h-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-500/40 rounded-full peer bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-neutral-200 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-neutral-200 after:border-neutral-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-neutral-600 peer-checked:bg-primary-600",
               )}
             />
           </label>

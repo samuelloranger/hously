@@ -95,7 +95,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           placeholder="Or paste any emoji..."
           value={customEmoji}
           onChange={handleCustomChange}
-          className="w-full h-9 px-3 rounded-md border border-neutral-600 bg-neutral-800 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+          className="w-full h-9 px-3 rounded-md border border-neutral-600 bg-neutral-800 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
         />
       </div>
     </div>
