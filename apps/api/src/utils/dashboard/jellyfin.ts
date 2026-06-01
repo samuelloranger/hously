@@ -79,3 +79,21 @@ export const mapJellyfinApiItem = (
     added_at: addedAt,
   };
 };
+
+/**
+ * Cap the dimensions/quality of a Jellyfin image URL before proxying it.
+ * Posters (Primary) render small in dashboard widgets; backdrops a bit wider.
+ * Without this, Jellyfin serves full-resolution originals (hundreds of KB).
+ */
+export function appendJellyfinImageSizing(
+  url: URL,
+  imageType: "Primary" | "Backdrop",
+): void {
+  if (imageType === "Primary") {
+    url.searchParams.set("fillWidth", "320");
+    url.searchParams.set("quality", "90");
+  } else {
+    url.searchParams.set("fillWidth", "640");
+    url.searchParams.set("quality", "80");
+  }
+}
