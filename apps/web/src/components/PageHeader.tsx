@@ -16,11 +16,9 @@ interface PageHeaderProps {
 }
 
 function iconBg(iconColor: string) {
-  if (iconColor === "text-green-600")
-    return "bg-emerald-900/30";
-  if (iconColor === "text-blue-600") return "bg-blue-900/30";
-  if (iconColor === "text-orange-600")
-    return "bg-orange-900/30";
+  if (iconColor === "text-green-600") return "bg-emerald-900/30";
+  if (iconColor === "text-blue-600") return "bg-primary-900/30";
+  if (iconColor === "text-orange-600") return "bg-amber-900/30";
   return "bg-neutral-800";
 }
 
@@ -41,7 +39,7 @@ export function PageHeader({
       <div className="flex flex-col gap-3 sm:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-lg font-bold tracking-tight text-white truncate">
+            <h1 className="font-display text-xl font-semibold tracking-tight text-neutral-50 truncate">
               {title}
             </h1>
             {subtitle && (
@@ -54,7 +52,7 @@ export function PageHeader({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-white/[0.06] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title={t("common.refetch")}
             >
               <RefreshCw
@@ -78,13 +76,11 @@ export function PageHeader({
             <Icon className={cn("w-5 h-5", iconColor)} />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-neutral-50">
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-0.5 text-sm text-neutral-400">
-                {subtitle}
-              </p>
+              <p className="mt-0.5 text-sm text-neutral-400">{subtitle}</p>
             )}
           </div>
         </div>
@@ -94,7 +90,7 @@ export function PageHeader({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-400 hover:bg-white/[0.06] hover:text-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title={t("common.refetch")}
             >
               <RefreshCw
