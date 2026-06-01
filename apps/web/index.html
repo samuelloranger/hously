@@ -48,21 +48,16 @@
       document.documentElement.style.colorScheme = "dark";
     </script>
 
-    <!-- Prevent flash of unstyled content -->
+    <!-- Prevent flash of unstyled content (dark-only Cozy Dusk base) -->
     <style>
       html {
-        background-color: #f8fafc;
-      }
-      html.dark {
-        background-color: #171717;
+        background-color: #1c1715;
       }
     </style>
 
     <title>Hously</title>
   </head>
-  <body
-    class="h-full bg-[#f8fafc] dark:bg-neutral-900 transition-colors duration-300"
-  >
+  <body class="h-full bg-neutral-900">
     <div id="root" class="h-full"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

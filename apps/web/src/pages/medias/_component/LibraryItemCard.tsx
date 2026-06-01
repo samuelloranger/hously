@@ -1,80 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { Search } from "lucide-react";
-import {
-  MediaPosterCard,
-  type MediaPosterCardStatus,
-} from "@/components/MediaPosterCard";
+import { AlertTriangle, Loader2, Search } from "lucide-react";
+import { MediaPosterCard } from "@/components/MediaPosterCard";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@hously/shared/utils/date";
 import type { LibraryMedia } from "@hously/shared/types";
 import type { ViewMode } from "@/utils/libraryUtils";
 import { usePrefetchLibraryItem } from "@/features/medias/hooks/usePrefetchLibraryItem";
-
-const STATUS_STYLES: Record<
-  LibraryMedia["status"],
-  { labelKey: string; className: string }
-> = {
-  wanted: {
-    labelKey: "medias.library.itemStatus.wanted",
-    className:
-      "bg-amber-500/20 text-amber-300",
-  },
-  downloading: {
-    labelKey: "medias.library.itemStatus.downloading",
-    className: "bg-sky-500/20 text-sky-300",
-  },
-  downloaded: {
-    labelKey: "medias.library.itemStatus.downloaded",
-    className:
-      "bg-emerald-500/20 text-emerald-300",
-  },
-  skipped: {
-    labelKey: "medias.library.itemStatus.skipped",
-    className:
-      "bg-neutral-700 text-neutral-400",
-  },
-  returning: {
-    labelKey: "medias.library.itemStatus.returning",
-    className:
-      "bg-violet-500/20 text-violet-300",
-  },
-  in_production: {
-    labelKey: "medias.library.itemStatus.in_production",
-    className:
-      "bg-indigo-500/20 text-indigo-300",
-  },
-  planned: {
-    labelKey: "medias.library.itemStatus.planned",
-    className:
-      "bg-teal-500/20 text-teal-300",
-  },
-  upgrading: {
-    labelKey: "medias.library.itemStatus.upgrading",
-    className: "bg-sky-500/20 text-sky-300",
-  },
-};
-
-type CardStatus = MediaPosterCardStatus;
-
-function toCardStatus(status: LibraryMedia["status"]): CardStatus {
-  switch (status) {
-    case "downloaded":
-      return "downloaded";
-    case "returning":
-      return "returning";
-    case "in_production":
-      return "in_production";
-    case "planned":
-      return "planned";
-    case "downloading":
-    case "upgrading":
-      return "downloading";
-    case "wanted":
-    case "skipped":
-      return "missing";
-  }
-}
+import { libraryStatusPresentation } from "@/utils/libraryStatusPresentation";
 
 interface LibraryItemCardProps {
   item: LibraryMedia;
@@ -92,16 +25,46 @@ export function LibraryItemCard({
   const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
   const prefetchLibraryItem = usePrefetchLibraryItem();
-  const statusInfo = STATUS_STYLES[item.status] ?? STATUS_STYLES.wanted;
-  const statusLabel = t(statusInfo.labelKey);
+
+  const p = libraryStatusPresentation(item.status);
+  const statusLabel = t(p.labelKey);
+
   const digitalLabel =
     item.type === "movie" && item.digital_release_date
       ? formatDate(item.digital_release_date, i18n.language)
       : null;
 
+  const ToneIcon =
+    p.tone === "attention"
+      ? AlertTriangle
+      : p.tone === "progress"
+        ? Loader2
+        : null;
+
+  const cornerBadge = p.showBadge ? (
+    <div
+      className={cn(
+        "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold",
+        p.badgeClass,
+      )}
+      title={statusLabel}
+    >
+      {ToneIcon && (
+        <ToneIcon
+          size={10}
+          className={p.tone === "progress" ? "animate-spin" : undefined}
+        />
+      )}
+      {statusLabel}
+    </div>
+  ) : null;
+
   return (
     <div
-      className="rounded-2xl border border-neutral-700/60 bg-neutral-900 overflow-hidden cursor-pointer group"
+      className={cn(
+        "rounded-2xl border border-neutral-700/60 bg-neutral-900 overflow-hidden cursor-pointer group",
+        "transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transform-none",
+      )}
       onClick={() =>
         navigate({
           to: "/library/$libraryId",
@@ -114,8 +77,9 @@ export function LibraryItemCard({
       <MediaPosterCard
         posterUrl={item.poster_url}
         title={item.title}
-        status={toCardStatus(item.status)}
+        status={p.cardStatus}
         statusLabel={statusLabel}
+        topRightContent={cornerBadge}
       >
         {viewMode !== "compact" && (
           <div className="pb-2 space-y-1">
@@ -126,7 +90,7 @@ export function LibraryItemCard({
               <span
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                  statusInfo.className,
+                  p.badgeClass,
                 )}
               >
                 {statusLabel}
@@ -137,19 +101,24 @@ export function LibraryItemCard({
                 {t("medias.library.digitalRelease", { date: digitalLabel })}
               </p>
             )}
-            {item.type === "movie" &&
-              item.status === "wanted" &&
+            {p.quickAction === "search" &&
+              item.type === "movie" &&
               onMovieSearch && (
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     onMovieSearch(item.id);
                   }}
                   disabled={movieSearchPending}
-                  className="mt-0.5 w-full rounded-lg bg-primary-600/90 hover:bg-primary-600 disabled:opacity-50 text-white text-xs font-medium py-1 flex items-center justify-center gap-1 transition-colors"
+                  className="mt-1 opacity-0 transition-opacity group-hover/card:opacity-100 motion-reduce:opacity-100 inline-flex items-center gap-1 rounded-md bg-primary-600 px-2 py-1 text-[11px] font-semibold text-neutral-950 disabled:opacity-50"
                 >
-                  <Search size={10} />
+                  {movieSearchPending ? (
+                    <Loader2 size={10} className="animate-spin" />
+                  ) : (
+                    <Search size={10} />
+                  )}
                   {t("library.management.searchNow")}
                 </button>
               )}

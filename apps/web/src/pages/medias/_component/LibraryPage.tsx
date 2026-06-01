@@ -27,8 +27,6 @@ import {
   type LibraryPageSearchParams,
 } from "./useLibraryPageState";
 
-const PAGE_SIZE = 48;
-
 export function LibraryPage() {
   const { t } = useTranslation("common");
   const { user } = useAuth();
@@ -47,7 +45,7 @@ export function LibraryPage() {
 
   const searchMovie = useSearchLibraryMovie();
 
-  // ─── Filter / sort / pagination state (URL-persisted) ──────────────────────
+  // ─── Filter / sort state (URL-persisted) ───────────────────────────────────
   const { state, setState, activeFilterCount } = useLibraryPageState(
     searchParams as LibraryPageSearchParams,
   );
@@ -58,7 +56,6 @@ export function LibraryPage() {
     search,
     sortBy,
     sortDir,
-    page,
     viewMode,
   } = state;
 
@@ -79,34 +76,16 @@ export function LibraryPage() {
     }
   }, [languageTags.length, languageFilter]);
 
-  // ─── Pipeline: fetched items → sort → paginate ─────────────────────────────
+  // ─── Pipeline: fetched items → sort ─────────────────────────────────────────
   // Filtering is server-side (passed as query params to useLibrary above), so
-  // the client only sorts and paginates. No client-side filter step exists in
-  // the original — preserved here exactly.
+  // the client only sorts. The full sorted list is rendered via a virtualized
+  // continuous-scroll grid in LibraryGrid (no pagination).
   const allItems = data?.items ?? [];
 
   const sorted = useMemo(
     () => sortItems(allItems, sortBy, sortDir as SortDir),
     [allItems, sortBy, sortDir],
   );
-  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pagedItems = sorted.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
-  );
-
-  // Sync page if it's out of range
-  useEffect(() => {
-    if (isLoading) return;
-    if (page > totalPages && totalPages > 0) {
-      setState({ page: totalPages > 1 ? totalPages : 1 });
-    }
-  }, [page, totalPages, isLoading]);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]);
 
   const handleMovieSearch = (id: number) => {
     searchMovie.mutate(
@@ -179,15 +158,14 @@ export function LibraryPage() {
           typeItems={typeItems}
           statusItems={statusItems}
           activeFilterCount={activeFilterCount}
-          onSearchChange={(value) => setState({ search: value, page: 1 })}
-          onTypeChange={(value) => setState({ type: value, page: 1 })}
-          onStatusChange={(value) => setState({ status: value, page: 1 })}
-          onLanguageChange={(value) => setState({ language: value, page: 1 })}
-          onSortByChange={(value) => setState({ sortBy: value, page: 1 })}
+          onSearchChange={(value) => setState({ search: value })}
+          onTypeChange={(value) => setState({ type: value })}
+          onStatusChange={(value) => setState({ status: value })}
+          onLanguageChange={(value) => setState({ language: value })}
+          onSortByChange={(value) => setState({ sortBy: value })}
           onSortDirToggle={() =>
             setState({
               sortDir: sortDir === "asc" ? "desc" : "asc",
-              page: 1,
             })
           }
           onViewModeChange={(value) => setState({ viewMode: value })}
@@ -195,15 +173,9 @@ export function LibraryPage() {
         />
 
         <LibraryGrid
-          items={pagedItems}
+          items={sorted}
           isLoading={isLoading}
           viewMode={viewMode}
-          safePage={safePage}
-          totalPages={totalPages}
-          totalItems={sorted.length}
-          pageSize={PAGE_SIZE}
-          animationKeySuffix={`${typeFilter}-${statusFilter}-${languageFilter}-${sortBy}-${sortDir}-${safePage}`}
-          onPageChange={(nextPage) => setState({ page: nextPage })}
           onMovieSearch={handleMovieSearch}
           movieSearchPending={searchMovie.isPending}
           movieSearchId={searchMovie.variables?.id ?? null}
@@ -221,11 +193,11 @@ export function LibraryPage() {
         languageTags={languageTags}
         typeItems={typeItems}
         statusItems={statusItems}
-        onTypeChange={(v) => setState({ type: v, page: 1 })}
-        onStatusChange={(v) => setState({ status: v, page: 1 })}
-        onLanguageChange={(v) => setState({ language: v, page: 1 })}
-        onSortByChange={(v) => setState({ sortBy: v, page: 1 })}
-        onSortDirChange={(v) => setState({ sortDir: v, page: 1 })}
+        onTypeChange={(v) => setState({ type: v })}
+        onStatusChange={(v) => setState({ status: v })}
+        onLanguageChange={(v) => setState({ language: v })}
+        onSortByChange={(v) => setState({ sortBy: v })}
+        onSortDirChange={(v) => setState({ sortDir: v })}
         onReset={() =>
           setState({
             type: "all",
@@ -233,7 +205,6 @@ export function LibraryPage() {
             language: "all",
             sortBy: "added_at",
             sortDir: "desc",
-            page: 1,
           })
         }
       />

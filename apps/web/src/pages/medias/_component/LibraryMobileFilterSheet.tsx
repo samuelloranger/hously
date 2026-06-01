@@ -170,7 +170,7 @@ export function LibraryMobileFilterSheet({
                       className={cn(
                         "flex min-h-[40px] items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all",
                         typeFilter === id
-                          ? "bg-primary-500 text-white shadow-sm"
+                          ? "bg-primary-600 text-neutral-950 shadow-sm"
                           : "bg-neutral-800 text-neutral-300",
                       )}
                     >
@@ -195,7 +195,7 @@ export function LibraryMobileFilterSheet({
                       className={cn(
                         "flex min-h-[40px] items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all",
                         statusFilter === id
-                          ? "bg-primary-500 text-white shadow-sm"
+                          ? "bg-primary-600 text-neutral-950 shadow-sm"
                           : "bg-neutral-800 text-neutral-300",
                       )}
                     >
@@ -219,7 +219,7 @@ export function LibraryMobileFilterSheet({
                       className={cn(
                         "min-h-[40px] rounded-xl px-4 py-2 text-sm font-medium transition-all",
                         languageFilter === "all"
-                          ? "bg-primary-500 text-white shadow-sm"
+                          ? "bg-primary-600 text-neutral-950 shadow-sm"
                           : "bg-neutral-800 text-neutral-300",
                       )}
                     >
@@ -233,7 +233,7 @@ export function LibraryMobileFilterSheet({
                         className={cn(
                           "min-h-[40px] rounded-xl px-4 py-2 text-sm font-medium transition-all",
                           languageFilter === tag
-                            ? "bg-primary-500 text-white shadow-sm"
+                            ? "bg-primary-600 text-neutral-950 shadow-sm"
                             : "bg-neutral-800 text-neutral-300",
                         )}
                       >
@@ -258,7 +258,7 @@ export function LibraryMobileFilterSheet({
                       className={cn(
                         "min-h-[40px] rounded-xl px-3.5 py-2 text-sm font-medium transition-all",
                         sortBy === key
-                          ? "shadow-sm bg-neutral-100 text-neutral-900"
+                          ? "shadow-sm bg-primary-600 text-neutral-950"
                           : "bg-neutral-800 text-neutral-300",
                       )}
                     >
@@ -274,7 +274,7 @@ export function LibraryMobileFilterSheet({
                     className={cn(
                       "flex min-h-[40px] items-center justify-center gap-2 rounded-xl text-sm font-medium transition-all",
                       sortDir === "asc"
-                        ? "shadow-sm bg-neutral-100 text-neutral-900"
+                        ? "shadow-sm bg-primary-600 text-neutral-950"
                         : "bg-neutral-800 text-neutral-300",
                     )}
                   >
@@ -287,7 +287,7 @@ export function LibraryMobileFilterSheet({
                     className={cn(
                       "flex min-h-[40px] items-center justify-center gap-2 rounded-xl text-sm font-medium transition-all",
                       sortDir === "desc"
-                        ? "shadow-sm bg-neutral-100 text-neutral-900"
+                        ? "shadow-sm bg-primary-600 text-neutral-950"
                         : "bg-neutral-800 text-neutral-300",
                     )}
                   >
@@ -317,7 +317,7 @@ export function LibraryMobileFilterSheet({
               <button
                 type="button"
                 onClick={onClose}
-                className="ml-auto rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                className="ml-auto rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-primary-500"
               >
                 {t("medias.library.done")}
               </button>

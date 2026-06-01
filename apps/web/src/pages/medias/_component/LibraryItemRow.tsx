@@ -6,58 +6,7 @@ import { cn } from "@/lib/utils";
 import { formatDate } from "@hously/shared/utils/date";
 import type { LibraryMedia } from "@hously/shared/types";
 import { usePrefetchLibraryItem } from "@/features/medias/hooks/usePrefetchLibraryItem";
-
-const STATUS_STYLES: Record<
-  LibraryMedia["status"],
-  { labelKey: string; className: string; dot: string }
-> = {
-  wanted: {
-    labelKey: "medias.library.itemStatus.wanted",
-    className:
-      "bg-amber-500/20 text-amber-300",
-    dot: "bg-amber-400",
-  },
-  downloading: {
-    labelKey: "medias.library.itemStatus.downloading",
-    className: "bg-sky-500/20 text-sky-300",
-    dot: "bg-sky-400",
-  },
-  downloaded: {
-    labelKey: "medias.library.itemStatus.downloaded",
-    className:
-      "bg-emerald-500/20 text-emerald-300",
-    dot: "bg-emerald-400",
-  },
-  skipped: {
-    labelKey: "medias.library.itemStatus.skipped",
-    className:
-      "bg-neutral-700 text-neutral-400",
-    dot: "bg-neutral-400",
-  },
-  returning: {
-    labelKey: "medias.library.itemStatus.returning",
-    className:
-      "bg-violet-500/20 text-violet-300",
-    dot: "bg-violet-400",
-  },
-  in_production: {
-    labelKey: "medias.library.itemStatus.in_production",
-    className:
-      "bg-indigo-500/20 text-indigo-300",
-    dot: "bg-indigo-400",
-  },
-  planned: {
-    labelKey: "medias.library.itemStatus.planned",
-    className:
-      "bg-teal-500/20 text-teal-300",
-    dot: "bg-teal-400",
-  },
-  upgrading: {
-    labelKey: "medias.library.itemStatus.upgrading",
-    className: "bg-sky-500/20 text-sky-300",
-    dot: "bg-sky-400",
-  },
-};
+import { libraryStatusPresentation } from "@/utils/libraryStatusPresentation";
 
 function formatBytes(bytesStr: string | null | undefined): string | null {
   if (!bytesStr) return null;
@@ -142,8 +91,7 @@ export function LibraryItemRow({
   const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
   const prefetchLibraryItem = usePrefetchLibraryItem();
-  const statusInfo = STATUS_STYLES[item.status] ?? STATUS_STYLES.wanted;
-  const statusLabel = t(statusInfo.labelKey);
+  const p = libraryStatusPresentation(item.status);
 
   const sizeLabel = formatBytes(item.total_size_bytes);
   const addedLabel = formatDate(item.added_at, i18n.language);
@@ -160,7 +108,7 @@ export function LibraryItemRow({
 
   return (
     <div
-      className="group flex items-stretch gap-3 rounded-xl border border-neutral-700/60 bg-neutral-900 px-3 py-2.5 cursor-pointer hover:bg-neutral-800/60 transition-colors"
+      className="group flex items-stretch gap-3 rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2.5 cursor-pointer hover:bg-neutral-700/40 transition-colors"
       onClick={() =>
         navigate({
           to: "/library/$libraryId",
@@ -174,7 +122,7 @@ export function LibraryItemRow({
       <div
         className={cn(
           "shrink-0 w-0.5 self-stretch rounded-full",
-          statusInfo.dot,
+          p.liseretClass,
         )}
       />
 
@@ -191,11 +139,11 @@ export function LibraryItemRow({
             {item.title}
           </span>
           {item.year && (
-            <span className="shrink-0 text-xs text-neutral-500">
+            <span className="shrink-0 text-xs text-neutral-400">
               {item.year}
             </span>
           )}
-          <span className="shrink-0 inline-flex items-center gap-1 text-[11px] text-neutral-500">
+          <span className="shrink-0 inline-flex items-center gap-1 text-[11px] text-neutral-400">
             {item.type === "movie" ? (
               <Film className="size-3" />
             ) : (
@@ -206,7 +154,7 @@ export function LibraryItemRow({
               : t("medias.library.typeShow")}
           </span>
           {!item.monitored && (
-            <span className="shrink-0 inline-flex items-center gap-0.5 text-[10px] text-neutral-500">
+            <span className="shrink-0 inline-flex items-center gap-0.5 text-[10px] text-neutral-400">
               <EyeOff className="size-3" />
               {t("medias.library.unmonitored")}
             </span>
@@ -222,40 +170,38 @@ export function LibraryItemRow({
 
         {/* Meta pills */}
         <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Status chip */}
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
-              statusInfo.className,
+              "rounded-md px-1.5 py-0.5 text-[10px] font-semibold",
+              p.badgeClass,
             )}
           >
-            <span
-              className={cn("size-1.5 rounded-full shrink-0", statusInfo.dot)}
-            />
-            {statusLabel}
+            {t(p.labelKey)}
           </span>
 
           {item.needs_upgrade && (
-            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-orange-500/20 text-orange-300">
+            <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-orange-500/20 text-orange-300">
               <ArrowUpCircle className="size-3" />
               {t("medias.library.needsUpgrade")}
             </span>
           )}
 
           {item.quality_profile?.name && (
-            <span className="text-[11px] text-neutral-400 bg-neutral-800 rounded-full px-2 py-0.5">
+            <span className="text-[11px] text-neutral-400 bg-neutral-700/50 rounded-md px-2 py-0.5">
               {item.quality_profile.name}
             </span>
           )}
 
           {sizeLabel && (
-            <span className="text-[11px] text-neutral-400 bg-neutral-800 rounded-full px-2 py-0.5 tabular-nums">
+            <span className="text-[11px] text-neutral-400 bg-neutral-700/50 rounded-md px-2 py-0.5 tabular-nums">
               {sizeLabel}
             </span>
           )}
 
           {/* Resolution + HDR */}
           {resolutionLabel && (
-            <span className="text-[11px] font-medium text-neutral-300 bg-neutral-800 rounded-full px-2 py-0.5 tabular-nums">
+            <span className="text-[11px] font-medium text-neutral-300 bg-neutral-700/50 rounded-md px-2 py-0.5 tabular-nums">
               {resolutionLabel}
               {item.hdr_format && (
                 <span className="ml-1 text-amber-400">
@@ -267,21 +213,21 @@ export function LibraryItemRow({
 
           {/* Codec */}
           {codecLabel && (
-            <span className="text-[11px] text-neutral-400 bg-neutral-800 rounded-full px-2 py-0.5">
+            <span className="text-[11px] text-neutral-400 bg-neutral-700/50 rounded-md px-2 py-0.5">
               {codecLabel}
             </span>
           )}
 
           {/* Audio */}
           {item.audio_format && (
-            <span className="text-[11px] text-neutral-400 bg-neutral-800 rounded-full px-2 py-0.5">
+            <span className="text-[11px] text-neutral-400 bg-neutral-700/50 rounded-md px-2 py-0.5">
               {item.audio_format}
             </span>
           )}
 
           {/* Duration (movies) */}
           {durationLabel && item.type === "movie" && (
-            <span className="text-[11px] text-neutral-500 tabular-nums">
+            <span className="text-[11px] text-neutral-400 tabular-nums">
               {durationLabel}
             </span>
           )}
@@ -290,7 +236,7 @@ export function LibraryItemRow({
           {item.type === "show" &&
             item.episode_count != null &&
             item.episode_count > 0 && (
-              <span className="text-[11px] text-neutral-400 bg-neutral-800 rounded-full px-2 py-0.5">
+              <span className="text-[11px] text-neutral-400 bg-neutral-700/50 rounded-md px-2 py-0.5">
                 {item.season_count != null && item.season_count > 1
                   ? `S${item.season_count} · `
                   : ""}
@@ -300,7 +246,7 @@ export function LibraryItemRow({
 
           {/* Language tags */}
           {item.language_tags.length > 0 && (
-            <span className="text-[11px] text-neutral-500 tabular-nums">
+            <span className="text-[11px] text-neutral-400 tabular-nums">
               {item.language_tags
                 .slice(0, 3)
                 .map((l) => l.toUpperCase())
@@ -309,7 +255,7 @@ export function LibraryItemRow({
           )}
 
           {item.affected_episodes != null && item.affected_episodes > 0 && (
-            <span className="text-[11px] text-amber-400 bg-amber-500/10 rounded-full px-2 py-0.5">
+            <span className="text-[11px] text-amber-400 bg-amber-500/10 rounded-md px-2 py-0.5">
               {t("medias.library.episodesMissing", {
                 count: item.affected_episodes,
               })}
@@ -317,21 +263,21 @@ export function LibraryItemRow({
           )}
 
           {digitalRelease && (
-            <span className="text-[11px] text-neutral-500 tabular-nums">
+            <span className="text-[11px] text-neutral-400 tabular-nums">
               {t("medias.library.digitalRelease", { date: digitalRelease })}
             </span>
           )}
 
           {(lastGrabbed || addedLabel) && (
-            <span className="text-[11px] text-neutral-500 tabular-nums">
+            <span className="text-[11px] text-neutral-400 tabular-nums">
               {lastGrabbed ?? addedLabel}
             </span>
           )}
         </div>
       </div>
 
-      {/* Search now */}
-      {item.type === "movie" && item.status === "wanted" && onMovieSearch && (
+      {/* Search now — shown for movies with quickAction="search" */}
+      {item.type === "movie" && p.quickAction === "search" && onMovieSearch && (
         <div className="shrink-0 self-center">
           <button
             type="button"
