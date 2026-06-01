@@ -119,6 +119,10 @@ export interface AddToLibraryResponse {
   item: LibraryMedia;
 }
 
+export interface LibraryItemResponse {
+  item: LibraryMedia;
+}
+
 export interface LibraryEpisode {
   id: number;
   season: number;

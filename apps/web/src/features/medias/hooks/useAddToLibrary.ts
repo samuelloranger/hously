@@ -14,7 +14,9 @@ export function useAddToLibrary() {
         method: "POST",
         body,
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Seed the per-item cache for an instant detail open.
+      queryClient.setQueryData(queryKeys.library.item(data.item.id), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
     },
   });

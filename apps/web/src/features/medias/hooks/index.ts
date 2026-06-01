@@ -11,5 +11,6 @@ export * from "./useAddToWatchlist";
 export * from "./useRemoveFromWatchlist";
 export * from "./useMissingCollections";
 export * from "./useLibrary";
+export * from "./useLibraryItem";
 export * from "./useLibraryEvents";
 export * from "./usePrefetchLibraryItem";

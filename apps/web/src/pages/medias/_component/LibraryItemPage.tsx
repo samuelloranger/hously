@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Info, Search, Settings2, Sparkles } from "lucide-react";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { useLibrary } from "@/features/medias/hooks/useLibrary";
+import { useLibraryItem } from "@/features/medias/hooks/useLibraryItem";
 import { useLibraryEvents } from "@/features/medias/hooks/useLibraryEvents";
 import { useAddToWatchlist } from "@/features/medias/hooks/useAddToWatchlist";
 import { useMediaModalData } from "@/features/medias/hooks/useMediaModalData";
@@ -38,11 +39,13 @@ export function LibraryItemPage() {
   useLibraryEvents();
 
   const id = parseInt(libraryId, 10);
-  const { data: libData, isLoading: libLoading } = useLibrary();
+  const { data: itemData, isLoading: itemLoading } = useLibraryItem(id);
+  // List cache gives an instant paint while the by-id query resolves.
+  const { data: libData } = useLibrary();
 
   const item = useMemo(
-    () => libData?.items.find((i) => i.id === id) ?? null,
-    [libData, id],
+    () => itemData?.item ?? libData?.items.find((i) => i.id === id) ?? null,
+    [itemData, libData, id],
   );
 
   const mediaType = item ? (item.type === "show" ? "tv" : "movie") : "movie";
@@ -130,7 +133,7 @@ export function LibraryItemPage() {
   };
 
   // ── Loading skeleton ──────────────────────────────────────────────────────
-  if (libLoading && !libData) {
+  if (itemLoading && !item) {
     return (
       <div>
         <div className="relative h-[260px] md:h-[340px] bg-neutral-900 animate-pulse" />
