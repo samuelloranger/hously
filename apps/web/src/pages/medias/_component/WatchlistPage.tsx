@@ -48,7 +48,7 @@ function WatchlistCard({
           : "text-rose-400";
 
   return (
-    <div className="group relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-neutral-950 ring-1 ring-white/[0.06]">
+    <div className="group relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-neutral-950 ring-1 ring-primary-500/30">
       {/* Click overlay */}
       <div
         role="button"
@@ -71,7 +71,7 @@ function WatchlistCard({
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
-          <Film className="w-8 h-8 text-white/10" />
+          <Film className="w-8 h-8 text-neutral-700" />
         </div>
       )}
 
@@ -90,10 +90,10 @@ function WatchlistCard({
         }}
         disabled={removeMutation.isPending}
         aria-label={`Remove ${item.title} from watchlist`}
-        className="absolute top-2 right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white/70 opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-black/80 hover:text-white disabled:opacity-40"
+        className="absolute top-2 right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-neutral-950/70 text-neutral-300 opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-neutral-950 hover:text-neutral-50 disabled:opacity-40"
       >
         {removeMutation.isPending ? (
-          <div className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-white border-t-transparent" />
+          <div className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-neutral-300 border-t-transparent" />
         ) : (
           <BookmarkX size={11} />
         )}
@@ -101,18 +101,18 @@ function WatchlistCard({
 
       {/* Bottom info */}
       <div className="absolute inset-x-0 bottom-0 z-10 px-2.5 pb-2.5 pt-6 translate-y-[5px] transition-transform duration-300 ease-out group-hover:translate-y-0">
-        <p className="text-[10.5px] font-semibold leading-tight text-white line-clamp-2">
+        <p className="text-[10.5px] font-semibold leading-tight text-neutral-50 line-clamp-2">
           {item.title}
         </p>
         <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity duration-250 group-hover:opacity-100">
           {item.release_year && (
-            <span className="text-[9px] tabular-nums text-white/45">
+            <span className="text-[9px] tabular-nums text-neutral-400">
               {item.release_year}
             </span>
           )}
           {score !== null && (
             <>
-              <span className="text-[8px] text-white/20">·</span>
+              <span className="text-[8px] text-neutral-600">·</span>
               <span
                 className={`text-[9px] font-semibold tabular-nums ${scoreColor}`}
               >
@@ -120,7 +120,7 @@ function WatchlistCard({
               </span>
             </>
           )}
-          <span className="ml-auto text-[8px] font-medium uppercase tracking-widest text-white/25">
+          <span className="ml-auto text-[8px] font-medium uppercase tracking-widest text-neutral-500">
             {item.media_type === "movie" ? "Film" : "TV"}
           </span>
         </div>

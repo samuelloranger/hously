@@ -159,7 +159,7 @@ export function DiscoverToolbar({
         <div
           className={cn(
             "flex shrink-0 items-center gap-1.5",
-            "md:border-l md:pl-2 md:border-white/10",
+            "md:border-l md:pl-2 md:border-neutral-700",
           )}
         >
           <span className="shrink-0 text-[10px] font-medium uppercase tracking-widest text-neutral-500">
@@ -176,7 +176,7 @@ export function DiscoverToolbar({
                   "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
                   active
                     ? "border-primary-500/60 bg-primary-500/15 text-primary-300"
-                    : "border-white/[0.08] bg-white/[0.03] text-neutral-400 hover:border-white/20",
+                    : "border-neutral-700 bg-neutral-900 text-neutral-400 hover:border-neutral-600",
                 ].join(" ")}
               >
                 {lf.label}

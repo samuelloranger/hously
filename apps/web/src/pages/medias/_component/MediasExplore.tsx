@@ -28,7 +28,7 @@ export function MediasExplore() {
         >
           <section className="rounded-2xl border border-neutral-700/60 bg-neutral-900 overflow-hidden">
             <div className="px-5 py-3.5 border-b border-neutral-800">
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-neutral-50">
                 {t("medias.tmdb.title")}
               </p>
               <p className="text-xs text-neutral-400 mt-0.5">

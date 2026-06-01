@@ -108,7 +108,7 @@ export function TmdbMediaSearchPanel({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-white line-clamp-2">
+                    <p className="text-sm font-medium text-neutral-50 line-clamp-2">
                       {item.title}
                     </p>
                     <p className="text-xs text-neutral-400 mt-0.5">
@@ -116,7 +116,7 @@ export function TmdbMediaSearchPanel({
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       {item.library_id != null && item.library_id > 0 ? (
-                        <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-blue-500/20 text-blue-300">
+                        <span className="rounded-full border border-primary-800 px-2 py-0.5 text-[10px] font-medium bg-primary-900/30 text-primary-300">
                           {t("medias.tmdb.badgeLibrary")}
                         </span>
                       ) : null}
@@ -173,7 +173,7 @@ export function TmdbMediaSearchPanel({
     <>
       <section className="rounded-2xl border border-neutral-700/60 bg-neutral-900 overflow-hidden">
         <div className="px-5 py-3.5 border-b border-neutral-800">
-          <p className="text-sm font-semibold text-white">
+          <p className="text-sm font-semibold text-neutral-50">
             {t("medias.tmdb.title")}
           </p>
           <p className="text-xs text-neutral-400 mt-0.5">
