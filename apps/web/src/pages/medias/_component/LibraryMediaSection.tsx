@@ -105,9 +105,9 @@ export function LibraryMediaSection({
   return (
     <Card>
       {/* Header — always visible */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-neutral-800">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          <Folder size={11} className="text-neutral-400 shrink-0" />
+          <Folder size={13} className="text-neutral-400 shrink-0" />
           {mappedFolder && (
             <span className="text-[10px] font-mono text-neutral-400 truncate">
               {mappedFolder}
@@ -150,7 +150,7 @@ export function LibraryMediaSection({
       {isShow ? (
         /* Show: merged episodes + files by season */
         hasEpisodes ? (
-          <div className="divide-y divide-neutral-800">
+          <div className="divide-y divide-border">
             {episodesQuery.data!.seasons.map((s) => {
               const isExpanded = expandedSeasons.has(s.season);
               const downloadedCount = s.episodes.filter(
@@ -209,9 +209,7 @@ export function LibraryMediaSection({
                           <span
                             className={cn(
                               "text-[11px] tabular-nums mobile-max:text-[10px]",
-                              allDone
-                                ? "text-emerald-400"
-                                : "text-neutral-500",
+                              allDone ? "text-emerald-400" : "text-neutral-500",
                             )}
                           >
                             {downloadedCount}/{s.episodes.length}
@@ -329,7 +327,7 @@ export function LibraryMediaSection({
                                 toast.error(t("library.management.grabFailed")),
                               );
                           }}
-                          className="rounded-md p-2.5 mobile-max:px-3 mobile-max:py-3 text-neutral-400 hover:text-amber-400 hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+                          className="rounded-md p-2.5 mobile-max:px-3 mobile-max:py-3 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 disabled:opacity-50 transition-colors"
                         >
                           <RefreshCw size={14} className="mobile-max:size-3" />
                         </button>
@@ -370,7 +368,7 @@ export function LibraryMediaSection({
                   </div>
 
                   {isExpanded && (
-                    <div className="divide-y divide-neutral-800 border-t border-neutral-800 bg-neutral-900/30">
+                    <div className="divide-y divide-border border-t border-border bg-neutral-900/30">
                       {s.episodes.map((ep) => (
                         <MergedEpisodeRow
                           key={ep.id}
@@ -396,7 +394,7 @@ export function LibraryMediaSection({
           </div>
         ) : (
           /* Episodes not loaded yet but files exist — group by season */
-          <div className="divide-y divide-neutral-800">
+          <div className="divide-y divide-border">
             {Array.from(
               files.reduce((map, f) => {
                 const s = f.season ?? 0;
@@ -424,7 +422,7 @@ export function LibraryMediaSection({
                 return (
                   <div
                     key={season}
-                    className="border-b border-neutral-800 last:border-0"
+                    className="border-b border-border last:border-0"
                   >
                     <button
                       type="button"
@@ -457,7 +455,7 @@ export function LibraryMediaSection({
                       </div>
                     </button>
                     {isExpanded && (
-                      <div className="divide-y divide-neutral-800 border-t border-neutral-800">
+                      <div className="divide-y divide-border border-t border-border">
                         {sFiles.map((f) => {
                           const epCode =
                             f.episode != null
@@ -467,7 +465,7 @@ export function LibraryMediaSection({
                           return (
                             <div
                               key={f.id}
-                              className="border-b last:border-0 border-neutral-800"
+                              className="border-b last:border-0 border-border"
                             >
                               <div className="flex items-center gap-2 px-4 py-2">
                                 <span className="font-mono text-[10px] font-medium text-neutral-500 w-7 shrink-0">
@@ -508,7 +506,7 @@ export function LibraryMediaSection({
                 key={file.id}
                 className={cn(
                   files.length > 1 &&
-                    "border-t border-neutral-800 pt-4 first:border-none first:pt-0",
+                    "border-t border-border pt-4 first:border-none first:pt-0",
                 )}
               >
                 {files.length > 1 && (
@@ -536,7 +534,7 @@ export function LibraryMediaSection({
                             { onSettled: () => setDeleteConfirmId(null) },
                           );
                         }}
-                        className="rounded px-2 py-0.5 text-xs font-medium bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
+                        className="rounded px-2 py-0.5 text-xs font-medium bg-rose-600 text-white hover:bg-rose-500 disabled:opacity-50 transition-colors"
                       >
                         {t("library.media.yesDelete")}
                       </button>

@@ -119,7 +119,7 @@ export function LibraryActionsSection({
               )
               .catch(() => toast.error(t("library.management.grabFailed")));
           }}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-400 hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 disabled:opacity-50 transition-colors"
         >
           <RefreshCw size={11} />
           {t("library.management.retrySearch")}

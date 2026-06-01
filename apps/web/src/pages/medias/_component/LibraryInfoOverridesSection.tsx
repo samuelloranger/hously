@@ -97,9 +97,8 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
   };
 
   const inputClass =
-    "w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-200 focus:outline-none focus:ring-1 focus:ring-primary-500";
-  const labelClass =
-    "text-[10px] font-medium text-neutral-400";
+    "w-full rounded-lg border border-border bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-200 focus:outline-none focus:ring-1 focus:ring-primary-500";
+  const labelClass = "text-[10px] font-medium text-neutral-400";
 
   return (
     <Card>
@@ -111,30 +110,27 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
         }}
         className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-neutral-800/40 transition-colors"
       >
-        <Pencil
-          size={11}
-          className="text-neutral-500 shrink-0"
-        />
-        <span className="text-xs font-medium text-neutral-300">
+        <Pencil size={13} className="text-neutral-400 shrink-0" />
+        <span className="text-xs font-semibold text-neutral-200">
           {t("library.management.editInfo.title", "Edit info")}
         </span>
       </button>
 
       {open && (
-        <div className="px-4 pb-4 space-y-3 border-t border-neutral-800 pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
           <div className="space-y-1">
             <div className="flex items-center gap-1">
               <span className={labelClass}>
                 {t("library.management.editInfo.fieldTitle", "Title")}
               </span>
               {hasOverride("title") && (
-                <Lock size={9} className="text-amber-500" />
+                <Lock size={9} className="text-primary-400" />
               )}
               {hasOverride("title") && (
                 <button
                   type="button"
                   onClick={() => void handleClear("title")}
-                  className="text-[10px] text-neutral-400 hover:text-red-500 ml-1 transition-colors"
+                  className="text-[10px] text-neutral-400 hover:text-rose-400 ml-1 transition-colors"
                 >
                   ×
                 </button>
@@ -154,13 +150,13 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
                 {t("library.management.editInfo.fieldSortTitle", "Sort title")}
               </span>
               {hasOverride("sort_title") && (
-                <Lock size={9} className="text-amber-500" />
+                <Lock size={9} className="text-primary-400" />
               )}
               {hasOverride("sort_title") && (
                 <button
                   type="button"
                   onClick={() => void handleClear("sort_title")}
-                  className="text-[10px] text-neutral-400 hover:text-red-500 ml-1 transition-colors"
+                  className="text-[10px] text-neutral-400 hover:text-rose-400 ml-1 transition-colors"
                 >
                   ×
                 </button>
@@ -180,13 +176,13 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
                 {t("library.management.editInfo.fieldYear", "Year")}
               </span>
               {hasOverride("year") && (
-                <Lock size={9} className="text-amber-500" />
+                <Lock size={9} className="text-primary-400" />
               )}
               {hasOverride("year") && (
                 <button
                   type="button"
                   onClick={() => void handleClear("year")}
-                  className="text-[10px] text-neutral-400 hover:text-red-500 ml-1 transition-colors"
+                  className="text-[10px] text-neutral-400 hover:text-rose-400 ml-1 transition-colors"
                 >
                   ×
                 </button>
@@ -206,13 +202,13 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
                 {t("library.management.editInfo.fieldOverview", "Overview")}
               </span>
               {hasOverride("overview") && (
-                <Lock size={9} className="text-amber-500" />
+                <Lock size={9} className="text-primary-400" />
               )}
               {hasOverride("overview") && (
                 <button
                   type="button"
                   onClick={() => void handleClear("overview")}
-                  className="text-[10px] text-neutral-400 hover:text-red-500 ml-1 transition-colors"
+                  className="text-[10px] text-neutral-400 hover:text-rose-400 ml-1 transition-colors"
                 >
                   ×
                 </button>
@@ -232,13 +228,13 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
                 {t("library.management.editInfo.fieldPosterUrl", "Poster URL")}
               </span>
               {hasOverride("poster_url") && (
-                <Lock size={9} className="text-amber-500" />
+                <Lock size={9} className="text-primary-400" />
               )}
               {hasOverride("poster_url") && (
                 <button
                   type="button"
                   onClick={() => void handleClear("poster_url")}
-                  className="text-[10px] text-neutral-400 hover:text-red-500 ml-1 transition-colors"
+                  className="text-[10px] text-neutral-400 hover:text-rose-400 ml-1 transition-colors"
                 >
                   ×
                 </button>

@@ -11,50 +11,13 @@ import {
   Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { libraryStatusPresentation } from "@/utils/libraryStatusPresentation";
 import type {
   LibraryMedia,
   TmdbMediaDetailsResponse,
   MediaRatingsResponse,
   TmdbTrailerResponse,
 } from "@hously/shared/types";
-
-const STATUS_BADGE: Record<
-  LibraryMedia["status"],
-  { labelKey: string; cls: string }
-> = {
-  wanted: {
-    labelKey: "medias.library.itemStatus.wanted",
-    cls: "bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/30",
-  },
-  downloading: {
-    labelKey: "medias.library.itemStatus.downloading",
-    cls: "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30",
-  },
-  downloaded: {
-    labelKey: "medias.library.itemStatus.downloaded",
-    cls: "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30",
-  },
-  skipped: {
-    labelKey: "medias.library.itemStatus.skipped",
-    cls: "bg-neutral-500/20 text-neutral-400 ring-1 ring-neutral-500/30",
-  },
-  returning: {
-    labelKey: "medias.library.itemStatus.returning",
-    cls: "bg-violet-500/20 text-violet-400 ring-1 ring-violet-500/30",
-  },
-  in_production: {
-    labelKey: "medias.library.itemStatus.in_production",
-    cls: "bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/30",
-  },
-  planned: {
-    labelKey: "medias.library.itemStatus.planned",
-    cls: "bg-teal-500/20 text-teal-400 ring-1 ring-teal-500/30",
-  },
-  upgrading: {
-    labelKey: "medias.library.itemStatus.upgrading",
-    cls: "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30",
-  },
-};
 
 type Props = {
   item: LibraryMedia;
@@ -98,7 +61,7 @@ export function LibraryItemHero({
   const voteAverage = detailsData?.vote_average ?? null;
   const rtScore = ratingsData?.rotten_tomatoes ?? null;
   const tmdbUrl = `https://www.themoviedb.org/${mediaType}/${item.tmdb_id}`;
-  const statusBadge = STATUS_BADGE[item.status] ?? STATUS_BADGE.wanted;
+  const p = libraryStatusPresentation(item.status);
 
   return (
     <div
@@ -110,7 +73,7 @@ export function LibraryItemHero({
       {/* Backdrop */}
       {backdrop ? (
         <>
-          <div className="absolute inset-0 bg-neutral-950" />
+          <div className="absolute inset-0 bg-neutral-900" />
           <img
             src={backdrop}
             alt=""
@@ -121,8 +84,8 @@ export function LibraryItemHero({
             )}
             onLoad={() => setBackdropLoaded(true)}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-900/75 to-neutral-900/30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/75 to-neutral-900/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-neutral-900/60 to-transparent" />
         </>
       ) : (
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-900 to-neutral-950" />
@@ -160,7 +123,7 @@ export function LibraryItemHero({
 
           {/* Meta */}
           <div className="flex-1 min-w-0 flex flex-col gap-2">
-            <h1 className="text-xl md:text-2xl lg:text-[1.65rem] font-bold text-white leading-tight">
+            <h1 className="font-display text-xl md:text-2xl lg:text-[1.65rem] font-bold text-white leading-tight">
               {item.title}
             </h1>
 
@@ -172,7 +135,7 @@ export function LibraryItemHero({
 
             {/* Chips */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-primary-600/80 text-white">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-primary-500/15 text-primary-200 ring-1 ring-primary-500/30">
                 {item.type === "show" ? t("medias.series") : t("medias.movie")}
               </span>
               {item.year && (
@@ -194,10 +157,10 @@ export function LibraryItemHero({
               <span
                 className={cn(
                   "px-1.5 py-0.5 rounded-full text-[10px] font-medium",
-                  statusBadge.cls,
+                  p.badgeClass,
                 )}
               >
-                {t(statusBadge.labelKey)}
+                {t(p.labelKey)}
               </span>
             </div>
 
@@ -255,8 +218,8 @@ export function LibraryItemHero({
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
                   isInWatchlist
-                    ? "bg-amber-500/25 text-amber-300 hover:bg-amber-500/35"
-                    : "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20",
+                    ? "bg-primary-500/25 text-primary-100 hover:bg-primary-500/35 ring-1 ring-primary-500/40"
+                    : "bg-primary-500/15 text-primary-200 hover:bg-primary-500/25 ring-1 ring-primary-500/30",
                 )}
               >
                 {isInWatchlist ? (
@@ -273,7 +236,7 @@ export function LibraryItemHero({
                 href={tmdbUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600/15 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-600/25 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-neutral-100 hover:bg-white/10 transition-colors"
               >
                 <ExternalLink size={12} />
                 TMDB
@@ -284,7 +247,7 @@ export function LibraryItemHero({
                   href={`https://www.youtube.com/watch?v=${trailerData.key}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/15 px-3 py-1.5 text-xs font-medium text-red-300 hover:bg-red-600/25 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-neutral-100 hover:bg-white/10 transition-colors"
                 >
                   <Play size={12} />
                   {t("medias.detail.watchTrailer")}

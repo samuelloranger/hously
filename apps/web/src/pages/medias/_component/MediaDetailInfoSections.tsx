@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TmdbMediaDetailsResponse } from "@hously/shared/types";
 import { ExternalLink, UserCircle } from "lucide-react";
+import { Eyebrow } from "./LibrarySharedUI";
 
 interface MediaDetailInfoSectionsProps {
   details: TmdbMediaDetailsResponse;
@@ -38,9 +39,7 @@ function Section({
 }) {
   return (
     <div>
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-        {title}
-      </p>
+      <Eyebrow className="mb-2">{title}</Eyebrow>
       <div className="flex flex-col gap-2">{children}</div>
     </div>
   );
@@ -51,9 +50,7 @@ function FactLine({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-sm">
       <span className="text-neutral-500">{label}</span>
-      <span className="min-w-0 text-neutral-200">
-        {value}
-      </span>
+      <span className="min-w-0 text-neutral-200">{value}</span>
     </div>
   );
 }
@@ -64,7 +61,7 @@ function OutLink({ href, label }: { href: string; label: string }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1 text-sm font-medium hover:underline text-sky-400"
+      className="inline-flex items-center gap-1 text-sm font-medium hover:underline text-primary-300"
     >
       {label}
       <ExternalLink size={12} className="shrink-0 opacity-70" />
@@ -132,7 +129,7 @@ export function MediaDetailInfoSections({
       details.last_episode_to_air);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-x-8 items-start">
       {hasFacts && (
         <Section title={t("medias.detail.sections.facts")}>
           {showOriginalTitle && (
@@ -174,7 +171,7 @@ export function MediaDetailInfoSections({
                 {companies.map((c) => (
                   <span
                     key={c.id}
-                    className="inline-flex max-w-full items-center gap-1.5 rounded-lg border px-2 py-1 text-xs border-neutral-700/60 bg-neutral-900/50 text-neutral-200"
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-lg border px-2 py-1 text-xs border-border bg-surface-inset text-neutral-200"
                   >
                     {c.logo_url ? (
                       <img
@@ -237,7 +234,7 @@ export function MediaDetailInfoSections({
                 {nets.map((n) => (
                   <span
                     key={n.id}
-                    className="inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs border-neutral-700/60 bg-neutral-900/50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs border-border bg-surface-inset"
                   >
                     {n.logo_url ? (
                       <img
@@ -286,8 +283,8 @@ export function MediaDetailInfoSections({
             />
           )}
           {details.next_episode_to_air && (
-            <div className="rounded-lg border border-emerald-500/20 px-3 py-2 text-sm bg-emerald-500/10">
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+            <div className="rounded-lg border border-primary-500/20 px-3 py-2 text-sm bg-primary-500/10">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-primary-300">
                 {t("medias.detail.nextEpisode")}
               </p>
               <p className="font-medium text-neutral-100">
@@ -310,7 +307,7 @@ export function MediaDetailInfoSections({
             </div>
           )}
           {details.last_episode_to_air && (
-            <div className="rounded-lg border px-3 py-2 text-sm border-neutral-700/60 bg-neutral-900/40">
+            <div className="rounded-lg border px-3 py-2 text-sm border-border bg-surface-inset">
               <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
                 {t("medias.detail.lastEpisode")}
               </p>
