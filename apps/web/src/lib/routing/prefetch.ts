@@ -56,7 +56,7 @@ async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
       queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST),
     },
     {
-      queryKey: [...queryKeys.habits.list(), today] as const,
+      queryKey: queryKeys.habits.listForDate(today),
       queryFn: () => webFetcher(`${HABIT_ENDPOINTS.LIST}?date=${today}`),
     },
     {
@@ -133,7 +133,7 @@ function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
     queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST),
   });
   void queryClient.prefetchQuery({
-    queryKey: [...queryKeys.habits.list(), today] as const,
+    queryKey: queryKeys.habits.listForDate(today),
     queryFn: () => webFetcher(`${HABIT_ENDPOINTS.LIST}?date=${today}`),
   });
   void queryClient.prefetchQuery({

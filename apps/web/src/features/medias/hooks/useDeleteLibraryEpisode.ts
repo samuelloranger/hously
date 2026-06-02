@@ -24,10 +24,10 @@ export function useDeleteLibraryEpisode(libraryId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
       queryClient.invalidateQueries({
-        queryKey: [...queryKeys.library.all, "files", libraryId],
+        queryKey: queryKeys.library.files(libraryId),
       });
       queryClient.invalidateQueries({
-        queryKey: [...queryKeys.library.all, "episodes", libraryId],
+        queryKey: queryKeys.library.episodes(libraryId),
       });
     },
   });

@@ -7,7 +7,7 @@ import type { HabitsResponse } from "@hously/shared/types";
 export const useHabits = (date?: string) => {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: [...queryKeys.habits.list(), date] as const,
+    queryKey: queryKeys.habits.listForDate(date),
     queryFn: () => {
       let url = HABIT_ENDPOINTS.LIST;
       if (date) url += `?date=${date}`;

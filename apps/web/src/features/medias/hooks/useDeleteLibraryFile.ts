@@ -21,7 +21,7 @@ export function useDeleteLibraryFile(libraryId: number) {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [...queryKeys.library.all, "files", libraryId],
+        queryKey: queryKeys.library.files(libraryId),
       });
     },
   });
