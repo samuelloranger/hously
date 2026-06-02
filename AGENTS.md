@@ -153,8 +153,14 @@ Use error helpers from `src/utils/errors.ts`, compose in `src/index.ts`.
 
 ### TanStack Query
 
-- **Hooks** — under `apps/web/src/features/`, `apps/web/src/pages/`, or `apps/web/src/hooks/<domain>/`; not in `@hously/shared`.
 - **Query keys** — `apps/web/src/lib/queryKeys.ts` (import via `@/lib/queryKeys`).
+- **API access** — go through `httpClient` (`useFetcher` / `webFetcher` / `fetchApi`), never raw `fetch`. The only sanctioned bypasses (Service Worker code, which can't import the `@/` alias, plus a couple of fire-and-forget calls and SSE streams) must replicate the cookie + root-relative-URL rules — see `apps/web/src/lib/api/README.md` for the full list and the rationale (avoids prod-only auth bugs).
+- **Hook placement** — decide by _who consumes the hook_, top-down (first match wins). Never put hooks in `@hously/shared`.
+  1. **Server-state hook (TanStack `useQuery`/`useMutation`) in a domain that owns a `features/<name>/` module** → `apps/web/src/features/<name>/hooks/`. Today only `medias` and `downloadsImport` have this data layer, kept separate from their (large) `pages/` UI. **Medias is the reference shape.**
+  2. **Consumed across unrelated areas, or a domain-level utility owned by no single page** (e.g. a scroll helper, a country list shared by Settings + Calendar) → `apps/web/src/hooks/<domain>/`.
+  3. **Otherwise the hook belongs to one page/route** (data _or_ UI-state) → colocate under that page: `apps/web/src/pages/<area>/`, a `_hooks/` subfolder when there are many (board's pattern), or `_component/` for page-local UI state.
+
+  Don't replicate the medias `features/` + `pages/` split for small domains — `board`, `chores`, and `habits` keep everything under `pages/<area>/`.
 
 ```typescript
 import { queryKeys } from "@/lib/queryKeys";
