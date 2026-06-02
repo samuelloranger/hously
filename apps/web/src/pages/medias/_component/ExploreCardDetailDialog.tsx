@@ -218,6 +218,7 @@ export function ExploreCardDetailDialog({
                   }))}
                   value={validTab}
                   onChange={setActiveTab}
+                  containerClassName="mb-4"
                 />
               )}
 
