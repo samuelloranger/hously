@@ -11,7 +11,9 @@ export function useLibraryEvents() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const es = new EventSource("/api/library/events");
+    const es = new EventSource("/api/library/events", {
+      withCredentials: true,
+    });
 
     es.onmessage = (e) => {
       try {

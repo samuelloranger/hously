@@ -93,6 +93,8 @@ export const queryKeys = {
     unreadCount: () =>
       [...queryKeys.notifications.all, "unread-count"] as const,
     channels: () => [...queryKeys.notifications.all, "channels"] as const,
+    vapidPublicKey: () =>
+      [...queryKeys.notifications.all, "vapid-public-key"] as const,
   },
 
   externalNotifications: {
@@ -315,6 +317,7 @@ export const queryKeys = {
   habits: {
     all: ["habits"] as const,
     list: () => [...queryKeys.habits.all, "list"] as const,
+    listForDate: (date?: string) => [...queryKeys.habits.list(), date] as const,
     history: (id: number) => [...queryKeys.habits.all, "history", id] as const,
   },
 
@@ -348,6 +351,8 @@ export const queryKeys = {
       language?: string;
     }) => [...queryKeys.library.all, "list", filters] as const,
     item: (id: number) => [...queryKeys.library.all, "item", id] as const,
+    files: (id: number | null) =>
+      [...queryKeys.library.all, "files", id] as const,
     episodes: (id: number) =>
       [...queryKeys.library.all, "episodes", id] as const,
     downloads: (id: number) =>

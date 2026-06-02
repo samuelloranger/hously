@@ -8,7 +8,7 @@ export function useLibraryFiles(id: number | null) {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: [...queryKeys.library.all, "files", id],
+    queryKey: queryKeys.library.files(id),
     queryFn: () => fetcher<LibraryFilesResponse>(LIBRARY_ENDPOINTS.FILES(id!)),
     enabled: id !== null,
     staleTime: 0,

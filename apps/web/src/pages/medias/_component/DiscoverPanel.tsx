@@ -12,7 +12,7 @@ import {
   buildDiscoverFilterSignature,
   buildDiscoverGridKey,
 } from "@/pages/medias/_component/discover/discoverSignatures";
-import { useDiscoverScrollToAnchor } from "@/hooks/medias/useDiscoverScrollToAnchor";
+import { useDiscoverScrollToAnchor } from "@/pages/medias/_component/useDiscoverScrollToAnchor";
 import { DiscoverPagination } from "@/pages/medias/_component/discover/DiscoverPagination";
 import { DiscoverResultsGrid } from "@/pages/medias/_component/discover/DiscoverResultsGrid";
 import { DiscoverToolbar } from "@/pages/medias/_component/discover/DiscoverToolbar";
