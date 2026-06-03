@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQbittorrentIntegration } from "@/pages/settings/useQbittorrentIntegration";
 import { useUpdateQbittorrentIntegration } from "@/pages/settings/useUpdateQbittorrentIntegration";
 import { useSetupQbittorrentAutorun } from "@/pages/settings/useSetupQbittorrentAutorun";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
-import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";
+import { CredentialIntegrationFields } from "@/pages/settings/_component/integrations/CredentialIntegrationFields";
+import { useCredentialIntegrationForm } from "@/pages/settings/_component/integrations/useCredentialIntegrationForm";
 
 export function QbittorrentIntegrationSection() {
   const { data, isLoading } = useQbittorrentIntegration();
@@ -28,50 +28,15 @@ function QbittorrentIntegrationSectionImpl({
   const { t } = useTranslation("common");
   const saveMutation = useUpdateQbittorrentIntegration();
   const autorunMutation = useSetupQbittorrentAutorun();
-
-  const [websiteUrl, setWebsiteUrl] = useState(
-    data?.integration?.website_url || "",
-  );
-  const [username, setUsername] = useState(data?.integration?.username || "");
-  const [password, setPassword] = useState("");
-  const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));
-
-  const isDirty = useMemo(() => {
-    if (!data?.integration) return false;
-    return (
-      websiteUrl !== (data.integration.website_url || "") ||
-      username !== (data.integration.username || "") ||
-      password !== "" ||
-      enabled !== Boolean(data.integration.enabled)
-    );
-  }, [data, websiteUrl, username, password, enabled]);
-
-  const handleCancel = () => {
-    setWebsiteUrl(data?.integration.website_url || "");
-    setUsername(data?.integration.username || "");
-    setPassword("");
-    setEnabled(Boolean(data?.integration.enabled));
-  };
-
-  const handleSave = () => {
-    saveMutation
-      .mutateAsync({
-        website_url: websiteUrl,
-        username,
-        password: password.trim() ? password : undefined,
-        enabled,
-      })
-      .then(() => {
-        setPassword("");
-        toast.success(t("settings.integrations.saveSuccess"));
-      })
-      .catch(() => toast.error(t("settings.integrations.saveError")));
-  };
+  const form = useCredentialIntegrationForm({
+    integration: data?.integration,
+    save: saveMutation.mutateAsync,
+  });
 
   const canConfigureWebhooks =
     Boolean(data?.integration?.enabled) &&
     Boolean(data?.integration?.webhook_secret_configured) &&
-    !isDirty;
+    !form.isDirty;
 
   const handleConfigureWebhooks = () => {
     autorunMutation
@@ -96,49 +61,30 @@ function QbittorrentIntegrationSectionImpl({
     <IntegrationSectionCard
       title="qBittorrent"
       description={t("settings.integrations.qbittorrent.help")}
-      enabled={enabled}
-      onEnabledChange={setEnabled}
-      onCancel={handleCancel}
-      onSave={handleSave}
+      enabled={form.enabled}
+      onEnabledChange={form.setEnabled}
+      onCancel={form.handleCancel}
+      onSave={form.handleSave}
       loading={isLoading}
       saving={saveMutation.isPending}
-      isDirty={isDirty}
+      isDirty={form.isDirty}
       logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/qbittorrent.png"
     >
-      <IntegrationUrlInput
-        label={t("settings.integrations.qbittorrent.websiteUrl")}
-        value={websiteUrl}
-        onChange={setWebsiteUrl}
-        placeholder="http://qbittorrent:8080"
+      <CredentialIntegrationFields
+        websiteUrlLabel={t("settings.integrations.qbittorrent.websiteUrl")}
+        websiteUrl={form.websiteUrl}
+        onWebsiteUrlChange={form.setWebsiteUrl}
+        websiteUrlPlaceholder="http://qbittorrent:8080"
+        usernameLabel={t("settings.integrations.qbittorrent.username")}
+        username={form.username}
+        onUsernameChange={form.setUsername}
+        passwordLabel={t("settings.integrations.qbittorrent.password")}
+        password={form.password}
+        onPasswordChange={form.setPassword}
+        passwordPlaceholder={t(
+          "settings.integrations.qbittorrent.passwordPlaceholder",
+        )}
       />
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-300 mb-2">
-          {t("settings.integrations.qbittorrent.username")}
-        </label>
-        <input
-          type="text"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          placeholder="admin"
-          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-300 mb-2">
-          {t("settings.integrations.qbittorrent.password")}
-        </label>
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder={t(
-            "settings.integrations.qbittorrent.passwordPlaceholder",
-          )}
-          className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono"
-        />
-      </div>
 
       <div className="rounded-lg bg-neutral-900 border border-neutral-700 px-4 py-3 text-sm text-neutral-400 space-y-3">
         <p>{t("settings.integrations.qbittorrent.setupNote")}</p>

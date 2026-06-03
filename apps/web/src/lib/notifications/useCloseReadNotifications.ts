@@ -51,6 +51,10 @@ export function useCloseReadNotifications(): void {
       }
     };
 
+    if (document.visibilityState === "visible") {
+      void closeReadNotifications();
+    }
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
