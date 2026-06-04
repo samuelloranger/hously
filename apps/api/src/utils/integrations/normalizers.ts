@@ -1,5 +1,6 @@
 import type {
   AdguardIntegrationConfig,
+  DockerIntegrationConfig,
   JellyfinIntegrationConfig,
   BeszelIntegrationConfig,
   IndexerIntegrationConfig,
@@ -211,6 +212,41 @@ export const normalizeAdguardConfig = (
     website_url: websiteUrl.replace(/\/+$/, ""),
     username,
     password,
+  };
+};
+
+export const normalizeDockerConfig = (
+  config: unknown,
+): DockerIntegrationConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
+  const cfg = config as Record<string, unknown>;
+  const socketPath =
+    typeof cfg.socket_path === "string" ? cfg.socket_path.trim() : "";
+  const endpoint = typeof cfg.endpoint === "string" ? cfg.endpoint.trim() : "";
+  const composeProject =
+    typeof cfg.compose_project === "string" ? cfg.compose_project.trim() : "";
+  const iconNameOverridesRecord =
+    cfg.icon_name_overrides &&
+    typeof cfg.icon_name_overrides === "object" &&
+    !Array.isArray(cfg.icon_name_overrides)
+      ? (cfg.icon_name_overrides as Record<string, unknown>)
+      : {};
+  const iconNameOverrides = Object.fromEntries(
+    Object.entries(iconNameOverridesRecord)
+      .map(([key, value]) => [
+        key.trim(),
+        typeof value === "string" ? value.trim() : "",
+      ])
+      .filter(([key, value]) => key && value),
+  );
+
+  if (!socketPath && !endpoint) return null;
+  return {
+    socket_path: socketPath || endpoint,
+    endpoint,
+    compose_project: composeProject,
+    icon_name_overrides: iconNameOverrides,
   };
 };
 

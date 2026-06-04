@@ -14,6 +14,7 @@ export const INTEGRATION_ENDPOINTS = {
   BESZEL: "/api/integrations/beszel",
   ADGUARD: "/api/integrations/adguard",
   ADGUARD_PROTECTION: "/api/integrations/adguard/protection",
+  DOCKER: "/api/integrations/docker",
   WEATHER: "/api/integrations/weather",
   TMDB: "/api/integrations/tmdb",
   C411: "/api/integrations/c411",

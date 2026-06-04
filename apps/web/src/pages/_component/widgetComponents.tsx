@@ -75,6 +75,11 @@ export const WIDGET_COMPONENTS: Record<
       default: m.MinecraftCompactPanel,
     })),
   ),
+  docker: lazy(() =>
+    import("@/pages/_component/DockerPanel").then((m) => ({
+      default: m.DockerPanel,
+    })),
+  ),
   rss: lazy(() =>
     import("@/pages/_component/RssStatusPanel").then((m) => ({
       default: m.RssStatusPanel,

@@ -5,6 +5,7 @@ import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 import {
   AdguardIntegrationSection,
+  DockerIntegrationSection,
   JellyfinIntegrationSection,
   BeszelIntegrationSection,
   ProwlarrIntegrationSection,
@@ -78,6 +79,7 @@ export function IntegrationsTab() {
               <ScrutinyIntegrationSection />
               <BeszelIntegrationSection />
               <AdguardIntegrationSection />
+              <DockerIntegrationSection />
               <UptimekumaIntegrationSection />
             </div>
           </div>

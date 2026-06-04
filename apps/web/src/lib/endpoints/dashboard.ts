@@ -43,6 +43,9 @@ export const DASHBOARD_ENDPOINTS = {
   ADGUARD: {
     SUMMARY: "/api/dashboard/adguard/summary",
   },
+  DOCKER: {
+    SUMMARY: "/api/dashboard/docker/summary",
+  },
   WEATHER: "/api/dashboard/weather",
   WEATHER_FORECAST: "/api/dashboard/weather/forecast",
   HOME_ASSISTANT: {
