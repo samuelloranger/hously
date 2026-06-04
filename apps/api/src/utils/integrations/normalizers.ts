@@ -132,30 +132,7 @@ export const normalizeSonarrConfig = (
   };
 };
 
-export const normalizeProwlarrConfig = (
-  config: unknown,
-): ProwlarrIntegrationConfig | null => {
-  if (!config || typeof config !== "object" || Array.isArray(config))
-    return null;
-  const cfg = config as Record<string, unknown>;
-
-  const apiKey = normalizeSecret(cfg.api_key);
-  const websiteUrl =
-    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
-
-  if (!apiKey || !websiteUrl) return null;
-  return {
-    api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ""),
-    rss_indexers: Array.isArray(cfg.rss_indexers)
-      ? (cfg.rss_indexers as unknown[]).filter(
-          (v): v is string => typeof v === "string",
-        )
-      : [],
-  };
-};
-
-export const normalizeJackettConfig = (
+const normalizeIndexerConfig = (
   config: unknown,
 ): IndexerIntegrationConfig | null => {
   if (!config || typeof config !== "object" || Array.isArray(config))
@@ -177,6 +154,14 @@ export const normalizeJackettConfig = (
       : [],
   };
 };
+
+export const normalizeProwlarrConfig = (
+  config: unknown,
+): ProwlarrIntegrationConfig | null => normalizeIndexerConfig(config);
+
+export const normalizeJackettConfig = (
+  config: unknown,
+): IndexerIntegrationConfig | null => normalizeIndexerConfig(config);
 
 export const normalizeScrutinyConfig = (
   config: unknown,
