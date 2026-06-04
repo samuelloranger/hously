@@ -1,4 +1,5 @@
 export { AdguardIntegrationSection } from "@/pages/settings/_component/integrations/AdguardIntegrationSection";
+export { DockerIntegrationSection } from "@/pages/settings/_component/integrations/DockerIntegrationSection";
 export { JellyfinIntegrationSection } from "@/pages/settings/_component/integrations/JellyfinIntegrationSection";
 export { BeszelIntegrationSection } from "@/pages/settings/_component/integrations/BeszelIntegrationSection";
 export { ProwlarrIntegrationSection } from "@/pages/settings/_component/integrations/ProwlarrIntegrationSection";

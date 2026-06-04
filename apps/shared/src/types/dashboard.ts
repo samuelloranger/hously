@@ -160,6 +160,50 @@ export interface DashboardAdguardSummaryResponse {
   error?: string;
 }
 
+export type DockerContainerState =
+  | "running"
+  | "exited"
+  | "paused"
+  | "restarting"
+  | "dead"
+  | "created"
+  | "removing"
+  | "unknown";
+
+export interface DashboardDockerContainer {
+  id: string;
+  name: string;
+  icon_name: string;
+  image: string;
+  state: DockerContainerState;
+  status: string;
+  compose_project: string | null;
+  compose_service: string | null;
+  created_at: string | null;
+}
+
+export interface DashboardDockerSummary {
+  total: number;
+  running: number;
+  stopped: number;
+  paused: number;
+  restarting: number;
+  unhealthy: number;
+  other: number;
+}
+
+export interface DashboardDockerSummaryResponse {
+  enabled: boolean;
+  connected: boolean;
+  updated_at: string;
+  socket_path: string | null;
+  endpoint: string | null;
+  compose_project: string | null;
+  summary: DashboardDockerSummary;
+  containers: DashboardDockerContainer[];
+  error?: string;
+}
+
 export interface ScrutinyDashboardDrive {
   id: string;
   model_name: string | null;

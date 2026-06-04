@@ -58,6 +58,8 @@ export const queryKeys = {
       [...queryKeys.dashboard.all, "system-summary"] as const,
     adguardSummary: () =>
       [...queryKeys.dashboard.all, "adguard-summary"] as const,
+    dockerSummary: () =>
+      [...queryKeys.dashboard.all, "docker-summary"] as const,
     homeAssistantWidget: () =>
       [...queryKeys.dashboard.all, "home-assistant-widget"] as const,
     minecraft: () => [...queryKeys.dashboard.all, "minecraft"] as const,
@@ -128,6 +130,7 @@ export const queryKeys = {
     scrutiny: () => [...queryKeys.integrations.all, "scrutiny"] as const,
     beszel: () => [...queryKeys.integrations.all, "beszel"] as const,
     adguard: () => [...queryKeys.integrations.all, "adguard"] as const,
+    docker: () => [...queryKeys.integrations.all, "docker"] as const,
     weather: () => [...queryKeys.integrations.all, "weather"] as const,
     tmdb: () => [...queryKeys.integrations.all, "tmdb"] as const,
     homeAssistant: () =>

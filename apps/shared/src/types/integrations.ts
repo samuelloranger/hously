@@ -79,6 +79,15 @@ export interface AdguardIntegration {
   password_set: boolean;
 }
 
+export interface DockerIntegration {
+  type: "docker";
+  enabled: boolean;
+  socket_path: string;
+  endpoint: string;
+  compose_project: string;
+  icon_name_overrides: Record<string, string>;
+}
+
 export interface WeatherIntegration {
   type: "weather";
   enabled: boolean;
@@ -179,6 +188,11 @@ export interface BeszelIntegrationUpdateResponse {
 export interface AdguardIntegrationUpdateResponse {
   success: boolean;
   integration: AdguardIntegration;
+}
+
+export interface DockerIntegrationUpdateResponse {
+  success: boolean;
+  integration: DockerIntegration;
 }
 
 export interface AdguardProtectionUpdateResponse {

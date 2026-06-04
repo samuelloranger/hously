@@ -10,6 +10,7 @@ import { jackettIntegrationRoutes } from "./jackett";
 import { scrutinyIntegrationRoutes } from "./scrutiny";
 import { beszelIntegrationRoutes } from "./beszel";
 import { adguardIntegrationRoutes } from "./adguard";
+import { dockerIntegrationRoutes } from "./docker";
 import { uptimekumaIntegrationRoutes } from "./uptimekuma";
 import { trackerIntegrationsRoutes } from "./trackers";
 import { oidcIntegrationRoutes } from "./oidc";
@@ -27,6 +28,7 @@ export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(scrutinyIntegrationRoutes)
   .use(beszelIntegrationRoutes)
   .use(adguardIntegrationRoutes)
+  .use(dockerIntegrationRoutes)
   .use(uptimekumaIntegrationRoutes)
   .use(trackerIntegrationsRoutes)
   .use(oidcIntegrationRoutes)

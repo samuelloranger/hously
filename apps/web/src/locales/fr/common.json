@@ -305,6 +305,34 @@
       "protectionOn": "Protégé",
       "protectionOff": "Désactivé",
       "queriesOf": "{{blocked}} sur {{total}}",
+      "docker": {
+        "title": "Docker",
+        "healthy": "OK",
+        "needsAttention": "Attention",
+        "disabled": "L'intégration Docker est désactivée.",
+        "loadError": "Échec du chargement des conteneurs Docker",
+        "running": "Actifs",
+        "down": "Arrêtés",
+        "total": "Total",
+        "composeProject": "Projet : {{project}}",
+        "empty": "Aucun conteneur actif",
+        "emptyAll": "Aucun conteneur trouvé",
+        "attention": "À vérifier",
+        "containers": "Conteneurs",
+        "runningContainers": "Conteneurs actifs",
+        "viewAll": "Tout afficher",
+        "updatedAgo": "Mis à jour {{relative}}",
+        "sections": {
+          "running": "Actifs",
+          "exited": "Arrêtés",
+          "paused": "En pause",
+          "restarting": "Redémarrage",
+          "dead": "Morts",
+          "created": "Créés",
+          "removing": "Suppression",
+          "unknown": "Inconnus"
+        }
+      },
       "privateTrackersTitle": "Trackers privés",
       "trackerNotConnected": "Non connecté",
       "libraryStats": {
@@ -1438,6 +1466,15 @@
         "password": "Mot de passe AdGuard Home",
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel"
       },
+      "docker": {
+        "help": "Connectez Docker pour afficher les conteneurs actifs et arrêtés sur l'accueil.",
+        "socketPath": "Point d'accès Docker",
+        "socketPathHelp": "Utilisez un chemin de socket monté ou l'URL d'un Docker Socket Proxy en lecture seule.",
+        "composeProject": "Filtre de projet Compose",
+        "composeProjectHelp": "Optionnel. Laissez vide pour afficher tous les conteneurs, ou indiquez un nom de projet Docker Compose comme hously.",
+        "iconNameOverrides": "Correspondances d'icônes",
+        "iconNameOverridesHelp": "Optionnel. Une correspondance par ligne, avec le nom actuel du conteneur ou service à gauche et le nom dashboard-icons à droite. Exemple : hously-dev-db=postgres."
+      },
       "uptimekuma": {
         "help": "Connectez UptimeKuma pour afficher l'état des moniteurs sur votre page d'accueil.",
         "websiteUrl": "URL UptimeKuma",
@@ -1983,6 +2020,7 @@
     "downloads": "Téléchargements",
     "minecraft_compact": "Minecraft (Compact)",
     "minecraft_cards": "Minecraft (Cartes)",
+    "docker": "Docker",
     "rss": "RSS"
   },
   "scoring": {

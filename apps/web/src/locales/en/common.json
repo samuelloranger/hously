@@ -305,6 +305,34 @@
       "protectionOn": "Protected",
       "protectionOff": "Disabled",
       "queriesOf": "{{blocked}} of {{total}}",
+      "docker": {
+        "title": "Docker",
+        "healthy": "Healthy",
+        "needsAttention": "Attention",
+        "disabled": "Docker integration is disabled.",
+        "loadError": "Failed to load Docker containers",
+        "running": "Running",
+        "down": "Down",
+        "total": "Total",
+        "composeProject": "Project: {{project}}",
+        "empty": "No running containers",
+        "emptyAll": "No containers found",
+        "attention": "Needs attention",
+        "containers": "Containers",
+        "runningContainers": "Running containers",
+        "viewAll": "View all",
+        "updatedAgo": "Updated {{relative}}",
+        "sections": {
+          "running": "Running",
+          "exited": "Exited",
+          "paused": "Paused",
+          "restarting": "Restarting",
+          "dead": "Dead",
+          "created": "Created",
+          "removing": "Removing",
+          "unknown": "Unknown"
+        }
+      },
       "privateTrackersTitle": "Private trackers",
       "trackerNotConnected": "Not connected",
       "libraryStats": {
@@ -1438,6 +1466,15 @@
         "password": "AdGuard Home Password",
         "passwordPlaceholder": "Leave empty to keep existing password"
       },
+      "docker": {
+        "help": "Connect Docker to show running and stopped containers on the homepage.",
+        "socketPath": "Docker endpoint",
+        "socketPathHelp": "Use a mounted socket path or a read-only Docker Socket Proxy URL.",
+        "composeProject": "Compose project filter",
+        "composeProjectHelp": "Optional. Leave blank to show all containers, or enter a Docker Compose project name such as hously.",
+        "iconNameOverrides": "Icon name overrides",
+        "iconNameOverridesHelp": "Optional. One mapping per line, current container or service name on the left and dashboard-icons name on the right. Example: hously-dev-db=postgres."
+      },
       "uptimekuma": {
         "help": "Connect UptimeKuma to display monitor health on your homepage.",
         "websiteUrl": "UptimeKuma URL",
@@ -1983,6 +2020,7 @@
     "downloads": "Downloads",
     "minecraft_compact": "Minecraft (Compact)",
     "minecraft_cards": "Minecraft (Cards)",
+    "docker": "Docker",
     "rss": "RSS"
   },
   "scoring": {

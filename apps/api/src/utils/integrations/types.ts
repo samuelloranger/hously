@@ -44,6 +44,13 @@ export interface AdguardIntegrationConfig {
   password: string;
 }
 
+export interface DockerIntegrationConfig {
+  socket_path: string;
+  endpoint: string;
+  compose_project: string;
+  icon_name_overrides: Record<string, string>;
+}
+
 export interface WeatherIntegrationConfig {
   address: string;
   temperature_unit: "fahrenheit" | "celsius";
