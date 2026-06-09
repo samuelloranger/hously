@@ -15,13 +15,12 @@ interface NavItem {
 }
 
 export interface NavSection {
-  labelKey: string;
+  labelKey?: string;
   items: NavItem[];
 }
 
 export const navSections: NavSection[] = [
   {
-    labelKey: "nav.section_life",
     items: [
       {
         path: "/",
@@ -33,11 +32,6 @@ export const navSections: NavSection[] = [
         translationKey: "nav.calendar",
         icon: CalendarIcon,
       },
-    ],
-  },
-  {
-    labelKey: "nav.section_homelab",
-    items: [
       {
         path: "/library",
         translationKey: "nav.library",

@@ -8,9 +8,7 @@
     "watchlist": "Watchlist",
     "collections": "Collections",
     "calendar": "Calendar",
-    "logout": "Logout",
-    "section_life": "Life",
-    "section_homelab": "Homelab"
+    "logout": "Logout"
   },
   "calendar": {
     "title": "Calendar",

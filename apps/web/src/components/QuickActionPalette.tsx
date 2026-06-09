@@ -77,7 +77,9 @@ export function QuickActionPalette({
         }),
         icon: <item.icon size={20} />,
         section: "actions" as const,
-        keywords: [item.path, item.translationKey, section.labelKey],
+        keywords: [item.path, item.translationKey, section.labelKey].filter(
+          (k): k is string => Boolean(k),
+        ),
         action: () => {
           navigate({ to: item.path });
           handleClose();

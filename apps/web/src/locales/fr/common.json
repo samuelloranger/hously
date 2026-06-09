@@ -8,9 +8,7 @@
     "watchlist": "À regarder",
     "collections": "Collections",
     "calendar": "Calendrier",
-    "logout": "Déconnexion",
-    "section_life": "Vie",
-    "section_homelab": "Homelab"
+    "logout": "Déconnexion"
   },
   "calendar": {
     "title": "Calendrier",
