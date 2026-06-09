@@ -5,8 +5,8 @@ import { getEffectiveTileLayout } from "@hously/shared/constants";
 // rely on getEffectiveTileLayout to reconcile it. Cover that shared contract.
 describe("dashboard_tile_layout reconciliation", () => {
   it("keeps a valid stored order", () => {
-    const eff = getEffectiveTileLayout(["next_event", "latest_media"]);
-    expect(eff[0]).toBe("next_event");
+    const eff = getEffectiveTileLayout(["active_downloads", "latest_media"]);
+    expect(eff[0]).toBe("active_downloads");
     expect(eff[1]).toBe("latest_media");
   });
 

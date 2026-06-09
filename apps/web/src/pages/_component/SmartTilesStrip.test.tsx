@@ -4,24 +4,28 @@ import { SmartTilesStrip } from "./SmartTilesStrip";
 
 vi.mock("@/pages/_component/tileComponents", () => ({
   TILE_COMPONENTS: {
-    next_event: () => <div data-testid="tile-next-event">next event</div>,
+    active_downloads: () => (
+      <div data-testid="tile-active-downloads">next event</div>
+    ),
     latest_media: () => <div data-testid="tile-latest-media">latest media</div>,
   },
 }));
 
 describe("SmartTilesStrip", () => {
   it("renders configured registered tiles in layout order", () => {
-    render(<SmartTilesStrip layout={["latest_media", "next_event"]} />);
+    render(<SmartTilesStrip layout={["latest_media", "active_downloads"]} />);
     const tiles = screen.getAllByTestId(/^tile-/);
     expect(tiles.map((el) => el.getAttribute("data-testid"))).toEqual([
       "tile-latest-media",
-      "tile-next-event",
+      "tile-active-downloads",
     ]);
   });
 
   it("skips ids with no registered component", () => {
-    render(<SmartTilesStrip layout={["weather", "next_event"] as never} />);
-    expect(screen.queryByTestId("tile-next-event")).toBeTruthy();
+    render(
+      <SmartTilesStrip layout={["weather", "active_downloads"] as never} />,
+    );
+    expect(screen.queryByTestId("tile-active-downloads")).toBeTruthy();
     expect(screen.getAllByTestId(/^tile-/)).toHaveLength(1);
   });
 

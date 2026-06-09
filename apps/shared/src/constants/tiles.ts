@@ -1,6 +1,5 @@
 export const TILES = [
   { id: "latest_media", defaultVisible: true, defaultOrder: 0 },
-  { id: "next_event", defaultVisible: true, defaultOrder: 1 },
   { id: "active_downloads", defaultVisible: false, defaultOrder: 2 },
   { id: "library_alerts", defaultVisible: false, defaultOrder: 3 },
   { id: "weather", defaultVisible: false, defaultOrder: 4 },
