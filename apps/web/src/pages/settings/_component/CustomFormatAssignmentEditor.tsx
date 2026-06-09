@@ -114,10 +114,7 @@ export function CustomFormatAssignmentEditor({ value, onChange }: Props) {
                         score: Number(e.target.value) || 0,
                       })
                     }
-                    className={cn(
-                      inputClass,
-                      "w-20 text-center",
-                    )}
+                    className={cn(inputClass, "w-20 text-center")}
                   />
                 </div>
 
@@ -134,8 +131,12 @@ export function CustomFormatAssignmentEditor({ value, onChange }: Props) {
                   className={cn(selectClass, "w-32 shrink-0")}
                 >
                   <option value="neither">—</option>
-                  <option value="required">{t("customFormats.required")}</option>
-                  <option value="forbidden">{t("customFormats.forbidden")}</option>
+                  <option value="required">
+                    {t("customFormats.required")}
+                  </option>
+                  <option value="forbidden">
+                    {t("customFormats.forbidden")}
+                  </option>
                 </select>
 
                 {/* Remove button */}

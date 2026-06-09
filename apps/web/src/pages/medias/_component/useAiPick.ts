@@ -4,7 +4,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { MEDIAS_ENDPOINTS } from "@/lib/endpoints";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
 
-export interface AiPickResult {
+interface AiPickResult {
   release_key: string;
   reasoning: string;
 }

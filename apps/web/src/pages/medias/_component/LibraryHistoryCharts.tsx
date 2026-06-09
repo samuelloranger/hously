@@ -28,7 +28,7 @@ function formatDateShort(iso: string): string {
 
 // ─── Shared chart tooltip ─────────────────────────────────────────────────────
 
-export function ChartTooltip({
+function ChartTooltip({
   active,
   payload,
 }: TooltipContentProps<
@@ -39,9 +39,7 @@ export function ChartTooltip({
   const label = payload[0]?.payload?.label as string | undefined;
   return (
     <div className="rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 shadow-sm text-[11px]">
-      {label && (
-        <p className="text-neutral-400 mb-0.5">{label}</p>
-      )}
+      {label && <p className="text-neutral-400 mb-0.5">{label}</p>}
       {payload.map((p, i) => (
         <p
           key={i}

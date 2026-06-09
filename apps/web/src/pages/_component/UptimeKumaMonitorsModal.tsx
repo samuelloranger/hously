@@ -25,8 +25,7 @@ const STATUS_COLORS: Record<UptimekumaMonitorStatus, string> = {
 
 const STATUS_TINT: Record<UptimekumaMonitorStatus, string> = {
   down: "bg-rose-950/40 text-rose-300",
-  pending:
-    "bg-amber-950/40 text-amber-300",
+  pending: "bg-amber-950/40 text-amber-300",
   maintenance: "bg-sky-950/40 text-sky-300",
   up: "bg-emerald-950/40 text-emerald-300",
 };
@@ -161,9 +160,7 @@ export function UptimeKumaMonitorsModal({
         </div>
         <div className="overflow-y-auto px-4 pb-4">
           {query.isLoading && !query.data ? (
-            <div className="py-10 text-center text-sm text-neutral-400">
-              …
-            </div>
+            <div className="py-10 text-center text-sm text-neutral-400">…</div>
           ) : !query.data || query.data.monitors.length === 0 ? (
             <div className="py-10 text-center text-sm text-neutral-400">
               {t("dashboard.uptimekuma.empty")}

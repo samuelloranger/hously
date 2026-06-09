@@ -12,25 +12,6 @@ export interface JellyfinIntegration {
   api_key: string;
 }
 
-export interface RadarrIntegration {
-  type: "radarr";
-  enabled: boolean;
-  website_url: string;
-  api_key: string;
-  root_folder_path: string;
-  quality_profile_id: number;
-}
-
-export interface SonarrIntegration {
-  type: "sonarr";
-  enabled: boolean;
-  website_url: string;
-  api_key: string;
-  root_folder_path: string;
-  quality_profile_id: number;
-  language_profile_id: number;
-}
-
 export interface ProwlarrIntegration {
   type: "prowlarr";
   enabled: boolean;
@@ -126,7 +107,7 @@ export interface HomeAssistantDiscoverEntity {
   domain: "light" | "switch";
 }
 
-export interface HomeAssistantWidgetEntity {
+interface HomeAssistantWidgetEntity {
   entity_id: string;
   state: string;
   friendly_name: string;
@@ -148,16 +129,6 @@ export interface JellyfinIntegrationUpdateResponse {
   integration: JellyfinIntegration;
   queued?: boolean;
   message?: string;
-}
-
-export interface RadarrIntegrationUpdateResponse {
-  success: boolean;
-  integration: RadarrIntegration;
-}
-
-export interface SonarrIntegrationUpdateResponse {
-  success: boolean;
-  integration: SonarrIntegration;
 }
 
 export interface ProwlarrIntegrationUpdateResponse {
@@ -293,10 +264,6 @@ export interface MinecraftCreateServerRequest {
 }
 
 export type MinecraftUpdateServerRequest = MinecraftCreateServerRequest;
-
-export interface MinecraftIntegrationUpdateResponse {
-  integration: MinecraftIntegration;
-}
 
 export interface MinecraftIntegration {
   type: "minecraft";

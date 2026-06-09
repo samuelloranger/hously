@@ -62,9 +62,9 @@ export interface LibraryFilesResponse {
   media_type: "movie" | "show";
   files: LibraryFileInfo[];
 }
-export type LibraryMediaType = "movie" | "show";
+type LibraryMediaType = "movie" | "show";
 
-export interface LibraryQualityProfileRef {
+interface LibraryQualityProfileRef {
   id: number;
   name: string;
 }
@@ -110,11 +110,6 @@ export interface LibraryListResponse {
   show_count: number;
 }
 
-export interface AddToLibraryRequest {
-  tmdb_id: number;
-  type: LibraryMediaType;
-}
-
 export interface AddToLibraryResponse {
   item: LibraryMedia;
 }
@@ -123,7 +118,7 @@ export interface LibraryItemResponse {
   item: LibraryMedia;
 }
 
-export interface LibraryEpisode {
+interface LibraryEpisode {
   id: number;
   season: number;
   episode: number;
@@ -136,7 +131,7 @@ export interface LibraryEpisode {
   search_attempts: number;
 }
 
-export interface LibrarySeasonGroup {
+interface LibrarySeasonGroup {
   season: number;
   episodes: LibraryEpisode[];
 }
@@ -205,7 +200,7 @@ export interface MigrateJobStatus {
   finished_at: string | null;
 }
 
-export interface LibraryDownloadHistoryItem {
+interface LibraryDownloadHistoryItem {
   id: number;
   release_title: string;
   indexer: string | null;
@@ -251,11 +246,6 @@ export interface UpdateMediaPostProcessingSettingsRequest {
   active_indexer_manager?: IndexerManagerType | null;
 }
 
-export interface LibraryScanRequest {
-  path: string;
-  type: "movie" | "show";
-}
-
 export interface LibraryScanResponse {
   matched: number;
   unmatched: string[];
@@ -271,7 +261,7 @@ export interface LibrarySearchResponse {
   reason?: string;
 }
 
-export interface GlobalDownloadHistoryItem extends LibraryDownloadHistoryItem {
+interface GlobalDownloadHistoryItem extends LibraryDownloadHistoryItem {
   media_id: number | null;
   media_title: string | null;
   media_type: "movie" | "show" | null;
@@ -285,17 +275,17 @@ export interface GlobalDownloadHistoryResponse {
   has_more: boolean;
 }
 
-export interface DownloadHistoryTopIndexer {
+interface DownloadHistoryTopIndexer {
   name: string;
   count: number;
 }
 
-export interface DownloadHistoryDayStat {
+interface DownloadHistoryDayStat {
   date: string;
   count: number;
 }
 
-export interface DownloadHistoryStats {
+interface DownloadHistoryStats {
   total_grabs: number;
   completed_grabs: number;
   failed_grabs: number;
@@ -316,18 +306,18 @@ export type LibraryStatsResolution =
   | "1080p"
   | "4k";
 
-export interface LibraryStatusTypeCount {
+interface LibraryStatusTypeCount {
   type: "movie" | "show";
   status: string;
   count: number;
 }
 
-export interface LibraryResolutionStorage {
+interface LibraryResolutionStorage {
   resolution: LibraryStatsResolution;
   size_bytes: number;
 }
 
-export interface LibraryTmdbStatusCount {
+interface LibraryTmdbStatusCount {
   tmdb_status: string;
   count: number;
 }
@@ -344,10 +334,6 @@ export interface LibraryStats {
   shows_by_tmdb_status: LibraryTmdbStatusCount[];
 }
 
-export interface LibraryStatsResponse {
-  stats: LibraryStats;
-}
-
 export type LibraryAttentionKind =
   | "download_failed"
   | "post_process_error"
@@ -355,7 +341,7 @@ export type LibraryAttentionKind =
   | "grab_skipped"
   | "auto_grab_stalled";
 
-export type LibraryAttentionScopeType = "movie" | "episode" | "season_pack";
+type LibraryAttentionScopeType = "movie" | "episode" | "season_pack";
 
 export interface LibraryAttentionItem {
   id: number;

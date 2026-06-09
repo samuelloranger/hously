@@ -85,9 +85,7 @@ export function PasskeysSection() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-neutral-400">
-          {t("common.loading")}
-        </p>
+        <p className="text-sm text-neutral-400">{t("common.loading")}</p>
       ) : !data?.credentials?.length ? (
         <div className="text-center py-8 text-neutral-400">
           <ShieldCheck className="w-8 h-8 mx-auto mb-2 opacity-40" />

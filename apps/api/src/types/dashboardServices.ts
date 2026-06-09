@@ -90,6 +90,5 @@ export interface DashboardNetdataSummaryResponse {
 
 export type {
   DashboardAdguardTopEntry,
-  DashboardAdguardSummary,
   DashboardAdguardSummaryResponse,
 } from "@hously/shared";

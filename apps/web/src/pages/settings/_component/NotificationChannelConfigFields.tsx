@@ -63,8 +63,7 @@ interface ConfigFieldsProps {
   onChange: (config: NotificationChannelConfig) => void;
 }
 
-const fieldClass =
-  "text-sm font-medium text-neutral-300 mb-1";
+const fieldClass = "text-sm font-medium text-neutral-300 mb-1";
 
 export function NotificationChannelConfigFields({
   type,

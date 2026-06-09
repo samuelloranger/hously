@@ -19,7 +19,7 @@ export interface QualityProfile {
   updated_at: string;
 }
 
-export interface ProwlarrIndexer {
+interface ProwlarrIndexer {
   id: number;
   name: string;
   protocol: string;

@@ -178,8 +178,7 @@ const toContainer = (
   };
 };
 
-const isUnhealthy = (status: string): boolean =>
-  /\bunhealthy\b/i.test(status);
+const isUnhealthy = (status: string): boolean => /\bunhealthy\b/i.test(status);
 
 export const fetchDockerSummary =
   async (): Promise<DashboardDockerSummaryResponse> => {
@@ -198,10 +197,7 @@ export const fetchDockerSummary =
     const endpoint = config.endpoint || config.socket_path;
 
     try {
-      const payload = await dockerRequest(
-        endpoint,
-        "/containers/json?all=1",
-      );
+      const payload = await dockerRequest(endpoint, "/containers/json?all=1");
 
       if (!Array.isArray(payload)) {
         return {

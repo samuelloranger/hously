@@ -50,53 +50,6 @@ export function handleNotificationClick(event: NotificationEvent): void {
     return;
   }
 
-  // Handle "mark-done" action for chore reminders
-  if (action === "mark-done" && notificationData.chore_id) {
-    event.waitUntil(
-      // First, get CSRF token
-      fetch(`/api/chores/toggle/${notificationData.chore_id}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response) => {
-          if (response.ok) {
-            // Show a confirmation notification
-            return sw.registration.showNotification("Hously", {
-              body: "Tâche marquée comme faite !",
-              icon: "/icon-192.png",
-              badge: "/icon-32.png",
-              tag: "chore-marked-done",
-              requireInteraction: true,
-            });
-          } else {
-            // Show error notification
-            return sw.registration.showNotification("Hously", {
-              body: "Erreur lors de la mise à jour de la tâche",
-              icon: "/icon-192.png",
-              badge: "/icon-32.png",
-              tag: "chore-error",
-              requireInteraction: true,
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Error marking chore as done:", error);
-          // Show error notification
-          return sw.registration.showNotification("Hously", {
-            body: "Erreur de connexion",
-            icon: "/icon-192.png",
-            badge: "/icon-32.png",
-            tag: "chore-error",
-            requireInteraction: true,
-          });
-        }),
-    );
-    return;
-  }
-
   // Default: navigate to URL (for "open" action or notification click)
   const url = normalizeNotificationUrl(notificationData.url) || "/";
 

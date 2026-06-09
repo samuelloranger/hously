@@ -73,7 +73,7 @@ Internal imports use `@hously/api/...`.
 
 ## Global Settings (AppSettings)
 
-Singleton row (id=1): `country_code`, `calendar_subdivision_code`, `upcoming_window_months`, `upcoming_languages`, `dashboard_widget_visibility`. API: `/api/settings`. Worker/dashboard/UI integration — see AGENTS.md.
+Singleton row (id=1): `country_code` (TMDB release-date region), `upcoming_window_months`, `upcoming_languages`, `dashboard_widget_visibility`. API: `/api/settings`. Worker/dashboard/UI integration — see AGENTS.md.
 
 ---
 
@@ -103,7 +103,7 @@ docker compose down
 
 ### Life
 
-- Chores, calendar, habits, board.
+- Calendar (movie/TV/episode release schedule).
 
 ## Important Notes
 

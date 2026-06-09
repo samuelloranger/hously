@@ -35,9 +35,7 @@ export function LatestMediaTile() {
           <Film size={20} className="text-neutral-950/70" />
         </div>
         <div className="min-w-0">
-          <p className={LABEL_CLASS}>
-            {t("dashboard.tiles.latestMediaReady")}
-          </p>
+          <p className={LABEL_CLASS}>{t("dashboard.tiles.latestMediaReady")}</p>
           <p className="mt-1 text-sm text-neutral-400">
             {t("dashboard.tiles.latestMediaEmpty")}
           </p>
@@ -54,7 +52,12 @@ export function LatestMediaTile() {
   const inner = (
     <>
       {item.poster_url ? (
-        <img src={item.poster_url} alt="" loading="lazy" className={POSTER_CLASS} />
+        <img
+          src={item.poster_url}
+          alt=""
+          loading="lazy"
+          className={POSTER_CLASS}
+        />
       ) : (
         <div className={POSTER_FALLBACK_CLASS}>
           <Film size={20} className="text-neutral-950/70" />

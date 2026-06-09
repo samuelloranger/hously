@@ -6,13 +6,12 @@ Last verified: 2026-05-25
 
 ## Composition
 
-`apps/api/src/index.ts` constructs the root `Elysia` app and composes every feature plugin via `.use()`. Each plugin sets its own prefix (e.g. `prefix: "/api/chores"`) so URLs stay localized. Major groups:
+`apps/api/src/index.ts` constructs the root `Elysia` app and composes every feature plugin via `.use()`. Each plugin sets its own prefix (e.g. `prefix: "/api/medias"`) so URLs stay localized. Major groups:
 
 - `dashboardRoutes`, `usersRoutes`, `notificationsRoutes`, `webhooksRoutes`, `externalNotificationsRoutes`
-- `choresRoutes`, `calendarRoutes`, `customEventsRoutes`, `remindersRoutes`, `releasesRoutes`
-- `settingsRoutes`, `adminRoutes`, `analyticsRoutes`, `integrationsRoutes`, `homeAssistantRoutes`
+- `releasesRoutes`, `settingsRoutes`, `adminRoutes`, `analyticsRoutes`, `integrationsRoutes`, `homeAssistantRoutes`
 - Library family: `libraryMediaAdminRoutes`, `libraryDownloadsRoutes`, `libraryRoutes`, `qualityProfilesRoutes`, `mediasRoutes`
-- `habitsRoutes`, `boardTasksRoutes`, `boardTagsRoutes`, `searchRoutes`, `systemRoutes`
+- `boardTasksRoutes`, `boardTagsRoutes`, `searchRoutes`, `systemRoutes`
 - Better Auth: `publicAuthRoutes`, `ssoProvidersRoute`, `protectedAuthRoutes`, plus a catch-all `app.get/all("/api/auth/*", …)` that delegates to `betterAuthInstance.handler(request)`.
 
 Two health endpoints exist: `GET /health` and `GET /api/health` (both return `{ status: "ok" }`).
@@ -44,17 +43,17 @@ Compose with `.use(auth)` first (resolves the optional user) when the route mixe
 
 `apps/api/src/errors.ts` exports small helpers that set `set.status` and return a uniform `{ error: string }`:
 
-| Helper                | Status |
-| --------------------- | ------ |
-| `badRequest`          | 400    |
-| `unauthorized`        | 401    |
-| `forbidden`           | 403    |
-| `notFound`            | 404    |
-| `conflict`            | 409    |
-| `unprocessable`       | 422    |
-| `serverError`         | 500    |
-| `badGateway`          | 502    |
-| `serviceUnavailable`  | 503    |
+| Helper               | Status |
+| -------------------- | ------ |
+| `badRequest`         | 400    |
+| `unauthorized`       | 401    |
+| `forbidden`          | 403    |
+| `notFound`           | 404    |
+| `conflict`           | 409    |
+| `unprocessable`      | 422    |
+| `serverError`        | 500    |
+| `badGateway`         | 502    |
+| `serviceUnavailable` | 503    |
 
 Always wrap handlers in `try/catch` and return one of these on failure. Don't `throw` — Elysia's global `onError` (`apps/api/src/index.ts:103-115`) is a last-resort fallback that returns generic 404/400/500 messages and logs the raw error.
 

@@ -50,9 +50,7 @@ export function MultiSelect({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-neutral-300">
-        {label}
-      </label>
+      <label className="text-sm font-medium text-neutral-300">{label}</label>
       <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <button
@@ -62,14 +60,11 @@ export function MultiSelect({
               "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-left text-sm transition-colors",
               "border-neutral-200 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30",
               "border-neutral-700 bg-neutral-900 hover:border-neutral-600",
-              open &&
-                "ring-2 ring-primary-500/30 border-primary-600",
+              open && "ring-2 ring-primary-500/30 border-primary-600",
             )}
           >
             {selected.length === 0 ? (
-              <span className="flex-1 text-neutral-500">
-                {placeholder}
-              </span>
+              <span className="flex-1 text-neutral-500">{placeholder}</span>
             ) : (
               <span className="flex flex-1 flex-wrap gap-1">
                 {selected.map((v) => {

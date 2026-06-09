@@ -8,7 +8,7 @@ import { serverError } from "@hously/api/errors";
 type ActivityRecord = {
   id: number;
   user_id?: string;
-  task_type?: "chore";
+  task_type?: string;
   task_id?: number;
   completed_at?: string;
   task_name?: string;
@@ -56,26 +56,12 @@ const parseIntNumber = (value: unknown): number | undefined => {
   return undefined;
 };
 
-function getTaskCompletionType(taskType: string): string {
-  switch (taskType) {
-    case "chore":
-      return "chore_completed";
-    case "habit":
-      return "habit_completed";
-    default:
-      return "task_completed";
-  }
+function getTaskCompletionType(_taskType: string): string {
+  return "task_completed";
 }
 
-function getTaskCompletionService(taskType: string): string {
-  switch (taskType) {
-    case "chore":
-      return "chores";
-    case "habit":
-      return "habits";
-    default:
-      return "system";
-  }
+function getTaskCompletionService(_taskType: string): string {
+  return "system";
 }
 
 function getLogService(
@@ -108,7 +94,7 @@ function mapTaskCompletionToActivity(completion: {
   return {
     id: completion.id,
     user_id: completion.userId,
-    task_type: completion.taskType as "chore",
+    task_type: completion.taskType,
     task_id: completion.taskId,
     completed_at: formatIso(completion.completedAt) ?? undefined,
     task_name: completion.taskName,

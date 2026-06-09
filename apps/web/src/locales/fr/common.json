@@ -2,16 +2,13 @@
   "nav": {
     "dashboard": "Accueil",
     "chores": "Tâches",
-    "board": "Kanban",
     "explore": "Découvrir",
     "habits": "Habitudes",
     "library": "Bibliothèque",
     "watchlist": "À regarder",
     "collections": "Collections",
     "calendar": "Calendrier",
-    "logout": "Déconnexion",
-    "section_life": "Vie",
-    "section_homelab": "Homelab"
+    "logout": "Déconnexion"
   },
   "calendar": {
     "title": "Calendrier",
@@ -522,50 +519,6 @@
     "error": "Une erreur est survenue. Veuillez réessayer.",
     "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
     "confirmPasswordRequired": "Veuillez confirmer votre mot de passe"
-  },
-  "board": {
-    "title": "Kanban",
-    "subtitle": "Tâches Kanban pour le foyer — glissez les cartes entre les colonnes.",
-    "newTaskTitle": "Nouvelle tâche",
-    "newTaskPlaceholder": "Qu'est-ce qu'il faut faire ?",
-    "column": "Colonne",
-    "addTask": "Ajouter",
-    "emptyColumn": "Déposez des tâches ici",
-    "saving": "Enregistrement…",
-    "deleteTask": "Supprimer la tâche",
-    "deleteConfirm": "Supprimer cette tâche ?",
-    "noActivity": "Aucune activité",
-    "backlogEmpty": "Le backlog est vide",
-    "backlogEmptyDescription": "Ajoutez des tâches au backlog pour planifier le travail futur",
-    "comment": "Commentaire",
-    "status": {
-      "backlog": "Backlog",
-      "on_hold": "En attente",
-      "todo": "À faire",
-      "in_progress": "En cours",
-      "done": "Terminé"
-    },
-    "archiveEmpty": "L'archive est vide",
-    "archiveEmptyDescription": "Les tâches archivées apparaîtront ici",
-    "columnId": "ID",
-    "columnTitle": "Titre",
-    "columnStatus": "Statut",
-    "columnRestore": "Restaurer",
-    "restoreTask": "Restaurer la tâche",
-    "restore": "Restaurer",
-    "bulk": {
-      "barLabel": "Actions groupées pour les tâches sélectionnées",
-      "selectedCount": "{{count}} sélectionné(s)",
-      "moveToColumn": "Déplacer vers la colonne",
-      "moveToPlaceholder": "Déplacer vers…",
-      "archive": "Archiver",
-      "delete": "Supprimer",
-      "clear": "Effacer",
-      "deleteConfirm": "Supprimer {{count}} tâches ?",
-      "confirmYes": "Supprimer",
-      "confirmNo": "Annuler",
-      "selectTask": "Sélectionner la tâche"
-    }
   },
   "chores": {
     "title": "Tâches",

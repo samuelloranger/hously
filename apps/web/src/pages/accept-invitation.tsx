@@ -109,9 +109,7 @@ function AcceptInvitationPage() {
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full mx-auto" />
-          <p className="text-neutral-400">
-            {t("common.loading")}
-          </p>
+          <p className="text-neutral-400">{t("common.loading")}</p>
         </div>
       </div>
     );

@@ -9,10 +9,7 @@ import {
   type CustomFormatFormPayload,
 } from "@/pages/settings/useCustomFormats";
 import type { CustomFormat, CustomFormatCondition } from "@hously/shared/types";
-import {
-  VALIDATION_CODE_KEYS,
-  codeKey,
-} from "@/lib/i18n/scoringCodes";
+import { VALIDATION_CODE_KEYS, codeKey } from "@/lib/i18n/scoringCodes";
 import { ConditionBuilder } from "@/pages/settings/_component/ConditionBuilder";
 
 const emptyPayload: CustomFormatFormPayload = {
@@ -98,9 +95,7 @@ export function CustomFormatForm({
         />
       </div>
 
-      {apiError && (
-        <p className="text-sm text-red-400">{apiError}</p>
-      )}
+      {apiError && <p className="text-sm text-red-400">{apiError}</p>}
 
       <div className="flex items-center justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onDismiss}>

@@ -82,9 +82,7 @@ function DayWeatherIcon({
     <Icon
       className={cn(
         "size-7 shrink-0",
-        isToday
-          ? "text-sky-400"
-          : "text-neutral-500",
+        isToday ? "text-sky-400" : "text-neutral-500",
       )}
       strokeWidth={1.5}
       aria-hidden
@@ -146,9 +144,7 @@ function DayColumn({
       <span
         className={cn(
           "text-sm font-semibold tabular-nums leading-none",
-          isToday
-            ? "text-neutral-50"
-            : "text-neutral-300",
+          isToday ? "text-neutral-50" : "text-neutral-300",
         )}
       >
         {maxDisplay}°
@@ -283,9 +279,7 @@ export function WeatherForecastModal({
                   <span
                     className={cn(
                       "text-[10px] font-bold uppercase tracking-widest mb-1",
-                      isToday
-                        ? "text-sky-400"
-                        : "text-neutral-500",
+                      isToday ? "text-sky-400" : "text-neutral-500",
                     )}
                   >
                     {isToday ? t("dashboard.weather.forecast.today") : short}
@@ -312,10 +306,7 @@ export function WeatherForecastModal({
                 key={day.date}
                 className="flex-1 flex flex-col items-center gap-0.5"
               >
-                <Wind
-                  className="size-2.5 text-neutral-600"
-                  strokeWidth={2}
-                />
+                <Wind className="size-2.5 text-neutral-600" strokeWidth={2} />
                 <span className="text-[9px] tabular-nums text-neutral-500">
                   {Math.round(day.wind_speed_max_kmh)}
                 </span>

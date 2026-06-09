@@ -14,7 +14,7 @@ import { ExploreCardHero } from "./ExploreCardHero";
 import { ExploreCardActions } from "./ExploreCardActions";
 import { ExploreCardInfoTab } from "./ExploreCardInfoTab";
 
-export type TabKey = "info" | "similar";
+type TabKey = "info" | "similar";
 
 interface ExploreCardDetailDialogProps {
   item: TmdbMediaSearchItem;

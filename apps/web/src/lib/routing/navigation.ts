@@ -3,28 +3,24 @@ import {
   CalendarIcon,
   Compass,
   LayoutDashboard,
-  LayoutGrid,
   Layers2,
   Library,
-  ListChecks,
-  Target,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export interface NavItem {
+interface NavItem {
   path: string;
   translationKey: string;
   icon: LucideIcon;
 }
 
 export interface NavSection {
-  labelKey: string;
+  labelKey?: string;
   items: NavItem[];
 }
 
 export const navSections: NavSection[] = [
   {
-    labelKey: "nav.section_life",
     items: [
       {
         path: "/",
@@ -32,30 +28,10 @@ export const navSections: NavSection[] = [
         icon: LayoutDashboard,
       },
       {
-        path: "/chores",
-        translationKey: "nav.chores",
-        icon: ListChecks,
-      },
-      {
-        path: "/board",
-        translationKey: "nav.board",
-        icon: LayoutGrid,
-      },
-      {
-        path: "/habits",
-        translationKey: "nav.habits",
-        icon: Target,
-      },
-      {
         path: "/calendar",
         translationKey: "nav.calendar",
         icon: CalendarIcon,
       },
-    ],
-  },
-  {
-    labelKey: "nav.section_homelab",
-    items: [
       {
         path: "/library",
         translationKey: "nav.library",

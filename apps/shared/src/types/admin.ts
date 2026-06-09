@@ -1,15 +1,11 @@
 export interface ExportDataResponse {
   exported_at: string;
-  chores: Array<Record<string, unknown>>;
-  reminders: Array<Record<string, unknown>>;
   task_completions: Array<Record<string, unknown>>;
 }
 
 export interface ImportDataResponse {
   success: boolean;
   imported: {
-    chores: number;
-    reminders: number;
     task_completions: number;
   };
   warnings?: string[] | null;
@@ -29,7 +25,7 @@ export interface QueueStat {
   delayed: number;
 }
 
-export interface ScheduledJob {
+interface ScheduledJob {
   id: string;
   name: string;
   next_run_time: string | null;
@@ -44,7 +40,7 @@ export interface ScheduledJobsResponse {
   message?: string;
 }
 
-export type LibraryHealthRunStatus = "success" | "failed" | "skipped";
+type LibraryHealthRunStatus = "success" | "failed" | "skipped";
 
 export interface LibraryHealthSummary {
   downloaded_media_without_files: number;
@@ -92,7 +88,7 @@ export interface LibraryHealthLog {
   error: string | null;
 }
 
-export interface LibraryHealthHistoryEntry {
+interface LibraryHealthHistoryEntry {
   id: string;
   status: string;
   trigger: string;
@@ -134,7 +130,7 @@ export interface InviteUserRequest {
   locale?: string;
 }
 
-export interface Invitation {
+interface Invitation {
   id: number;
   email: string;
   status: "pending" | "accepted" | "revoked" | "expired";
@@ -180,26 +176,7 @@ export interface AcceptInvitationRequest {
   last_name?: string;
 }
 
-export interface TestEmailResponse {
-  success: boolean;
-  message: string;
-}
-
-export interface EmailTemplate {
-  id: string;
-  name: string;
-  description: string;
-  title: string;
-  body: string;
-  url: string | null;
-  notification_type: string;
-}
-
-export interface TestEmailTemplatesResponse {
-  templates: EmailTemplate[];
-}
-
-export interface AdminUser {
+interface AdminUser {
   id: string;
   email: string;
   first_name: string | null;
@@ -220,7 +197,7 @@ export interface DeleteUserResponse {
   message: string;
 }
 
-export interface AdminSession {
+interface AdminSession {
   id: string;
   user_id: string;
   user_email: string;
@@ -242,7 +219,7 @@ export interface RevokeSessionResponse {
   message: string;
 }
 
-export interface AdminWebPushSubscription {
+interface AdminWebPushSubscription {
   id: number;
   user_id: string;
   user_email: string;
@@ -285,7 +262,7 @@ export interface CleanQueueResponse {
   cleaned: number;
 }
 
-export interface JobHistoryEntry {
+interface JobHistoryEntry {
   id: string;
   name: string;
   queue: string;

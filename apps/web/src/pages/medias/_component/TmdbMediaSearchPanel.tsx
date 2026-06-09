@@ -141,9 +141,7 @@ export function TmdbMediaSearchPanel({
           </div>
         )
       ) : (
-        <div className="text-xs text-neutral-400">
-          {t("medias.tmdb.hint")}
-        </div>
+        <div className="text-xs text-neutral-400">{t("medias.tmdb.hint")}</div>
       )}
     </div>
   );

@@ -51,7 +51,9 @@ describe("NotificationToastContainer SSE connection", () => {
       isLoading: false,
     });
     const client = new QueryClient();
-    render(createElement(NotificationToastContainer), { wrapper: wrap(client) });
+    render(createElement(NotificationToastContainer), {
+      wrapper: wrap(client),
+    });
     expect(streamOpened()).toBe(true);
   });
 
@@ -68,7 +70,9 @@ describe("NotificationToastContainer SSE connection", () => {
       isLoading: true,
     });
     const client = new QueryClient();
-    render(createElement(NotificationToastContainer), { wrapper: wrap(client) });
+    render(createElement(NotificationToastContainer), {
+      wrapper: wrap(client),
+    });
     expect(streamOpened()).toBe(true);
   });
 });

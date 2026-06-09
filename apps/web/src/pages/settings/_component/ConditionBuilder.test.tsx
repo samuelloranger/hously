@@ -9,7 +9,9 @@ function renderBuilder(
   conditions: CustomFormatCondition[],
   onChange = vi.fn(),
 ) {
-  return render(<ConditionBuilder conditions={conditions} onChange={onChange} />);
+  return render(
+    <ConditionBuilder conditions={conditions} onChange={onChange} />,
+  );
 }
 
 describe("ConditionBuilder", () => {
@@ -26,7 +28,9 @@ describe("ConditionBuilder", () => {
     ];
     renderBuilder(conditions);
     // Each row has a remove button
-    expect(screen.getAllByRole("button", { name: /remove condition/i })).toHaveLength(2);
+    expect(
+      screen.getAllByRole("button", { name: /remove condition/i }),
+    ).toHaveLength(2);
   });
 
   // ── 2. size_range + between → two number inputs ───────────────────────────
@@ -53,7 +57,9 @@ describe("ConditionBuilder", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
     // Operator select shows only is_true option
-    const opSelects = screen.getAllByRole("combobox", { name: /condition operator/i });
+    const opSelects = screen.getAllByRole("combobox", {
+      name: /condition operator/i,
+    });
     expect(opSelects[0]).toBeDisabled();
     // The single option is the is_true key
     expect(opSelects[0]).toHaveValue("is_true");
@@ -66,7 +72,9 @@ describe("ConditionBuilder", () => {
       { type: "source", operator: "equals", value: "BluRay" },
     ];
     renderBuilder(conditions);
-    const opSelect = screen.getByRole("combobox", { name: /condition operator/i });
+    const opSelect = screen.getByRole("combobox", {
+      name: /condition operator/i,
+    });
     const options = Array.from(opSelect.querySelectorAll("option")).map(
       (o) => o.value,
     );
@@ -102,12 +110,18 @@ describe("ConditionBuilder", () => {
     ];
     renderBuilder(existing, onChange);
 
-    fireEvent.click(screen.getByRole("button", { name: /customFormats.addCondition/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /customFormats.addCondition/i }),
+    );
 
     expect(onChange).toHaveBeenCalledOnce();
     const next: CustomFormatCondition[] = onChange.mock.calls[0][0];
     expect(next).toHaveLength(2);
-    expect(next[1]).toEqual({ type: "title_regex", operator: "matches", value: "" });
+    expect(next[1]).toEqual({
+      type: "title_regex",
+      operator: "matches",
+      value: "",
+    });
   });
 
   // ── 7. Remove condition ───────────────────────────────────────────────────
@@ -120,7 +134,9 @@ describe("ConditionBuilder", () => {
     ];
     renderBuilder(conditions, onChange);
 
-    const removeBtns = screen.getAllByRole("button", { name: /remove condition/i });
+    const removeBtns = screen.getAllByRole("button", {
+      name: /remove condition/i,
+    });
     fireEvent.click(removeBtns[0]); // remove first row
 
     expect(onChange).toHaveBeenCalledOnce();
@@ -138,7 +154,9 @@ describe("ConditionBuilder", () => {
     ];
     renderBuilder(conditions, onChange);
 
-    const typeSelect = screen.getByRole("combobox", { name: /condition type/i });
+    const typeSelect = screen.getByRole("combobox", {
+      name: /condition type/i,
+    });
     fireEvent.change(typeSelect, { target: { value: "hdr_flag" } });
 
     expect(onChange).toHaveBeenCalledOnce();
@@ -155,7 +173,9 @@ describe("ConditionBuilder", () => {
     ];
     renderBuilder(conditions, onChange);
 
-    const typeSelect = screen.getByRole("combobox", { name: /condition type/i });
+    const typeSelect = screen.getByRole("combobox", {
+      name: /condition type/i,
+    });
     fireEvent.change(typeSelect, { target: { value: "resolution" } });
 
     expect(onChange).toHaveBeenCalledOnce();
@@ -176,7 +196,9 @@ describe("ConditionBuilder", () => {
     ];
     renderBuilder(conditions, onChange);
 
-    const opSelect = screen.getByRole("combobox", { name: /condition operator/i });
+    const opSelect = screen.getByRole("combobox", {
+      name: /condition operator/i,
+    });
     fireEvent.change(opSelect, { target: { value: "between" } });
 
     expect(onChange).toHaveBeenCalledOnce();

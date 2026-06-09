@@ -5,6 +5,9 @@ const config: KnipConfig = {
     ".": {
       entry: [],
       project: [],
+      // eslint-config-prettier is referenced via a string `extends: "prettier"`
+      // in eslint.config.mjs (FlatCompat), not a JS import — knip can't see it.
+      ignoreDependencies: ["eslint-config-prettier"],
     },
     "apps/api": {
       project: ["src/**/*.ts"],
@@ -12,19 +15,15 @@ const config: KnipConfig = {
       ignoreDependencies: ["@react-email/components", "@react-email/tailwind"],
     },
     "apps/web": {
-      entry: ["src/sw/index.ts"],
+      // index.html -> main.tsx is auto-detected by knip's Vite plugin. The
+      // generated route tree is gitignored (so knip skips it by default) yet
+      // it's what consumes every page's `Route` export — list it explicitly so
+      // those route definitions aren't mis-flagged as unused. The service
+      // worker is a separate entry.
+      entry: ["src/sw/index.ts", "src/routeTree.gen.ts"],
       project: ["src/**/*.{ts,tsx}"],
       // @tailwindcss/typography: CSS @plugin directive — not a JS import, knip can't see it
-      // ESLint deps: referenced by .eslintrc config file, not by source imports
-      // @types/dompurify: dompurify IS imported in SafeHtml.tsx; knip incorrectly flags the @types pkg
-      ignoreDependencies: [
-        "@tailwindcss/typography",
-        "@typescript-eslint/eslint-plugin",
-        "@typescript-eslint/parser",
-        "eslint-config-prettier",
-        "eslint-plugin-react-hooks",
-        "@types/dompurify",
-      ],
+      ignoreDependencies: ["@tailwindcss/typography"],
     },
     "apps/shared": {
       project: ["src/**/*.ts"],

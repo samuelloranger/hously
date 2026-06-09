@@ -4,8 +4,6 @@ import { Pencil } from "lucide-react";
 
 interface GreetingCardProps {
   userName: string;
-  pendingChores: number | undefined;
-  eventsToday: number | undefined;
   isAdmin: boolean;
   isEditMode: boolean;
   onToggleEditMode: () => void;
@@ -22,8 +20,6 @@ function getTimeOfDay(hour: number): TimeOfDay {
 
 export function GreetingCard({
   userName,
-  pendingChores,
-  eventsToday,
   isAdmin,
   isEditMode,
   onToggleEditMode,
@@ -51,8 +47,6 @@ export function GreetingCard({
     }
 
     // Time-based subtext — stable between SSR and initial client render.
-    // Used as-is when stats aren't loaded yet, and as fallback for
-    // weekdays with 1–5 pending chores (no data-specific message needed).
     let subtext: string;
     switch (timeOfDay) {
       case "morning":
@@ -77,51 +71,23 @@ export function GreetingCard({
         break;
     }
 
-    // Override with data-aware subtext once stats are loaded.
-    if (pendingChores !== undefined && eventsToday !== undefined) {
-      if (eventsToday > 2) {
-        subtext = t("dashboard.subtexts.busyDay", {
-          count: eventsToday,
-          defaultValue: `You have ${eventsToday} events today. Stay organized!`,
-        });
-      } else if (isWeekend) {
-        if (pendingChores > 3) {
-          subtext = t("dashboard.subtexts.weekendChores", {
-            count: pendingChores,
-            defaultValue: `${pendingChores} chores await. Perfect day to knock them out!`,
-          });
-        } else if (pendingChores === 0) {
-          subtext = t("dashboard.subtexts.weekendFree", {
-            defaultValue: "All caught up! Enjoy your weekend.",
-          });
-        } else {
-          subtext = t("dashboard.subtexts.weekendRelax", {
-            defaultValue: "Time to relax and recharge.",
-          });
-        }
-      } else if (dayOfWeek === 1) {
-        subtext = t("dashboard.subtexts.monday", {
-          defaultValue: "Fresh week, fresh start. You got this!",
-        });
-      } else if (dayOfWeek === 5) {
-        subtext = t("dashboard.subtexts.friday", {
-          defaultValue: "Almost there! Finish strong.",
-        });
-      } else if (pendingChores === 0) {
-        subtext = t("dashboard.subtexts.allClear", {
-          defaultValue: "Everything's in order. Nice work!",
-        });
-      } else if (pendingChores > 5) {
-        subtext = t("dashboard.subtexts.manyChores", {
-          count: pendingChores,
-          defaultValue: `${pendingChores} tasks waiting. One step at a time!`,
-        });
-      }
-      // 1–5 pending chores on a normal weekday: time-based subtext stays
+    // Day-of-week flavor overrides the generic time-based subtext.
+    if (isWeekend) {
+      subtext = t("dashboard.subtexts.weekendRelax", {
+        defaultValue: "Time to relax and recharge.",
+      });
+    } else if (dayOfWeek === 1) {
+      subtext = t("dashboard.subtexts.monday", {
+        defaultValue: "Fresh week, fresh start. You got this!",
+      });
+    } else if (dayOfWeek === 5) {
+      subtext = t("dashboard.subtexts.friday", {
+        defaultValue: "Almost there! Finish strong.",
+      });
     }
 
     return { greeting: baseGreeting, subtext };
-  }, [pendingChores, eventsToday, t]);
+  }, [t]);
 
   return (
     <div className="relative">

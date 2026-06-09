@@ -97,11 +97,16 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
               "block lg:hidden",
             )}
           >
-            {navSections.map((section) => (
-              <div key={section.labelKey} className="pb-2 last:pb-0">
-                <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-                  {t(section.labelKey)}
-                </p>
+            {navSections.map((section, sectionIndex) => (
+              <div
+                key={section.labelKey ?? sectionIndex}
+                className="pb-2 last:pb-0"
+              >
+                {section.labelKey && (
+                  <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+                    {t(section.labelKey)}
+                  </p>
+                )}
                 <div className="grid grid-cols-3 gap-1">
                   {section.items.map((item) => {
                     const isActive =

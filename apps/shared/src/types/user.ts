@@ -19,10 +19,6 @@ export interface UserResponse {
   user: User | null;
 }
 
-export interface UsersResponse {
-  users: User[];
-}
-
 export interface UpdateProfileRequest {
   first_name?: string | null;
   last_name?: string | null;

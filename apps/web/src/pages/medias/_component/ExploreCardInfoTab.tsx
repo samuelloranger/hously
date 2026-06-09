@@ -164,9 +164,7 @@ export function ExploreCardInfoTab({
 
       {/* Overview */}
       {overview && (
-        <p className="text-sm leading-relaxed text-neutral-400">
-          {overview}
-        </p>
+        <p className="text-sm leading-relaxed text-neutral-400">{overview}</p>
       )}
       {!overview && (
         <p className="text-sm italic text-neutral-500">

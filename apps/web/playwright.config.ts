@@ -5,7 +5,7 @@ const BASE_URL = process.env.BASE_URL ?? "http://localhost:5173";
 export default defineConfig({
   testDir: "./e2e",
   outputDir: "./e2e-results",
-  fullyParallel: false, // board tests mutate shared state
+  fullyParallel: false, // specs may mutate shared state
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1,

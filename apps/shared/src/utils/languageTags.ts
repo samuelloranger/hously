@@ -149,7 +149,7 @@ const TAG_ORDER: Record<string, number> = {
   FR: 4,
 };
 
-export function compareTags(a: LanguageTag, b: LanguageTag): number {
+function compareTags(a: LanguageTag, b: LanguageTag): number {
   const ai = TAG_ORDER[a] ?? 100;
   const bi = TAG_ORDER[b] ?? 100;
   if (ai !== bi) return ai - bi;

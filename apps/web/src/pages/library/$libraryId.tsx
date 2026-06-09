@@ -5,8 +5,6 @@ import {
   type LibraryItemSearchParams,
 } from "@/pages/medias/_component/LibraryItemPage";
 
-export { type LibraryItemSearchParams };
-
 export const Route = createFileRoute("/library/$libraryId")({
   validateSearch: (
     search: Record<string, unknown>,

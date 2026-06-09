@@ -56,9 +56,7 @@ export function LibraryHealthCard({
                 : t("settings.jobs.libraryHealth.noRuns")}
             </p>
             {latest?.error && (
-              <p className="text-sm text-red-400 mt-2">
-                {latest.error}
-              </p>
+              <p className="text-sm text-red-400 mt-2">{latest.error}</p>
             )}
           </div>
         </div>

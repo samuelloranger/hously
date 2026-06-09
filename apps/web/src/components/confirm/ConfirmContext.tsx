@@ -12,9 +12,9 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export type ConfirmVariant = "default" | "destructive";
+type ConfirmVariant = "default" | "destructive";
 
-export type ConfirmOptions = {
+type ConfirmOptions = {
   variant?: ConfirmVariant;
   title?: string;
   description?: ReactNode;
@@ -117,9 +117,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               </AlertDialog.Description>
             ) : (
               <AlertDialog.Description asChild>
-                <div className="text-sm text-neutral-400">
-                  {description}
-                </div>
+                <div className="text-sm text-neutral-400">{description}</div>
               </AlertDialog.Description>
             )}
             <div className="flex flex-row justify-end gap-2 pt-2">

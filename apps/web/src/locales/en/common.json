@@ -2,16 +2,13 @@
   "nav": {
     "dashboard": "Home",
     "chores": "Chores",
-    "board": "Kanban",
     "explore": "Explore",
     "habits": "Habits",
     "library": "Library",
     "watchlist": "Watchlist",
     "collections": "Collections",
     "calendar": "Calendar",
-    "logout": "Logout",
-    "section_life": "Life",
-    "section_homelab": "Homelab"
+    "logout": "Logout"
   },
   "calendar": {
     "title": "Calendar",
@@ -522,50 +519,6 @@
     "error": "An error occurred. Please try again.",
     "passwordsDoNotMatch": "Passwords do not match",
     "confirmPasswordRequired": "Please confirm your password"
-  },
-  "board": {
-    "title": "Board",
-    "subtitle": "Kanban tasks for your household — drag cards between columns.",
-    "newTaskTitle": "New task",
-    "newTaskPlaceholder": "What needs to happen?",
-    "column": "Column",
-    "addTask": "Add task",
-    "emptyColumn": "Drop tasks here",
-    "saving": "Saving…",
-    "deleteTask": "Delete task",
-    "deleteConfirm": "Delete this task?",
-    "noActivity": "No activity yet",
-    "backlogEmpty": "Backlog is empty",
-    "backlogEmptyDescription": "Add tasks to the backlog to plan future work",
-    "comment": "Comment",
-    "status": {
-      "backlog": "Backlog",
-      "on_hold": "On hold",
-      "todo": "To do",
-      "in_progress": "In progress",
-      "done": "Done"
-    },
-    "archiveEmpty": "Archive is empty",
-    "archiveEmptyDescription": "Archived tasks will appear here",
-    "columnId": "ID",
-    "columnTitle": "Title",
-    "columnStatus": "Status",
-    "columnRestore": "Restore",
-    "restoreTask": "Restore task",
-    "restore": "Restore",
-    "bulk": {
-      "barLabel": "Bulk actions for selected tasks",
-      "selectedCount": "{{count}} selected",
-      "moveToColumn": "Move to column",
-      "moveToPlaceholder": "Move to…",
-      "archive": "Archive",
-      "delete": "Delete",
-      "clear": "Clear",
-      "deleteConfirm": "Delete {{count}} tasks?",
-      "confirmYes": "Delete",
-      "confirmNo": "Cancel",
-      "selectTask": "Select task"
-    }
   },
   "chores": {
     "title": "Chores",

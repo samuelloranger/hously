@@ -3,14 +3,7 @@
  * Centralizes all date operations for consistency
  */
 
-import {
-  addDays,
-  format,
-  isBefore,
-  isSameDay,
-  isSameMonth,
-  parseISO,
-} from "date-fns";
+import { isSameDay, isSameMonth, parseISO } from "date-fns";
 
 export type MaybeDate = Date | string | number | null | undefined;
 
@@ -83,39 +76,6 @@ export function formatDateTime(
   }
 }
 
-export function toDateTimeLocal(date: MaybeDate = new Date()): string {
-  if (!date) return "";
-  let dateObj = typeof date === "string" ? parseDate(date) : date;
-  if (!dateObj) dateObj = new Date();
-  if (!(dateObj instanceof Date)) return "";
-
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-  const day = String(dateObj.getDate()).padStart(2, "0");
-  const hours = String(dateObj.getHours()).padStart(2, "0");
-  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
-export function datetimeLocalToUTC(datetimeLocal: string): string {
-  if (!datetimeLocal) return "";
-  const localDate = new Date(datetimeLocal);
-  const dateTimeStr = format(localDate, "yyyy-MM-dd'T'HH:mm:ss");
-  const offsetMinutes = localDate.getTimezoneOffset();
-  const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
-  const offsetMins = Math.abs(offsetMinutes) % 60;
-  const offsetSign = offsetMinutes > 0 ? "-" : "+";
-  const offsetStr = `${offsetSign}${String(offsetHours).padStart(2, "0")}:${String(offsetMins).padStart(2, "0")}`;
-  return `${dateTimeStr}${offsetStr}`;
-}
-
-export function isToday(date: MaybeDate): boolean {
-  if (!date) return false;
-  const dateObj = parseDate(date);
-  if (!dateObj) return false;
-  return isSameDay(dateObj, new Date());
-}
-
 export function sameDay(date1: MaybeDate, date2: MaybeDate): boolean {
   const date1Obj = parseDate(date1);
   const date2Obj = parseDate(date2);
@@ -128,51 +88,6 @@ export function sameMonth(date1: MaybeDate, date2: MaybeDate): boolean {
   const date2Obj = parseDate(date2);
   if (!date1Obj || !date2Obj) return false;
   return isSameMonth(date1Obj, date2Obj);
-}
-
-export function isDateBefore(a: MaybeDate, b: MaybeDate): boolean {
-  const aObj = parseDate(a);
-  const bObj = parseDate(b);
-  if (!aObj || !bObj) return false;
-  return isBefore(aObj, bObj);
-}
-
-export function tomorrow(): Date {
-  return addDays(new Date(), 1);
-}
-
-export function getWeekDates(
-  weekOffset: number = 0,
-  weekStartsOn: 0 | 1 = 1,
-): Date[] {
-  const today = new Date();
-  const currentDay = today.getDay();
-  const diff =
-    weekStartsOn === 0
-      ? currentDay === 0
-        ? 0
-        : -currentDay
-      : currentDay === 0
-        ? -6
-        : 1 - currentDay;
-
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() + diff + weekOffset * 7);
-  startDate.setHours(0, 0, 0, 0);
-
-  const dates: Date[] = [];
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
-    dates.push(date);
-  }
-  return dates;
-}
-
-export function formatDateOnly(date: MaybeDate): string {
-  const dateObj = parseDate(date);
-  if (!dateObj) return "";
-  return dateObj.toISOString().split("T")[0];
 }
 
 /**
@@ -238,17 +153,6 @@ export function formatDateShort(
     year: includeYear ? "numeric" : undefined,
     timeZone,
   });
-}
-
-/**
- * Whole-day distance between two `YYYY-MM-DD` strings (`b - a`). Positive when
- * `b` is later than `a`. Safe across DST — both are anchored at UTC noon.
- */
-export function daysBetweenYmd(a: string, b: string): number {
-  const ma = parseDate(a);
-  const mb = parseDate(b);
-  if (!ma || !mb) return 0;
-  return Math.round((mb.getTime() - ma.getTime()) / 86_400_000);
 }
 
 /** Year from a DATE-only value, interpreted in the app's display timezone. */

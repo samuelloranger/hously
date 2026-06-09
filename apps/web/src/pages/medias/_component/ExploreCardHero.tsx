@@ -59,9 +59,7 @@ function ExploreCardHeroMeta({
         <p
           className={cn(
             "text-sm italic leading-snug",
-            heroBackdropUrl
-              ? "text-neutral-200"
-              : "text-neutral-400",
+            heroBackdropUrl ? "text-neutral-200" : "text-neutral-400",
           )}
         >
           {detailsData.tagline}
@@ -77,9 +75,7 @@ function ExploreCardHeroMeta({
           <span
             className={cn(
               "text-xs",
-              heroBackdropUrl
-                ? "text-neutral-300"
-                : "text-neutral-400",
+              heroBackdropUrl ? "text-neutral-300" : "text-neutral-400",
             )}
           >
             {item.release_year}
@@ -89,9 +85,7 @@ function ExploreCardHeroMeta({
           <span
             className={cn(
               "flex items-center gap-0.5 text-xs",
-              heroBackdropUrl
-                ? "text-neutral-300"
-                : "text-neutral-400",
+              heroBackdropUrl ? "text-neutral-300" : "text-neutral-400",
             )}
           >
             <Clock size={10} />
@@ -102,9 +96,7 @@ function ExploreCardHeroMeta({
           <span
             className={cn(
               "flex items-center gap-0.5 text-xs",
-              heroBackdropUrl
-                ? "text-neutral-300"
-                : "text-neutral-400",
+              heroBackdropUrl ? "text-neutral-300" : "text-neutral-400",
             )}
           >
             <Film size={10} />
@@ -180,9 +172,7 @@ function ExploreCardHeroMeta({
             </svg>
             <span
               className={cn(
-                heroBackdropUrl
-                  ? "text-neutral-100"
-                  : "text-neutral-300",
+                heroBackdropUrl ? "text-neutral-100" : "text-neutral-300",
               )}
             >
               {ratingsData.metacritic}
@@ -214,16 +204,12 @@ function ExploreCardHeroMeta({
           <p
             className={cn(
               "text-xs",
-              heroBackdropUrl
-                ? "text-neutral-200"
-                : "text-neutral-400",
+              heroBackdropUrl ? "text-neutral-200" : "text-neutral-400",
             )}
           >
             <span
               className={
-                heroBackdropUrl
-                  ? "text-neutral-400"
-                  : "text-neutral-500"
+                heroBackdropUrl ? "text-neutral-400" : "text-neutral-500"
               }
             >
               {t("medias.detail.releaseDate")}{" "}
@@ -239,9 +225,7 @@ function ExploreCardHeroMeta({
           <p
             className={cn(
               "text-xs",
-              heroBackdropUrl
-                ? "text-neutral-200"
-                : "text-neutral-400",
+              heroBackdropUrl ? "text-neutral-200" : "text-neutral-400",
             )}
           >
             {[
@@ -262,16 +246,12 @@ function ExploreCardHeroMeta({
         <p
           className={cn(
             "text-xs",
-            heroBackdropUrl
-              ? "text-neutral-200"
-              : "text-neutral-400",
+            heroBackdropUrl ? "text-neutral-200" : "text-neutral-400",
           )}
         >
           <span
             className={
-              heroBackdropUrl
-                ? "text-neutral-400"
-                : "text-neutral-500"
+              heroBackdropUrl ? "text-neutral-400" : "text-neutral-500"
             }
           >
             {t("medias.detail.director")}{" "}
@@ -279,9 +259,7 @@ function ExploreCardHeroMeta({
           <span
             className={cn(
               "font-medium",
-              heroBackdropUrl
-                ? "text-neutral-50"
-                : "text-neutral-300",
+              heroBackdropUrl ? "text-neutral-50" : "text-neutral-300",
             )}
           >
             {creditsData.directors.join(", ")}
@@ -356,10 +334,7 @@ export function ExploreCardHero({
     >
       {heroBackdropUrl ? (
         <>
-          <div
-            className="absolute inset-0 bg-neutral-950"
-            aria-hidden
-          />
+          <div className="absolute inset-0 bg-neutral-950" aria-hidden />
           <img
             src={heroBackdropUrl}
             alt=""
@@ -400,9 +375,7 @@ export function ExploreCardHero({
               alt={item.title}
               className={cn(
                 "w-[88px] rounded-xl object-cover shadow-md ring-1 transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none",
-                heroBackdropUrl
-                  ? "ring-primary-500/30"
-                  : "ring-neutral-700",
+                heroBackdropUrl ? "ring-primary-500/30" : "ring-neutral-700",
                 posterLoaded
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-1",

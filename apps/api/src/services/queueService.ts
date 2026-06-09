@@ -20,18 +20,13 @@ export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
 // Job names for Scheduled Tasks
 export const SCHEDULED_JOB_NAMES = {
-  CHECK_REMINDERS: "check-reminders",
-  CHECK_ALL_DAY_EVENTS: "check-all-day-events",
   CLEANUP_NOTIFICATIONS: "cleanup-notifications",
   FETCH_TRACKER_STATS: "fetch-tracker-stats",
   FETCH_C411_STATS: "fetch-c411-stats",
   FETCH_TORR9_STATS: "fetch-torr9-stats",
   FETCH_LA_CALE_STATS: "fetch-la-cale-stats",
   FETCH_YGG_REBORN_STATS: "fetch-ygg-reborn-stats",
-  CHECK_HABIT_REMINDERS: "check-habit-reminders",
   REFRESH_UPCOMING: "refresh-upcoming",
-  REFRESH_HABITS_STREAKS: "refresh-habits-streaks",
-  REFRESH_HABITS_STREAK_FOR_USER: "refresh-habits-streak-for-user",
   CHECK_MOVIE_RELEASE_REMINDERS: "check-movie-release-reminders",
   CHECK_LIBRARY_MOVIE_RELEASES: "check-library-movie-releases",
   CHECK_LIBRARY_EPISODE_RELEASES: "check-library-episode-releases",
@@ -192,19 +187,12 @@ export async function setupScheduledJobs() {
   console.log("⏰ Setting up scheduled jobs...");
 
   const jobs = [
-    { name: SCHEDULED_JOB_NAMES.CHECK_REMINDERS, pattern: "*/15 * * * *" },
-    { name: SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS, pattern: "0 20 * * *" },
     { name: SCHEDULED_JOB_NAMES.CLEANUP_NOTIFICATIONS, pattern: "0 0 * * *" },
     { name: SCHEDULED_JOB_NAMES.FETCH_C411_STATS, pattern: "0 * * * *" },
     { name: SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS, pattern: "5 * * * *" }, // Staggered
     { name: SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS, pattern: "10 * * * *" }, // Staggered
     { name: SCHEDULED_JOB_NAMES.FETCH_YGG_REBORN_STATS, pattern: "15 * * * *" }, // Staggered
-    { name: SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS, pattern: "* * * * *" },
     { name: SCHEDULED_JOB_NAMES.REFRESH_UPCOMING, pattern: "30 */12 * * *" },
-    {
-      name: SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS,
-      pattern: "*/15 * * * *",
-    },
     {
       name: SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS,
       pattern: "20 * * * *",

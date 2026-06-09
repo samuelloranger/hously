@@ -86,9 +86,7 @@ export function AddNotificationChannelModal({ isOpen, onClose }: Props) {
     >
       <div className="space-y-4 pt-2">
         <div>
-          <h3 className="text-sm font-medium text-neutral-300 mb-1">
-            Type
-          </h3>
+          <h3 className="text-sm font-medium text-neutral-300 mb-1">Type</h3>
           <Select
             value={formType}
             onValueChange={(v) =>
@@ -109,9 +107,7 @@ export function AddNotificationChannelModal({ isOpen, onClose }: Props) {
         </div>
 
         <div>
-          <h3 className="text-sm font-medium text-neutral-300 mb-1">
-            Label
-          </h3>
+          <h3 className="text-sm font-medium text-neutral-300 mb-1">Label</h3>
           <Input
             value={formLabel}
             onChange={(e) => setFormLabel(e.target.value)}

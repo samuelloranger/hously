@@ -1,7 +1,1 @@
-export {
-  ConfirmProvider,
-  useConfirm,
-  type ConfirmFn,
-  type ConfirmOptions,
-  type ConfirmVariant,
-} from "./ConfirmContext";
+export { ConfirmProvider, useConfirm } from "./ConfirmContext";

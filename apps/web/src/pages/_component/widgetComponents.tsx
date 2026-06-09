@@ -15,11 +15,6 @@ export const WIDGET_COMPONENTS: Record<
       default: m.QuickLinksPanel,
     })),
   ),
-  chores: lazy(() =>
-    import("@/pages/_component/HomePanel").then((m) => ({
-      default: m.ChoresPanel,
-    })),
-  ),
   jellyfin_shelf: lazy(() =>
     import("@/pages/_component/JellyfinReadyPanel").then((m) => ({
       default: m.JellyfinReadyPanel,
@@ -33,11 +28,6 @@ export const WIDGET_COMPONENTS: Record<
   homeassistant: lazy(() =>
     import("@/pages/_component/HomeAssistantPanel").then((m) => ({
       default: m.HomeAssistantPanel,
-    })),
-  ),
-  habits: lazy(() =>
-    import("@/pages/_component/HomePanel").then((m) => ({
-      default: m.HabitsPanel,
     })),
   ),
   upcoming: lazy(() =>

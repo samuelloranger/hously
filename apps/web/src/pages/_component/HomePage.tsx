@@ -4,7 +4,6 @@ import { motion, type Variants } from "motion/react";
 import { PageLayout } from "@/components/PageLayout";
 import { CardErrorBoundary } from "@/components/ErrorBoundary";
 import { useCurrentUser } from "@/lib/auth/useAuth";
-import { useDashboardStats } from "@/pages/_component/useDashboardStats";
 import { getUserFirstName } from "@/lib/utils/format";
 import { GreetingCard } from "@/pages/_component/GreetingCard";
 import { WidgetEditWrapper } from "@/pages/_component/WidgetEditWrapper";
@@ -55,8 +54,6 @@ function WidgetFallback() {
 export function HomePage() {
   const { t } = useTranslation("common");
   const { data: user } = useCurrentUser();
-  const { data: statsData } = useDashboardStats();
-  const stats = statsData?.stats;
 
   const isAdmin = !!user?.is_admin;
 
@@ -136,8 +133,6 @@ export function HomePage() {
         <div className="space-y-3">
           <GreetingCard
             userName={getUserFirstName(user, t("dashboard.user"))}
-            pendingChores={stats?.chores_count}
-            eventsToday={stats?.events_today}
             isAdmin={isAdmin}
             isEditMode={isEditMode}
             onToggleEditMode={() => setIsEditMode((v) => !v)}

@@ -143,9 +143,7 @@ export function TrackerPrioritySection({
               <span className="w-6 shrink-0 text-center text-xs font-semibold text-neutral-500">
                 #{i + 1}
               </span>
-              <span className="flex-1 text-sm text-neutral-200">
-                {name}
-              </span>
+              <span className="flex-1 text-sm text-neutral-200">{name}</span>
               <span className="text-xs font-medium text-primary-400">
                 {trackerBonus(i, preferOverQuality)}
               </span>

@@ -34,9 +34,7 @@ export function Toggle({
           }`}
         />
       </span>
-      <span className="text-xs text-neutral-300">
-        {label}
-      </span>
+      <span className="text-xs text-neutral-300">{label}</span>
     </button>
   );
 }
@@ -62,9 +60,7 @@ export function ChipMultiSelect({
 
   if (options.length === 0) {
     return (
-      <span className="text-[11px] italic text-neutral-500">
-        {emptyText}
-      </span>
+      <span className="text-[11px] italic text-neutral-500">{emptyText}</span>
     );
   }
 

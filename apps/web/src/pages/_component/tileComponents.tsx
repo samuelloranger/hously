@@ -1,7 +1,5 @@
 import type React from "react";
 import type { TileId } from "@hously/shared/constants";
-import { ChoresTodayTile } from "@/pages/_component/tiles/ChoresTodayTile";
-import { HabitStreakTile } from "@/pages/_component/tiles/HabitStreakTile";
 import { LatestMediaTile } from "@/pages/_component/tiles/LatestMediaTile";
 import { NextEventTile } from "@/pages/_component/tiles/NextEventTile";
 import { ActiveDownloadsTile } from "@/pages/_component/tiles/ActiveDownloadsTile";
@@ -15,8 +13,6 @@ import { SystemTile } from "@/pages/_component/tiles/SystemTile";
  * only tiles present in this registry.
  */
 export const TILE_COMPONENTS: Partial<Record<TileId, React.ComponentType>> = {
-  chores_today: ChoresTodayTile,
-  habit_streak: HabitStreakTile,
   latest_media: LatestMediaTile,
   next_event: NextEventTile,
   active_downloads: ActiveDownloadsTile,

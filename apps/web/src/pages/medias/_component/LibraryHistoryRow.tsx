@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-export function formatRelativeShort(isoString: string): string {
+function formatRelativeShort(isoString: string): string {
   const diff = Math.round((Date.now() - new Date(isoString).getTime()) / 1000);
   if (diff < 60) return `${diff}s`;
   const mins = Math.floor(diff / 60);

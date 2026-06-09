@@ -15,7 +15,6 @@ export function useImportData() {
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.analytics.all });
     },

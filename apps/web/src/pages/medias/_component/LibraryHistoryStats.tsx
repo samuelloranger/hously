@@ -15,7 +15,7 @@ const panelClassName =
 
 // ─── Stats section components ─────────────────────────────────────────────────
 
-export function StatCard({
+function StatCard({
   label,
   value,
   color,
@@ -87,11 +87,7 @@ export function StatsSection() {
         <StatCard
           label={t("medias.history.statFailed")}
           value={stats.failed_grabs.toLocaleString()}
-          color={
-            stats.failed_grabs > 0
-              ? "text-rose-400"
-              : "text-neutral-100"
-          }
+          color={stats.failed_grabs > 0 ? "text-rose-400" : "text-neutral-100"}
         />
         <StatCard
           label={t("medias.history.statActive")}

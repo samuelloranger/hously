@@ -1,16 +1,4 @@
 import type { User } from "@hously/shared/types";
-import { parseDate, isDateBefore } from "@hously/shared/utils";
-
-export function formatUsername(
-  username: string | null | undefined,
-  fallback: string = "",
-): string {
-  if (!username) return fallback;
-  return username
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-}
 
 export function formatDisplayName(
   user: User | null | undefined,
@@ -99,16 +87,6 @@ export function formatCronTrigger(
   }
 
   return trigger;
-}
-
-export function isChoreOverdue(
-  reminderDatetime: string | null | undefined,
-  completed: boolean,
-): boolean {
-  if (!reminderDatetime || completed) return false;
-  const reminderDate = parseDate(reminderDatetime);
-  if (!reminderDate) return false;
-  return isDateBefore(reminderDate, new Date());
 }
 
 export function formatBytes(bytes: number | null | undefined): string {

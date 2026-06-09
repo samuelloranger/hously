@@ -106,9 +106,7 @@ function TrackerEditor({
               event.currentTarget.style.display = "none";
             }}
           />
-          <h4 className="text-sm font-semibold text-neutral-100">
-            {title}
-          </h4>
+          <h4 className="text-sm font-semibold text-neutral-100">{title}</h4>
         </div>
         <Switch
           checked={state.enabled}
@@ -118,11 +116,7 @@ function TrackerEditor({
         />
       </div>
 
-      {description && (
-        <p className="text-xs text-neutral-400">
-          {description}
-        </p>
-      )}
+      {description && <p className="text-xs text-neutral-400">{description}</p>}
 
       {showFlaresolverr && (
         <IntegrationUrlInput
@@ -158,9 +152,7 @@ function TrackerEditor({
           className="w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white"
         />
         {usernameHelp && (
-          <p className="mt-2 text-xs text-neutral-400">
-            {usernameHelp}
-          </p>
+          <p className="mt-2 text-xs text-neutral-400">{usernameHelp}</p>
         )}
       </div>
 

@@ -6,9 +6,8 @@ export interface QuickLink {
   url: string;
 }
 
-export interface AppSettings {
+interface AppSettings {
   country_code: string;
-  calendar_subdivision_code: string | null;
   upcoming_window_months: number;
   upcoming_languages: string;
   dashboard_widget_visibility: WidgetVisibility;
@@ -24,7 +23,6 @@ export interface AppSettingsResponse {
 
 export interface UpdateAppSettingsRequest {
   country_code?: string;
-  calendar_subdivision_code?: string | null;
   upcoming_window_months?: number;
   upcoming_languages?: string;
   dashboard_widget_visibility?: WidgetVisibility;

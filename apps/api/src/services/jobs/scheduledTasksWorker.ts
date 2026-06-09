@@ -11,18 +11,6 @@ export async function processScheduledJob(job: Job) {
 
   try {
     switch (job.name) {
-      case SCHEDULED_JOB_NAMES.CHECK_REMINDERS: {
-        const { checkAndSendReminders } =
-          await import("../../workers/checkReminders");
-        await checkAndSendReminders();
-        break;
-      }
-      case SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS: {
-        const { checkAndSendAllDayEventNotifications } =
-          await import("../../workers/checkAllDayEvents");
-        await checkAndSendAllDayEventNotifications();
-        break;
-      }
       case SCHEDULED_JOB_NAMES.CLEANUP_NOTIFICATIONS: {
         const { cleanupOldNotifications } =
           await import("../../workers/cleanupNotifications");
@@ -64,29 +52,10 @@ export async function processScheduledJob(job: Job) {
         await fetchTrackerStats("ygg-reborn", { trigger: "queue" });
         break;
       }
-      case SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS: {
-        const { checkHabitReminders } =
-          await import("../../workers/checkHabitReminders");
-        await checkHabitReminders();
-        break;
-      }
       case SCHEDULED_JOB_NAMES.REFRESH_UPCOMING: {
         const { refreshUpcoming } =
           await import("../../workers/refreshUpcoming");
         await refreshUpcoming({ trigger: "queue" });
-        break;
-      }
-      case SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS: {
-        const { refreshHabitsStreaks } =
-          await import("../../workers/refreshHabitsStreaks");
-        await refreshHabitsStreaks({ trigger: "queue" });
-        break;
-      }
-      case SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAK_FOR_USER: {
-        const { refreshHabitsStreakForUser } =
-          await import("../../utils/dashboard/habitsStreak");
-        const { userId } = job.data as { userId: string };
-        await refreshHabitsStreakForUser(userId);
         break;
       }
       case SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS: {

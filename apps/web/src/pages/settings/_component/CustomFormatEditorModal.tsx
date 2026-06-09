@@ -8,10 +8,7 @@ export type CustomFormatDraft =
   | { kind: "create" }
   | { kind: "edit"; id: number };
 
-function editorKeyFromDraft(
-  draft: CustomFormatDraft,
-  formats: CustomFormat[],
-) {
+function editorKeyFromDraft(draft: CustomFormatDraft, formats: CustomFormat[]) {
   if (draft?.kind !== "edit") return "new";
   const row = formats.find((x) => x.id === draft.id);
   return row ? `${draft.id}-${row.updated_at}` : `${draft.id}-pending`;

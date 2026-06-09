@@ -54,9 +54,7 @@ export function IntegrationUrlInput({
         {label}
       </label>
       {description && (
-        <p className="mb-2 text-xs text-neutral-400">
-          {description}
-        </p>
+        <p className="mb-2 text-xs text-neutral-400">{description}</p>
       )}
       <input
         type="url"
@@ -71,9 +69,7 @@ export function IntegrationUrlInput({
             : "border-neutral-600 focus:ring-primary-500",
         )}
       />
-      {error && (
-        <p className="mt-1 text-xs text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
     </div>
   );
 }

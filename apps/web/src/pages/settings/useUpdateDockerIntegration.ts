@@ -2,9 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { INTEGRATION_ENDPOINTS } from "@/lib/endpoints";
-import type {
-  DockerIntegrationUpdateResponse,
-} from "@hously/shared/types";
+import type { DockerIntegrationUpdateResponse } from "@hously/shared/types";
 
 interface UpdateDockerIntegrationPayload {
   enabled: boolean;

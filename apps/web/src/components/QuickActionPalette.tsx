@@ -17,12 +17,7 @@ import {
   RefreshCw,
   Clapperboard,
   Tv,
-  CheckCircle,
-  ListChecks,
   User,
-  AlertCircle,
-  ArrowUpCircle,
-  ClipboardList,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useQuickSearch } from "@/lib/search/useSearch";
@@ -43,7 +38,7 @@ interface QuickAction {
   title: string;
   description: string;
   icon: ReactNode;
-  section: "actions" | "medias" | "chores" | "users" | "board_tasks";
+  section: "actions" | "medias" | "users";
   keywords?: string[];
   shortcut?: string;
   action: () => void;
@@ -82,7 +77,9 @@ export function QuickActionPalette({
         }),
         icon: <item.icon size={20} />,
         section: "actions" as const,
-        keywords: [item.path, item.translationKey, section.labelKey],
+        keywords: [item.path, item.translationKey, section.labelKey].filter(
+          (k): k is string => Boolean(k),
+        ),
         action: () => {
           navigate({ to: item.path });
           handleClose();
@@ -160,12 +157,7 @@ export function QuickActionPalette({
   const collectionResults = useMemo<QuickAction[]>(() => {
     if (!shouldSearch || !searchQuery.data) return [];
 
-    const {
-      medias = [],
-      chores = [],
-      users = [],
-      board_tasks = [],
-    } = searchQuery.data;
+    const { medias = [], users = [] } = searchQuery.data;
 
     const libraryStatusLabel = (status: string) =>
       t(`medias.library.itemStatus.${status}`, { defaultValue: status });
@@ -194,25 +186,6 @@ export function QuickActionPalette({
       },
     }));
 
-    const choreActions: QuickAction[] = chores.map((chore) => ({
-      id: `chore-${chore.id}`,
-      title: chore.chore_name,
-      description:
-        [chore.description, chore.assigned_to_username]
-          .filter(Boolean)
-          .join(" • ") || t("chores.title"),
-      icon: chore.completed ? (
-        <CheckCircle size={20} />
-      ) : (
-        <ListChecks size={20} />
-      ),
-      section: "chores" as const,
-      action: () => {
-        navigate({ to: "/chores" });
-        handleClose();
-      },
-    }));
-
     const userActions: QuickAction[] = users.map((user) => ({
       id: `user-${user.id}`,
       title: user.name,
@@ -225,41 +198,7 @@ export function QuickActionPalette({
       },
     }));
 
-    const boardTaskActions: QuickAction[] = board_tasks.map((task) => ({
-      id: `board-task-${task.id}`,
-      title: task.title,
-      description:
-        [
-          task.assignee_name,
-          t(`board.status.${task.status}`, {
-            defaultValue: task.status.replace(/_/g, " "),
-          }),
-        ]
-          .filter(Boolean)
-          .join(" • ") || t("nav.board"),
-      icon:
-        task.status === "done" ? (
-          <CheckCircle size={20} />
-        ) : task.priority === "urgent" ? (
-          <AlertCircle size={20} />
-        ) : task.priority === "high" ? (
-          <ArrowUpCircle size={20} />
-        ) : (
-          <ClipboardList size={20} />
-        ),
-      section: "board_tasks" as const,
-      action: () => {
-        navigate({ to: "/board" });
-        handleClose();
-      },
-    }));
-
-    return [
-      ...mediaActions,
-      ...choreActions,
-      ...userActions,
-      ...boardTaskActions,
-    ];
+    return [...mediaActions, ...userActions];
   }, [
     handleClose,
     navigate,
@@ -272,10 +211,8 @@ export function QuickActionPalette({
   const sectionLabels: Record<QuickAction["section"], string> = useMemo(
     () => ({
       medias: t("common.quickActionsSectionMedias"),
-      chores: t("chores.title"),
       users: t("common.quickActionsSectionUsers"),
       actions: t("common.quickActionsSectionActions"),
-      board_tasks: t("nav.board"),
     }),
     [t],
   );
@@ -423,9 +360,7 @@ export function QuickActionPalette({
                   {action.icon}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-white">
-                    {action.title}
-                  </p>
+                  <p className="font-medium text-white">{action.title}</p>
                   <p className="truncate text-sm text-neutral-400">
                     {action.description}
                   </p>

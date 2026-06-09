@@ -398,9 +398,7 @@ function MinecraftIntegrationSectionImpl({
         <div className="space-y-3">
           {/* Server list */}
           {serversLoading ? (
-            <p className="text-sm text-neutral-400">
-              Loading servers…
-            </p>
+            <p className="text-sm text-neutral-400">Loading servers…</p>
           ) : servers.length === 0 ? (
             <p className="text-sm text-neutral-400">
               No servers configured yet.

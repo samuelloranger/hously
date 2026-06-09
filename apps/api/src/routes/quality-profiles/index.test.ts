@@ -195,8 +195,7 @@ const prismaQpStub = {
         typeof args.orderBy === "object" &&
         "name" in (args.orderBy as object)
       ) {
-        const dir =
-          (args.orderBy as { name: string }).name === "asc" ? 1 : -1;
+        const dir = (args.orderBy as { name: string }).name === "asc" ? 1 : -1;
         rows.sort((a, b) => dir * a.name.localeCompare(b.name));
       }
       return rows.map(buildProfileWithFormats);
@@ -206,8 +205,7 @@ const prismaQpStub = {
     }),
     delete: mock(async (args: { where: { id: number } }) => {
       const row = profileRows.get(args.where.id);
-      if (!row)
-        throw Object.assign(new Error("Not found"), { code: "P2025" });
+      if (!row) throw Object.assign(new Error("Not found"), { code: "P2025" });
       profileRows.delete(args.where.id);
       return row;
     }),
@@ -219,9 +217,7 @@ const prismaQpStub = {
     findUnique: mock(async () => injectedDbUser),
   },
   $transaction: mock(
-    async (
-      cb: (tx: ReturnType<typeof buildTxStub>) => Promise<unknown>,
-    ) => {
+    async (cb: (tx: ReturnType<typeof buildTxStub>) => Promise<unknown>) => {
       return cb(buildTxStub());
     },
   ),

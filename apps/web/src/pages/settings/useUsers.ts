@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { USERS_ENDPOINTS } from "@/lib/endpoints";
@@ -6,17 +6,7 @@ import type {
   ChangePasswordRequest,
   UpdateProfileRequest,
   UserResponse,
-  UsersResponse,
 } from "@hously/shared/types";
-export function useUsers() {
-  const fetcher = useFetcher();
-
-  return useQuery({
-    queryKey: queryKeys.users.list(),
-    queryFn: () => fetcher<UsersResponse>(USERS_ENDPOINTS.LIST),
-    refetchOnMount: true,
-  });
-}
 
 export function useUpdateProfile() {
   const fetcher = useFetcher();
@@ -30,7 +20,6 @@ export function useUpdateProfile() {
       }),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.all });
       queryClient.setQueryData(queryKeys.auth.me, response.user);
     },

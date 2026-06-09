@@ -1,4 +1,4 @@
-export interface QuickSearchTorrent {
+interface QuickSearchTorrent {
   id: string;
   name: string;
   size_bytes: number;
@@ -6,7 +6,7 @@ export interface QuickSearchTorrent {
   progress: number;
 }
 
-export interface QuickSearchMedia {
+interface QuickSearchMedia {
   id: number;
   title: string;
   type: string; // "movie" | "show"
@@ -14,33 +14,14 @@ export interface QuickSearchMedia {
   status: string; // "wanted" | "downloading" | "downloaded" | "skipped"
 }
 
-export interface QuickSearchChore {
-  id: number;
-  chore_name: string;
-  description?: string;
-  assigned_to_username?: string;
-  completed: boolean;
-}
-
-export interface QuickSearchUser {
+interface QuickSearchUser {
   id: number;
   name: string;
   email: string;
 }
 
-export interface QuickSearchBoardTask {
-  id: number;
-  title: string;
-  description?: string;
-  status: string;
-  priority: string;
-  assignee_name?: string;
-}
-
 export interface QuickSearchResponse {
   torrents: QuickSearchTorrent[];
   medias: QuickSearchMedia[];
-  chores: QuickSearchChore[];
   users: QuickSearchUser[];
-  board_tasks: QuickSearchBoardTask[];
 }

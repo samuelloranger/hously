@@ -33,7 +33,6 @@ export function handlePush(event: PushEvent): void {
     vibrate: data.vibrate || [200, 100, 200],
     data: {
       url,
-      chore_id: data.data?.chore_id || null,
       notification_type: data.data?.notification_type || null,
     },
     requireInteraction: true,

@@ -27,9 +27,7 @@ function FormField({
         </label>
       )}
       {children}
-      {error && (
-        <p className="text-sm text-red-400">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );
 }
@@ -64,18 +62,20 @@ interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaEle
   required?: boolean;
 }
 
-export const FormTextarea = React.forwardRef<
-  HTMLTextAreaElement,
-  FormTextareaProps
->(({ label, error, required, className, ...props }, ref) => {
-  return (
-    <FormField label={label} error={error} required={required}>
-      <Textarea
-        ref={ref}
-        className={cn(error && "border-red-500 focus:ring-red-500", className)}
-        {...props}
-      />
-    </FormField>
-  );
-});
+const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(
+  ({ label, error, required, className, ...props }, ref) => {
+    return (
+      <FormField label={label} error={error} required={required}>
+        <Textarea
+          ref={ref}
+          className={cn(
+            error && "border-red-500 focus:ring-red-500",
+            className,
+          )}
+          {...props}
+        />
+      </FormField>
+    );
+  },
+);
 FormTextarea.displayName = "FormTextarea";

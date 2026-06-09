@@ -23,142 +23,19 @@ model User {
   avatarUrl               String?   @map("avatar_url")
   navPosition             String?   @map("nav_position")
   dashboardConfig         Json?     @map("dashboard_config")
-  calendarToken           String?   @unique(map: "ix_users_calendar_token") @map("calendar_token")
 
   notifications        Notification[]
-  customEvents         CustomEvent[]
-  reminders            Reminder[]
   userSubscriptions    UserSubscription[]
   taskCompletions      TaskCompletion[]
   activityLogs         ActivityLog[]
-  choresAdded          Chore[]               @relation("ChoreAddedBy")
-  choresAssigned       Chore[]               @relation("ChoreAssignedTo")
-  choresCompleted      Chore[]               @relation("ChoreCompletedBy")
   notificationChannels NotificationChannel[]
-  habits               Habit[]
   invitationsSent      Invitation[]          @relation("InvitationInviter")
   watchlistItems       WatchlistItem[]
-  createdBoardTasks    BoardTask[]           @relation("BoardTaskCreatedBy")
-  assignedBoardTasks   BoardTask[]           @relation("BoardTaskAssignee")
-  boardTaskActivities  BoardTaskActivity[]
-  boardTimeLogs        BoardTimeLog[]
   baSessions           BaSession[]
   baAccounts           BaAccount[]
   baPasskeys           BaPasskey[]
 
   @@map("users")
-}
-
-enum BoardTaskStatus {
-  BACKLOG
-  ON_HOLD
-  TODO
-  IN_PROGRESS
-  DONE
-}
-
-enum BoardTaskPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-model BoardTask {
-  id               Int               @id @default(autoincrement())
-  title            String
-  description      String?
-  status           BoardTaskStatus
-  position         Int
-  priority         BoardTaskPriority @default(MEDIUM)
-  startDate        DateTime?         @map("start_date") @db.Date
-  dueDate          DateTime?         @map("due_date") @db.Date
-  assigneeId       String?           @map("assignee_id")
-  tags             String[]
-  createdBy        String            @map("created_by")
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt @map("updated_at")
-  estimatedMinutes Int?              @map("estimated_minutes")
-  loggedMinutes    Int               @default(0) @map("logged_minutes")
-  archived         Boolean           @default(false) @map("archived")
-
-  createdByUser        User                  @relation("BoardTaskCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
-  assignee             User?                 @relation("BoardTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
-  boardTags            BoardTag[]            @relation("BoardTaskTags")
-  activities           BoardTaskActivity[]
-  blockingDependencies BoardTaskDependency[] @relation("BlockingTask")
-  blockedDependencies  BoardTaskDependency[] @relation("BlockedTask")
-  timeLogs             BoardTimeLog[]
-
-  @@index([status, position], map: "ix_board_tasks_status_position")
-  @@map("board_tasks")
-}
-
-model BoardTimeLog {
-  id       Int      @id @default(autoincrement())
-  taskId   Int      @map("task_id")
-  userId   String   @map("user_id")
-  minutes  Int
-  note     String?
-  loggedAt DateTime @default(now()) @map("logged_at")
-
-  task BoardTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([taskId], map: "ix_board_time_logs_task_id")
-  @@map("board_time_logs")
-}
-
-model BoardTaskDependency {
-  id             Int      @id @default(autoincrement())
-  blockingTaskId Int      @map("blocking_task_id")
-  blockedTaskId  Int      @map("blocked_task_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  blockingTask BoardTask @relation("BlockingTask", fields: [blockingTaskId], references: [id], onDelete: Cascade)
-  blockedTask  BoardTask @relation("BlockedTask", fields: [blockedTaskId], references: [id], onDelete: Cascade)
-
-  @@unique([blockingTaskId, blockedTaskId], map: "uq_board_task_dependency")
-  @@index([blockedTaskId], map: "ix_board_task_dependency_blocked")
-  @@map("board_task_dependencies")
-}
-
-model BoardTag {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  color     String?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  tasks BoardTask[] @relation("BoardTaskTags")
-
-  @@map("board_tags")
-}
-
-enum BoardTaskActivityType {
-  created
-  comment
-  status_change
-  priority_change
-  assignee_change
-  archived
-  unarchived
-}
-
-model BoardTaskActivity {
-  id        Int                   @id @default(autoincrement())
-  taskId    Int                   @map("task_id")
-  userId    String                @map("user_id")
-  type      BoardTaskActivityType
-  body      String?
-  metadata  Json?
-  createdAt DateTime              @default(now()) @map("created_at")
-
-  task BoardTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([taskId, createdAt], map: "ix_board_task_activities_task_created")
-  @@index([userId], map: "ix_board_task_activities_user_id")
-  @@map("board_task_activities")
 }
 
 model Notification {
@@ -253,43 +130,6 @@ model OidcProvider {
   @@map("oidc_providers")
 }
 
-model CustomEvent {
-  id                          Int       @id @default(autoincrement())
-  title                       String
-  description                 String?
-  startDatetime               DateTime  @map("start_datetime")
-  endDatetime                 DateTime  @map("end_datetime")
-  allDay                      Boolean?  @map("all_day")
-  color                       String
-  userId                      String    @map("user_id")
-  recurrenceType              String?   @map("recurrence_type")
-  recurrenceIntervalDays      Int?      @map("recurrence_interval_days")
-  recurrenceOriginalCreatedAt DateTime? @map("recurrence_original_created_at")
-  createdAt                   DateTime? @map("created_at")
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId], map: "ix_custom_events_user_id")
-  @@map("custom_events")
-}
-
-model Reminder {
-  id                   Int       @id @default(autoincrement())
-  choreId              Int       @map("chore_id")
-  reminderDatetime     DateTime  @map("reminder_datetime")
-  userId               String    @map("user_id")
-  active               Boolean?
-  lastNotificationSent DateTime? @map("last_notification_sent")
-  createdAt            DateTime? @map("created_at")
-
-  chore Chore @relation(fields: [choreId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id])
-
-  @@index([choreId], map: "ix_reminders_chore_id")
-  @@index([userId], map: "ix_reminders_user_id")
-  @@map("reminders")
-}
-
 model UserSubscription {
   id               Int       @id @default(autoincrement())
   userId           String    @map("user_id")
@@ -341,38 +181,6 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
-model Chore {
-  id                          Int       @id @default(autoincrement())
-  choreName                   String    @map("chore_name")
-  description                 String?
-  assignedTo                  String?   @map("assigned_to")
-  completed                   Boolean?
-  addedBy                     String    @map("added_by")
-  completedBy                 String?   @map("completed_by")
-  reminderEnabled             Boolean?  @map("reminder_enabled")
-  createdAt                   DateTime? @map("created_at")
-  completedAt                 DateTime? @map("completed_at")
-  imagePath                   String?   @map("image_path")
-  recurrenceType              String?   @map("recurrence_type")
-  recurrenceIntervalDays      Int?      @map("recurrence_interval_days")
-  recurrenceWeekday           Int?      @map("recurrence_weekday")
-  recurrenceOriginalCreatedAt DateTime? @map("recurrence_original_created_at")
-  recurrenceParentId          Int?      @map("recurrence_parent_id")
-  position                    Int
-
-  addedByUser      User       @relation("ChoreAddedBy", fields: [addedBy], references: [id])
-  assignedToUser   User?      @relation("ChoreAssignedTo", fields: [assignedTo], references: [id])
-  completedByUser  User?      @relation("ChoreCompletedBy", fields: [completedBy], references: [id])
-  recurrenceParent Chore?     @relation("ChoreRecurrence", fields: [recurrenceParentId], references: [id], onDelete: SetNull)
-  childChores      Chore[]    @relation("ChoreRecurrence")
-  reminders        Reminder[]
-
-  @@index([addedBy], map: "ix_chores_added_by")
-  @@index([assignedTo], map: "ix_chores_assigned_to")
-  @@index([completedBy], map: "ix_chores_completed_by")
-  @@map("chores")
-}
-
 model Invitation {
   id         Int       @id @default(autoincrement())
   email      String
@@ -405,55 +213,6 @@ model NotificationChannel {
 
   @@index([userId], map: "ix_notification_channels_user_id")
   @@map("notification_channels")
-}
-
-model Habit {
-  id          Int       @id @default(autoincrement())
-  userId      String    @map("user_id")
-  name        String
-  emoji       String
-  description String?
-  timesPerDay Int       @default(1) @map("times_per_day")
-  active      Boolean   @default(true)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime? @map("updated_at")
-
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  schedules   HabitSchedule[]
-  completions HabitCompletion[]
-
-  @@index([userId], map: "ix_habits_user_id")
-  @@map("habits")
-}
-
-enum HabitCompletionStatus {
-  done
-  skipped
-}
-
-model HabitSchedule {
-  id                   Int       @id @default(autoincrement())
-  habitId              Int       @map("habit_id")
-  time                 String // "HH:mm" format (e.g. "08:00", "14:30")
-  lastNotificationSent DateTime? @map("last_notification_sent")
-
-  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
-
-  @@index([habitId], map: "ix_habit_schedules_habit_id")
-  @@map("habit_schedules")
-}
-
-model HabitCompletion {
-  id          Int                   @id @default(autoincrement())
-  habitId     Int                   @map("habit_id")
-  date        DateTime // Date-only (start of day UTC) for grouping
-  completedAt DateTime              @default(now()) @map("completed_at")
-  status      HabitCompletionStatus @default(done)
-
-  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
-
-  @@index([habitId, date], map: "ix_habit_completions_habit_date")
-  @@map("habit_completions")
 }
 
 model QbittorrentRequestLog {
@@ -783,7 +542,6 @@ model MediaSettings {
 model AppSettings {
   id                         Int      @id @default(1)
   countryCode                String   @default("US") @map("country_code") @db.VarChar(2)
-  calendarSubdivisionCode    String?  @map("calendar_subdivision_code") @db.VarChar(16)
   upcomingWindowMonths       Int      @default(12) @map("upcoming_window_months")
   upcomingLanguages          String   @default("en,fr") @map("upcoming_languages")
   dashboardWidgetVisibility  Json     @default("{\"weather\":true,\"homeassistant\":true,\"system\":true,\"downloads\":true,\"rss\":true}") @map("dashboard_widget_visibility")

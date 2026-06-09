@@ -1,16 +1,13 @@
 export const TILES = [
   { id: "latest_media", defaultVisible: true, defaultOrder: 0 },
-  { id: "chores_today", defaultVisible: true, defaultOrder: 1 },
-  { id: "next_event", defaultVisible: true, defaultOrder: 2 },
-  { id: "habit_streak", defaultVisible: true, defaultOrder: 3 },
-  { id: "active_downloads", defaultVisible: false, defaultOrder: 4 },
-  { id: "library_alerts", defaultVisible: false, defaultOrder: 5 },
-  { id: "weather", defaultVisible: false, defaultOrder: 6 },
-  { id: "system", defaultVisible: false, defaultOrder: 7 },
+  { id: "next_event", defaultVisible: true, defaultOrder: 1 },
+  { id: "active_downloads", defaultVisible: false, defaultOrder: 2 },
+  { id: "library_alerts", defaultVisible: false, defaultOrder: 3 },
+  { id: "weather", defaultVisible: false, defaultOrder: 4 },
+  { id: "system", defaultVisible: false, defaultOrder: 5 },
 ] as const;
 
 export type TileId = (typeof TILES)[number]["id"];
-export type TileMeta = (typeof TILES)[number];
 export type TileLayout = TileId[];
 
 export function getDefaultTileLayout(): TileLayout {

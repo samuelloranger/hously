@@ -229,9 +229,7 @@ export function QueueCard({
             <ChevronRight className="size-4 text-neutral-500" />
           )}
           <div>
-            <h4 className="font-medium text-neutral-100">
-              {stat.name}
-            </h4>
+            <h4 className="font-medium text-neutral-100">{stat.name}</h4>
             <p className="text-xs text-neutral-500 mt-0.5">
               {t("settings.jobs.queues.totalJobs", { count: total })}
             </p>
