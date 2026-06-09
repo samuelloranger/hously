@@ -15,11 +15,6 @@ export const WIDGET_COMPONENTS: Record<
       default: m.QuickLinksPanel,
     })),
   ),
-  jellyfin_shelf: lazy(() =>
-    import("@/pages/_component/JellyfinReadyPanel").then((m) => ({
-      default: m.JellyfinReadyPanel,
-    })),
-  ),
   library_alerts: lazy(() =>
     import("@/pages/_component/LibraryAttentionPanel").then((m) => ({
       default: m.LibraryAttentionPanel,

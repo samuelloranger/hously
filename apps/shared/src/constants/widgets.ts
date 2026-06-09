@@ -14,13 +14,6 @@ export const WIDGETS = [
     adminOnly: false,
   },
   {
-    id: "jellyfin_shelf",
-    column: 1,
-    order: 2,
-    defaultVisible: true,
-    adminOnly: false,
-  },
-  {
     id: "library_alerts",
     column: 1,
     order: 3,

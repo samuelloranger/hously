@@ -1,7 +1,6 @@
 import type React from "react";
 import type { TileId } from "@hously/shared/constants";
 import { LatestMediaTile } from "@/pages/_component/tiles/LatestMediaTile";
-import { NextEventTile } from "@/pages/_component/tiles/NextEventTile";
 import { ActiveDownloadsTile } from "@/pages/_component/tiles/ActiveDownloadsTile";
 import { LibraryAlertsTile } from "@/pages/_component/tiles/LibraryAlertsTile";
 import { WeatherTile } from "@/pages/_component/tiles/WeatherTile";
@@ -14,7 +13,6 @@ import { SystemTile } from "@/pages/_component/tiles/SystemTile";
  */
 export const TILE_COMPONENTS: Partial<Record<TileId, React.ComponentType>> = {
   latest_media: LatestMediaTile,
-  next_event: NextEventTile,
   active_downloads: ActiveDownloadsTile,
   library_alerts: LibraryAlertsTile,
   weather: WeatherTile,
