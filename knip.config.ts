@@ -5,6 +5,9 @@ const config: KnipConfig = {
     ".": {
       entry: [],
       project: [],
+      // eslint-config-prettier is referenced via a string `extends: "prettier"`
+      // in eslint.config.mjs (FlatCompat), not a JS import — knip can't see it.
+      ignoreDependencies: ["eslint-config-prettier"],
     },
     "apps/api": {
       project: ["src/**/*.ts"],

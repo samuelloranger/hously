@@ -43,6 +43,7 @@
     "@typescript/native-preview": "^7.0.0-dev.20260506.1",
     "elysia": "^1.4.28",
     "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-no-hardcoded-strings": "^1.1.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^14.0.0",
