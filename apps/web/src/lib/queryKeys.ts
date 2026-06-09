@@ -16,11 +16,6 @@ export const queryKeys = {
     app: () => [...queryKeys.settings.all, "app"] as const,
   },
 
-  chores: {
-    all: ["chores"] as const,
-    list: () => [...queryKeys.chores.all, "list"] as const,
-  },
-
   downloads: {
     all: ["downloads"] as const,
     speed: () => [...queryKeys.downloads.all, "speed"] as const,
@@ -28,7 +23,6 @@ export const queryKeys = {
 
   dashboard: {
     all: ["dashboard"] as const,
-    stats: () => [...queryKeys.dashboard.all, "stats"] as const,
     activities: (limit?: number) =>
       [...queryKeys.dashboard.all, "activities", limit] as const,
     activityFeed: (params?: {
@@ -162,23 +156,6 @@ export const queryKeys = {
     queueJobs: (queue: string, status?: string) =>
       [...queryKeys.admin.all, "queue-jobs", queue, status] as const,
     jobHistory: () => [...queryKeys.admin.all, "job-history"] as const,
-  },
-
-  calendar: {
-    all: ["calendar"] as const,
-    events: (year?: number, month?: number) =>
-      [...queryKeys.calendar.all, "events", year, month] as const,
-    availableCountries: () =>
-      [...queryKeys.calendar.all, "available-countries"] as const,
-    holidaySubdivisions: (countryCode: string | undefined) =>
-      [...queryKeys.calendar.all, "holiday-subdivisions", countryCode] as const,
-    icalToken: () => [...queryKeys.calendar.all, "ical-token"] as const,
-  },
-
-  customEvents: {
-    all: ["custom-events"] as const,
-    list: (year?: number, month?: number) =>
-      [...queryKeys.customEvents.all, year, month] as const,
   },
 
   medias: {
@@ -317,28 +294,6 @@ export const queryKeys = {
       ] as const,
   },
 
-  habits: {
-    all: ["habits"] as const,
-    list: () => [...queryKeys.habits.all, "list"] as const,
-    listForDate: (date?: string) => [...queryKeys.habits.list(), date] as const,
-    history: (id: number) => [...queryKeys.habits.all, "history", id] as const,
-  },
-
-  boardTasks: {
-    all: ["board-tasks"] as const,
-    list: () => [...queryKeys.boardTasks.all, "list"] as const,
-    archived: () => [...queryKeys.boardTasks.all, "archived"] as const,
-    activity: (id: number) =>
-      [...queryKeys.boardTasks.all, "activity", id] as const,
-    timeLogs: (id: number) =>
-      [...queryKeys.boardTasks.all, "time-logs", id] as const,
-  },
-
-  boardTags: {
-    all: ["board-tags"] as const,
-    list: () => [...queryKeys.boardTags.all, "list"] as const,
-  },
-
   search: {
     all: ["search"] as const,
     quick: (query: string) =>
@@ -396,5 +351,3 @@ export const queryKeys = {
     indexers: () => [...queryKeys.indexerManager.all, "indexers"] as const,
   },
 } as const;
-
-export type QueryKeys = typeof queryKeys;

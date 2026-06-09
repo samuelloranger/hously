@@ -3,15 +3,12 @@ import {
   CalendarIcon,
   Compass,
   LayoutDashboard,
-  LayoutGrid,
   Layers2,
   Library,
-  ListChecks,
-  Target,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export interface NavItem {
+interface NavItem {
   path: string;
   translationKey: string;
   icon: LucideIcon;
@@ -30,21 +27,6 @@ export const navSections: NavSection[] = [
         path: "/",
         translationKey: "nav.dashboard",
         icon: LayoutDashboard,
-      },
-      {
-        path: "/chores",
-        translationKey: "nav.chores",
-        icon: ListChecks,
-      },
-      {
-        path: "/board",
-        translationKey: "nav.board",
-        icon: LayoutGrid,
-      },
-      {
-        path: "/habits",
-        translationKey: "nav.habits",
-        icon: Target,
       },
       {
         path: "/calendar",

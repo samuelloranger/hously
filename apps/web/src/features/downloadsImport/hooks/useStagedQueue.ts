@@ -10,7 +10,7 @@ import type {
 } from "@/features/downloadsImport/hooks/useDownloadsImport";
 import type { TmdbMediaSearchItem } from "@hously/shared/types";
 
-export type AssignDownloadPayload = {
+type AssignDownloadPayload = {
   file_path: string;
   tmdb_id: number;
   kind: "movie" | "tv";

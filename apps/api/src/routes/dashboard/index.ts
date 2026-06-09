@@ -1,5 +1,4 @@
 import { Elysia } from "elysia";
-import { dashboardStatsRoutes } from "./stats";
 import { dashboardActivitiesRoutes } from "./activities";
 import { dashboardWeatherRoutes } from "./weather";
 import { dashboardUpcomingRoutes } from "./upcoming";
@@ -15,7 +14,6 @@ import { dashboardQuickLinksRoutes } from "./quick-links";
 import { dashboardFaviconRoutes } from "./favicon";
 
 export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
-  .use(dashboardStatsRoutes)
   .use(dashboardActivitiesRoutes)
   .use(dashboardWeatherRoutes)
   .use(dashboardUpcomingRoutes)

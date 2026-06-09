@@ -1,7 +1,5 @@
 export * from "./api";
 export * from "./user";
-export * from "./chores";
-export * from "./calendar";
 export * from "./dashboard";
 export * from "./notification";
 export * from "./notificationChannel";
@@ -10,9 +8,7 @@ export * from "./integrations";
 export * from "./externalNotifications";
 export * from "./weather";
 export * from "./media";
-export * from "./habits";
 export * from "./search";
-export * from "./boardTasks";
 export * from "./qualityProfiles";
 export * from "./customFormats";
 export * from "./library";

@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
 
 type UrlStatePrimitive = string | number | boolean | null | undefined;
-export type UrlStateValue = UrlStatePrimitive | UrlStatePrimitive[];
+type UrlStateValue = UrlStatePrimitive | UrlStatePrimitive[];
 export type UrlStateRecord = Record<string, UrlStateValue>;
 
 function isEmptyUrlStateValue(value: UrlStateValue) {

@@ -1,43 +1,30 @@
 # Calendar
 
-Shared multi-user calendar with custom events, holiday subscriptions, iCal feed export, and day-of notifications.
+Read-only month view of upcoming movie / TV / episode releases from the media library.
 
-Last verified: 2026-05-25
+Last verified: 2026-06-08
 
 ## Locations
 
-| Layer   | Path                                                            |
-| ------- | --------------------------------------------------------------- |
-| Web     | `apps/web/src/pages/calendar/`                                  |
-| API     | `apps/api/src/routes/calendar/` (`events`, `countries`, `ical`) |
-| Schema  | `CustomEvent`, plus virtual holiday/release events              |
-| Worker  | `apps/api/src/workers/checkAllDayEvents.ts`                     |
-| Service | `apps/api/src/services/holidayCalendar.ts`                      |
+| Layer | Path                                                         |
+| ----- | ------------------------------------------------------------ |
+| Web   | `apps/web/src/pages/calendar/`                               |
+| Data  | Dashboard "upcoming" releases (`GET /api/dashboard/upcoming`) |
 
-## API Surface
+## Data Source
 
-`apps/api/src/routes/calendar/index.ts` composes:
+The calendar has no dedicated API of its own. It reuses the dashboard
+upcoming-releases query (`useDashboardUpcoming` → `GET /api/dashboard/upcoming`)
+and buckets the returned `DashboardUpcomingItem`s by `release_date` for the
+displayed month. Clicking a release opens the media detail dialog (or navigates
+to the library item if it already exists).
 
-- `events.ts` — `GET /api/calendar?year=&month=&months=`. Returns a merged stream of `CustomEvent` rows + holidays from the configured country + library release dates within the requested month window.
-- `countries.ts` — country/subdivision picker for `AppSettings.countryCode` / `calendarSubdivisionCode`. Holidays come from a static dataset in `holidayCalendar.ts`.
-- `ical.ts` — `GET /api/calendar/feed/:token` returns an iCal feed; `GET/POST/DELETE /api/calendar/ical-token` manages the token. The token is `User.calendarToken` (unique random opaque token), so users can subscribe in Apple Calendar / Google Calendar without exposing credentials.
+The release region/window is configured via `AppSettings.countryCode` (TMDB
+region), `upcomingWindowMonths`, and `upcomingLanguages`. There are no
+user-created events, holidays, or iCal feed — those features were removed.
 
-Custom event mutations live under a separate router: `POST /api/custom-events`, `PUT /api/custom-events/:id`, `DELETE /api/custom-events/:id`.
+## Web
 
-## Holidays
-
-`apps/api/src/services/holidayCalendar.ts` resolves holidays by country code (e.g. `US`, `CA`) and optional subdivision (e.g. `CA-QC`). Configured per-instance via `AppSettings`, not per-user.
-
-Why instance-wide: most homelab deployments are family-scale and a single household has one set of statutory holidays.
-
-## Custom Events
-
-`CustomEvent` carries `startDatetime`, `endDatetime`, `allDay`, plus optional recurrence (`recurrenceType`, `recurrenceIntervalDays`, `recurrenceOriginalCreatedAt`). Events are scoped to `userId` — currently each user sees only their own custom events plus instance-wide holidays/releases.
-
-## All-Day Event Notifications
-
-The `check-all-day-events` cron (daily at 20:00 — see `queueService.ts`) scans tomorrow's all-day events and pushes a day-before reminder. The `checkAllDayEvents` worker handles both `CustomEvent` and (where opted-in) calendar-visible chores.
-
-## Web Hooks
-
-`apps/web/src/pages/calendar/useCalendar.ts` is the main read hook; mutation hooks live in `_hooks/`. The calendar page lazy-loads its grid components via `_component/`.
+`apps/web/src/pages/calendar/_component/` holds the page (`Calendar.tsx`), the
+month grid (`CalendarGrid.tsx`), and the selected-day panel
+(`CalendarDayPanel.tsx`). All are presentational over the upcoming-releases data.

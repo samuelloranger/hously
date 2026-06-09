@@ -15,7 +15,7 @@ const panelClassName =
 
 // ─── Stats section components ─────────────────────────────────────────────────
 
-export function StatCard({
+function StatCard({
   label,
   value,
   color,

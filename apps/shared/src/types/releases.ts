@@ -1,4 +1,4 @@
-export interface GitHubReleaseAuthor {
+interface GitHubReleaseAuthor {
   login: string;
   avatar_url: string | null;
 }

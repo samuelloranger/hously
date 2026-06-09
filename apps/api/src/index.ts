@@ -13,14 +13,8 @@ import {
 } from "./auth";
 import { adminRoutes } from "./routes/admin";
 import { analyticsRoutes } from "./routes/analytics";
-import { boardTagsRoutes } from "./routes/board-tags";
-import { boardTasksRoutes } from "./routes/board-tasks";
-import { calendarRoutes } from "./routes/calendar";
-import { choresRoutes } from "./routes/chores";
-import { customEventsRoutes } from "./routes/custom-events";
 import { dashboardRoutes } from "./routes/dashboard";
 import { externalNotificationsRoutes } from "./routes/external-notifications";
-import { habitsRoutes } from "./routes/habits";
 import { homeAssistantRoutes } from "./routes/dashboard/home-assistant";
 import { libraryMediaAdminRoutes } from "./routes/library/libraryMediaAdmin";
 import { libraryDownloadsRoutes } from "./routes/library/downloads";
@@ -30,7 +24,6 @@ import { customFormatsRoutes } from "./routes/custom-formats";
 import { mediasRoutes } from "./routes/medias";
 import { notificationsRoutes } from "./routes/notifications";
 import { integrationsRoutes } from "./routes/integrations";
-import { remindersRoutes } from "./routes/reminders";
 import { releasesRoutes } from "./routes/releases";
 import { searchRoutes } from "./routes/search";
 import { settingsRoutes } from "./routes/settings";
@@ -125,10 +118,6 @@ export const app = new Elysia()
   .use(notificationsRoutes)
   .use(webhooksRoutes)
   .use(externalNotificationsRoutes)
-  .use(choresRoutes)
-  .use(calendarRoutes)
-  .use(customEventsRoutes)
-  .use(remindersRoutes)
   .use(releasesRoutes)
   .use(settingsRoutes)
   .use(adminRoutes)
@@ -141,9 +130,6 @@ export const app = new Elysia()
   .use(qualityProfilesRoutes)
   .use(customFormatsRoutes)
   .use(mediasRoutes)
-  .use(habitsRoutes)
-  .use(boardTasksRoutes)
-  .use(boardTagsRoutes)
   .use(searchRoutes)
   .use(systemRoutes)
   .get("/health", () => ({ status: "ok" }))

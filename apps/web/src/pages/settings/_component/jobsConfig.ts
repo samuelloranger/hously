@@ -1,12 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Clock,
-  CalendarDays,
-  Activity,
   Eraser,
   FileText,
   Film,
-  Flame,
   Clapperboard,
   Tv,
   RefreshCw,
@@ -20,16 +16,12 @@ import {
 // ---------------------------------------------------------------------------
 
 export type JobAction =
-  | "check_reminders"
-  | "check_all_day_events"
-  | "check_habit_reminders"
   | "cleanup_notifications"
   | "fetch_c411_stats"
   | "fetch_torr9_stats"
   | "fetch_la_cale_stats"
   | "fetch_ygg_reborn_stats"
   | "refresh_upcoming"
-  | "refresh_habits_streaks"
   | "check_movie_release_reminders"
   | "check_library_movie_releases"
   | "check_library_episode_releases"
@@ -48,27 +40,6 @@ export type JobConfig = {
 };
 
 export const JOBS: JobConfig[] = [
-  {
-    action: "check_reminders",
-    jobNames: ["check-reminders"],
-    Icon: Clock,
-    labelKey: "settings.jobs.actions.checkReminders.label",
-    descriptionKey: "settings.jobs.actions.checkReminders.description",
-  },
-  {
-    action: "check_all_day_events",
-    jobNames: ["check-all-day-events"],
-    Icon: CalendarDays,
-    labelKey: "settings.jobs.actions.checkAllDayEvents.label",
-    descriptionKey: "settings.jobs.actions.checkAllDayEvents.description",
-  },
-  {
-    action: "check_habit_reminders",
-    jobNames: ["check-habit-reminders"],
-    Icon: Activity,
-    labelKey: "settings.jobs.actions.checkHabitReminders.label",
-    descriptionKey: "settings.jobs.actions.checkHabitReminders.description",
-  },
   {
     action: "cleanup_notifications",
     jobNames: ["cleanup-notifications"],
@@ -110,13 +81,6 @@ export const JOBS: JobConfig[] = [
     Icon: Film,
     labelKey: "settings.jobs.actions.refreshUpcoming.label",
     descriptionKey: "settings.jobs.actions.refreshUpcoming.description",
-  },
-  {
-    action: "refresh_habits_streaks",
-    jobNames: ["refresh-habits-streaks"],
-    Icon: Flame,
-    labelKey: "settings.jobs.actions.refreshHabitsStreaks.label",
-    descriptionKey: "settings.jobs.actions.refreshHabitsStreaks.description",
   },
   {
     action: "check_movie_release_reminders",

@@ -1,4 +1,4 @@
-import type { LibraryMedia, TmdbMediaSearchItem } from "@hously/shared/types";
+import type { LibraryMedia, } from "@hously/shared/types";
 
 export type SortKey =
   | "title"
@@ -71,23 +71,4 @@ export function sortItems(
       cmp = new Date(a.added_at).getTime() - new Date(b.added_at).getTime();
     return sortDir === "asc" ? cmp : -cmp;
   });
-}
-
-export function libraryItemToSearchItem(
-  item: LibraryMedia,
-): TmdbMediaSearchItem {
-  return {
-    id: String(item.id),
-    tmdb_id: item.tmdb_id,
-    media_type: item.type === "show" ? "tv" : "movie",
-    title: item.title,
-    release_year: item.year,
-    poster_url: item.poster_url,
-    overview: item.overview,
-    vote_average: null,
-    already_exists: true,
-    can_add: false,
-    source_id: null,
-    library_id: item.id,
-  };
 }

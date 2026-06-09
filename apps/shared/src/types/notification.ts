@@ -3,10 +3,7 @@ export type NotificationType =
   | "external"
   | "app-update"
   | "service_monitor"
-  | "chore"
-  | "event"
-  | "system"
-  | "habit";
+  | "system";
 
 export interface Notification {
   id: number;
@@ -35,7 +32,7 @@ export interface UnreadCountResponse {
   unread_count: number;
 }
 
-export interface NotificationDevice {
+interface NotificationDevice {
   id: number;
   endpoint: string;
   device_name: string;

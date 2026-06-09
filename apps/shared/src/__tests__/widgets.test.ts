@@ -8,8 +8,8 @@ import {
 import type { WidgetId, WidgetLayout } from "../constants/widgets";
 
 describe("WIDGETS registry", () => {
-  it("contains exactly 16 widgets", () => {
-    expect(WIDGETS.length).toBe(16);
+  it("contains exactly 14 widgets", () => {
+    expect(WIDGETS.length).toBe(14);
   });
 
   it("has no duplicate IDs", () => {
@@ -91,13 +91,13 @@ describe("getEffectiveLayout", () => {
 
   it("strips unknown IDs from stored layout", () => {
     const stored = [
-      ["chores", "unknown_widget" as WidgetId, "weather"],
-      ["habits"],
+      ["jellyfin_shelf", "unknown_widget" as WidgetId, "weather"],
+      ["trackers"],
       ["system"],
     ] as WidgetLayout;
     const result = getEffectiveLayout(stored);
     expect(result[0]).not.toContain("unknown_widget");
-    expect(result[0]).toContain("chores");
+    expect(result[0]).toContain("jellyfin_shelf");
     expect(result[0]).toContain("weather");
   });
 
@@ -122,50 +122,50 @@ describe("moveWidgetInLayout", () => {
 
   it("swaps a widget up within a column", () => {
     const layout: WidgetLayout = [
-      ["weather", "chores"],
-      ["habits"],
+      ["weather", "jellyfin_shelf"],
+      ["trackers"],
       ["system"],
     ];
-    const result = moveWidgetInLayout(layout, "chores", "up", allVisible);
-    expect(result[0]).toEqual(["chores", "weather"]);
+    const result = moveWidgetInLayout(layout, "jellyfin_shelf", "up", allVisible);
+    expect(result[0]).toEqual(["jellyfin_shelf", "weather"]);
   });
 
   it("swaps a widget down within a column", () => {
     const layout: WidgetLayout = [
-      ["weather", "chores"],
-      ["habits"],
+      ["weather", "jellyfin_shelf"],
+      ["trackers"],
       ["system"],
     ];
     const result = moveWidgetInLayout(layout, "weather", "down", allVisible);
-    expect(result[0]).toEqual(["chores", "weather"]);
+    expect(result[0]).toEqual(["jellyfin_shelf", "weather"]);
   });
 
   it("moves a widget from position 0 to before the last visible in the previous column", () => {
     const layout: WidgetLayout = [
       ["weather"],
-      ["habits", "upcoming"],
+      ["trackers", "upcoming"],
       ["system"],
     ];
-    const result = moveWidgetInLayout(layout, "habits", "up", allVisible);
-    expect(result[0]).toEqual(["habits", "weather"]);
+    const result = moveWidgetInLayout(layout, "trackers", "up", allVisible);
+    expect(result[0]).toEqual(["trackers", "weather"]);
     expect(result[1]).toEqual(["upcoming"]);
   });
 
   it("moves a widget from the last position to after the first visible in the next column", () => {
     const layout: WidgetLayout = [
-      ["weather", "chores"],
-      ["habits"],
+      ["weather", "jellyfin_shelf"],
+      ["trackers"],
       ["system"],
     ];
-    const result = moveWidgetInLayout(layout, "chores", "down", allVisible);
+    const result = moveWidgetInLayout(layout, "jellyfin_shelf", "down", allVisible);
     expect(result[0]).toEqual(["weather"]);
-    expect(result[1]).toEqual(["habits", "chores"]);
+    expect(result[1]).toEqual(["trackers", "jellyfin_shelf"]);
   });
 
   it("no-ops when moving up from position 0 in column 0", () => {
     const layout: WidgetLayout = [
-      ["weather", "chores"],
-      ["habits"],
+      ["weather", "jellyfin_shelf"],
+      ["trackers"],
       ["system"],
     ];
     const result = moveWidgetInLayout(layout, "weather", "up", allVisible);
@@ -175,7 +175,7 @@ describe("moveWidgetInLayout", () => {
   it("no-ops when moving down from last position in column 2", () => {
     const layout: WidgetLayout = [
       ["weather"],
-      ["habits"],
+      ["trackers"],
       ["system", "downloads"],
     ];
     const result = moveWidgetInLayout(layout, "downloads", "down", allVisible);
@@ -184,48 +184,48 @@ describe("moveWidgetInLayout", () => {
 
   it("skips hidden widgets when moving up, swapping with nearest visible", () => {
     const layout: WidgetLayout = [
-      ["weather", "quick_links", "chores"],
-      ["habits"],
+      ["weather", "quick_links", "jellyfin_shelf"],
+      ["trackers"],
       ["system"],
     ];
     const isVisible = (id: WidgetId) => id !== "quick_links";
-    const result = moveWidgetInLayout(layout, "chores", "up", isVisible);
-    expect(result[0]).toEqual(["chores", "quick_links", "weather"]);
+    const result = moveWidgetInLayout(layout, "jellyfin_shelf", "up", isVisible);
+    expect(result[0]).toEqual(["jellyfin_shelf", "quick_links", "weather"]);
   });
 
   it("skips hidden widgets when moving down, swapping with nearest visible", () => {
     const layout: WidgetLayout = [
-      ["weather", "quick_links", "chores"],
-      ["habits"],
+      ["weather", "quick_links", "jellyfin_shelf"],
+      ["trackers"],
       ["system"],
     ];
     const isVisible = (id: WidgetId) => id !== "quick_links";
     const result = moveWidgetInLayout(layout, "weather", "down", isVisible);
-    expect(result[0]).toEqual(["chores", "quick_links", "weather"]);
+    expect(result[0]).toEqual(["jellyfin_shelf", "quick_links", "weather"]);
   });
 
   it("skips hidden widgets at the start of the next column when crossing down", () => {
     const layout: WidgetLayout = [
       ["weather"],
-      ["quick_links", "habits"],
+      ["quick_links", "trackers"],
       ["system"],
     ];
     const isVisible = (id: WidgetId) => id !== "quick_links";
     const result = moveWidgetInLayout(layout, "weather", "down", isVisible);
     // weather should end up after habits (the first visible in col1), not before it
     expect(result[0]).toEqual([]);
-    expect(result[1]).toEqual(["quick_links", "habits", "weather"]);
+    expect(result[1]).toEqual(["quick_links", "trackers", "weather"]);
   });
 
   it("crosses to the previous column and lands before the last visible widget there", () => {
     const layout: WidgetLayout = [
       ["weather"],
-      ["quick_links", "habits"],
+      ["quick_links", "trackers"],
       ["system"],
     ];
     const isVisible = (id: WidgetId) => id !== "quick_links";
-    const result = moveWidgetInLayout(layout, "habits", "up", isVisible);
-    expect(result[0]).toEqual(["habits", "weather"]);
+    const result = moveWidgetInLayout(layout, "trackers", "up", isVisible);
+    expect(result[0]).toEqual(["trackers", "weather"]);
     expect(result[1]).toEqual(["quick_links"]);
   });
 });

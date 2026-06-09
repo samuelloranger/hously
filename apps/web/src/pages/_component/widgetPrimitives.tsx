@@ -36,7 +36,7 @@ export function Kicker({ children }: { children: ReactNode }) {
   );
 }
 
-export function SectionTitle({ children }: { children: ReactNode }) {
+function SectionTitle({ children }: { children: ReactNode }) {
   return <h3 className="text-sm font-semibold text-neutral-100">{children}</h3>;
 }
 

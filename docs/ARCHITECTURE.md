@@ -8,11 +8,11 @@ Last verified: 2026-05-25
 
 Hously is a Bun workspaces monorepo with three apps:
 
-| Workspace      | Stack                                                                 | Path          |
-| -------------- | --------------------------------------------------------------------- | ------------- |
-| `@hously/api`  | Bun + Elysia + Prisma + PostgreSQL + Redis (BullMQ) + Better Auth     | `apps/api`    |
-| `@hously/web`  | React 19 + Vite + TanStack Router/Query + Tailwind CSS 4 + i18next    | `apps/web`    |
-| `@hously/shared` | TypeScript types, pure utilities, cross-app constants               | `apps/shared` |
+| Workspace        | Stack                                                              | Path          |
+| ---------------- | ------------------------------------------------------------------ | ------------- |
+| `@hously/api`    | Bun + Elysia + Prisma + PostgreSQL + Redis (BullMQ) + Better Auth  | `apps/api`    |
+| `@hously/web`    | React 19 + Vite + TanStack Router/Query + Tailwind CSS 4 + i18next | `apps/web`    |
+| `@hously/shared` | TypeScript types, pure utilities, cross-app constants              | `apps/shared` |
 
 The web app and API run as two processes in development. **In production they are a single container**: `Dockerfile` builds `apps/web/dist` into `apps/api/public/` and the API serves it via `@elysiajs/static` whenever `SERVE_STATIC=true` (see `apps/api/src/index.ts:43-46`, `:150-175`).
 
@@ -27,8 +27,8 @@ Why a single container: keeps the public attack surface to one port, lets the AP
 
 ## Request Flow (Web → API → Prisma)
 
-1. **Web** calls `fetchApi(endpoint, …)` through the shared `useFetcher()` (`apps/web/src/lib/api/fetcher.ts`, `apps/web/src/lib/api/client.ts`). TanStack Query hooks wrap this — `useChores()` is a typical example (`apps/web/src/pages/chores/useChores.ts`).
-2. **API** routes are Elysia plugins composed in `apps/api/src/index.ts`. Each feature mounts under a kebab-case URL prefix like `/api/chores`. Cross-cutting middleware: CORS (`@elysiajs/cors`), a global rate limiter (`apps/api/src/middleware/rateLimit.ts` — 1000 req/hr per IP, authed bypass), and a centralized `onError` that maps Elysia codes to `{ error }` JSON.
+1. **Web** calls `fetchApi(endpoint, …)` through the shared `useFetcher()` (`apps/web/src/lib/api/fetcher.ts`, `apps/web/src/lib/api/client.ts`). TanStack Query hooks wrap this — `useBoardTasks()` is a typical example (`apps/web/src/pages/board/`).
+2. **API** routes are Elysia plugins composed in `apps/api/src/index.ts`. Each feature mounts under a kebab-case URL prefix like `/api/board-tasks`. Cross-cutting middleware: CORS (`@elysiajs/cors`), a global rate limiter (`apps/api/src/middleware/rateLimit.ts` — 1000 req/hr per IP, authed bypass), and a centralized `onError` that maps Elysia codes to `{ error }` JSON.
 3. **Auth** is Better Auth (`apps/api/src/lib/auth.ts`). Routes opt in by composing `.use(auth)` (resolve session into `user`) and `.use(requireUser)` or `.use(requireAdmin)` (`apps/api/src/middleware/auth.ts`).
 4. **Prisma** is a singleton from `apps/api/src/db/`. Route handlers query Prisma directly for simple CRUD and delegate to `src/services/` for business logic. Responses **always map Prisma camelCase to snake_case** before returning (see `PATTERNS.md`).
 

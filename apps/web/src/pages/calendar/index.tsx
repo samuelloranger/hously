@@ -4,23 +4,13 @@ import { prefetchRouteData } from "@/lib/routing/prefetch";
 import { Calendar } from "@/pages/calendar/_component/Calendar";
 import type { CalendarSearchParams } from "@/pages/calendar/_component/Calendar";
 
-export { type CalendarSearchParams };
+;
 
 export const Route = createFileRoute("/calendar/")({
   validateSearch: (search: Record<string, unknown>): CalendarSearchParams => ({
     date:
       typeof search.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(search.date)
         ? search.date
-        : undefined,
-    eventId:
-      typeof search.eventId === "number"
-        ? search.eventId
-        : typeof search.eventId === "string"
-          ? Number(search.eventId) || undefined
-          : undefined,
-    modal:
-      search.modal === "create" || search.modal === "edit"
-        ? search.modal
         : undefined,
   }),
   beforeLoad: async () => {

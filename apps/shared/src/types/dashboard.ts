@@ -1,32 +1,20 @@
 import type { MinecraftServerEntry } from "./integrations";
 import type { QuickLink } from "./settings";
 
-export interface DashboardStats {
-  events_today: number;
-  chores_count: number;
-  habits_streak: number;
-}
-
-export type ActivityType =
+type ActivityType =
   | "task_completed"
-  | "chore_added"
-  | "chore_completed"
-  | "habit_completed"
   | "integration_updated"
   | "cron_job_ended"
   | "cron_job_skipped"
   | "app_updated"
   | "admin_triggered_job"
-  | "event_created"
-  | "event_updated"
-  | "event_deleted"
   | "media_grab"
   | (string & {});
 
 export interface Activity {
   id?: number;
   user_id?: string;
-  task_type?: "chore";
+  task_type?: string;
   task_id?: number;
   completed_at?: string;
   task_name?: string;
@@ -59,17 +47,6 @@ export interface Activity {
   ai_picked?: boolean;
 }
 
-export interface ActivityDisplay {
-  description: string;
-  time: string;
-  icon: string;
-  type: ActivityType;
-}
-
-export interface DashboardStatsResponse {
-  stats: DashboardStats;
-}
-
 export interface DashboardActivityFeedResponse {
   activities: Activity[];
   available_services: string[];
@@ -79,7 +56,7 @@ export interface DashboardActivityFeedResponse {
   has_more: boolean;
 }
 
-export interface JellyfinLatestItem {
+interface JellyfinLatestItem {
   id: string;
   title: string;
   subtitle: string | null;
@@ -117,7 +94,7 @@ export interface DashboardUpcomingItem {
   popularity?: number;
 }
 
-export interface DashboardUpcomingProvider {
+interface DashboardUpcomingProvider {
   id: number;
   name: string;
   logo_url: string;
@@ -128,17 +105,12 @@ export interface DashboardUpcomingResponse {
   items: DashboardUpcomingItem[];
 }
 
-export interface DashboardUpcomingStatusResponse {
-  exists: boolean;
-  library_id: number | null;
-}
-
 export interface DashboardAdguardTopEntry {
   name: string;
   hits: number;
 }
 
-export interface DashboardAdguardSummary {
+interface DashboardAdguardSummary {
   dns_queries: number;
   blocked_queries: number;
   blocked_ratio: number | null;
@@ -182,7 +154,7 @@ export interface DashboardDockerContainer {
   created_at: string | null;
 }
 
-export interface DashboardDockerSummary {
+interface DashboardDockerSummary {
   total: number;
   running: number;
   stopped: number;
@@ -204,7 +176,7 @@ export interface DashboardDockerSummaryResponse {
   error?: string;
 }
 
-export interface ScrutinyDashboardDrive {
+interface ScrutinyDashboardDrive {
   id: string;
   model_name: string | null;
   serial_number: string | null;
@@ -217,7 +189,7 @@ export interface ScrutinyDashboardDrive {
   updated_at: string | null;
 }
 
-export interface ScrutinyDashboardSummary {
+interface ScrutinyDashboardSummary {
   total_drives: number;
   healthy_drives: number;
   warning_drives: number;
@@ -234,7 +206,7 @@ export interface DashboardScrutinySummaryResponse {
   error?: string;
 }
 
-export interface BeszelDashboardDiskUsage {
+interface BeszelDashboardDiskUsage {
   mount_point: string;
   model: string | null;
   used_gib: number;
@@ -243,7 +215,7 @@ export interface BeszelDashboardDiskUsage {
   used_percent: number;
 }
 
-export interface BeszelDashboardSummary {
+interface BeszelDashboardSummary {
   cpu_percent: number | null;
   cpu_name: string | null;
   ram_used_mib: number | null;
@@ -280,12 +252,12 @@ export type DashboardTrackersStatsResponse = Record<
   DashboardTrackerStatsResponse
 >;
 
-export interface RssIndexerStat {
+interface RssIndexerStat {
   name: string;
   releases_found: number;
 }
 
-export interface RssRunResult {
+interface RssRunResult {
   status: "success" | "error";
   started_at: string;
   completed_at: string;

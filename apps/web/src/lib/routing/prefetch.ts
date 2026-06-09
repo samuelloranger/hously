@@ -5,8 +5,6 @@ import type {
 import { queryKeys } from "@/lib/queryKeys";
 import {
   ADMIN_ENDPOINTS,
-  CALENDAR_ENDPOINTS,
-  CHORES_ENDPOINTS,
   DASHBOARD_ENDPOINTS,
   DOWNLOADS_ENDPOINTS,
   EXTERNAL_NOTIFICATION_ENDPOINTS,
@@ -15,8 +13,6 @@ import {
   NOTIFICATION_ENDPOINTS,
   INTEGRATION_ENDPOINTS,
   QUALITY_PROFILES_ENDPOINTS,
-  HABIT_ENDPOINTS,
-  BOARD_TASKS_ENDPOINTS,
 } from "@/lib/endpoints";
 import type {
   DashboardJellyfinLatestResponse,
@@ -29,35 +25,15 @@ import { fetchAuthMeUser } from "@/lib/auth/fetchAuthMeUser";
 /** Jellyfin shelf page size — must match `useDashboardJellyfinLatestInfinite` on the home page. */
 const HOME_JELLYFIN_LIMIT = 10;
 
-/** Local calendar date `YYYY-MM-DD`, aligned with `HabitsPanel` / `useHabits(today)`. */
-function localIsoDateToday(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 /**
  * Eager cache fill for `/` (home): every TanStack Query used by the home UI.
  * Runs in the route loader before paint (SPA analogue of a server prefetch / “server action” bootstrap).
  */
 async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
-  const today = localIsoDateToday();
-
   const standard = [
     {
       queryKey: queryKeys.auth.me,
       queryFn: () => fetchAuthMeUser(webFetcher),
-    },
-    {
-      queryKey: queryKeys.dashboard.stats(),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.STATS),
-    },
-    {
-      queryKey: queryKeys.chores.list(),
-      queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST),
-    },
-    {
-      queryKey: queryKeys.habits.listForDate(today),
-      queryFn: () => webFetcher(`${HABIT_ENDPOINTS.LIST}?date=${today}`),
     },
     {
       queryKey: queryKeys.weather.current(),
@@ -118,23 +94,9 @@ async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
 
 /** Non-blocking home prefetch (e.g. nav hover). */
 function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
-  const today = localIsoDateToday();
-
   void queryClient.prefetchQuery({
     queryKey: queryKeys.auth.me,
     queryFn: () => fetchAuthMeUser(webFetcher),
-  });
-  void queryClient.prefetchQuery({
-    queryKey: queryKeys.dashboard.stats(),
-    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.STATS),
-  });
-  void queryClient.prefetchQuery({
-    queryKey: queryKeys.chores.list(),
-    queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST),
-  });
-  void queryClient.prefetchQuery({
-    queryKey: queryKeys.habits.listForDate(today),
-    queryFn: () => webFetcher(`${HABIT_ENDPOINTS.LIST}?date=${today}`),
   });
   void queryClient.prefetchQuery({
     queryKey: queryKeys.weather.current(),
@@ -191,36 +153,7 @@ function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
  * Returns array of {queryKey, queryFn} objects
  */
 const routeQueryDefinitions = {
-  "/chores": () => [
-    {
-      queryKey: queryKeys.chores.list(),
-      queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST),
-    },
-  ],
-
-  "/board": () => [
-    {
-      queryKey: queryKeys.boardTasks.list(),
-      queryFn: () => webFetcher(BOARD_TASKS_ENDPOINTS.LIST),
-    },
-  ],
-
-  "/habits": () => [
-    {
-      queryKey: queryKeys.habits.list(),
-      queryFn: () => webFetcher(HABIT_ENDPOINTS.LIST),
-    },
-  ],
-
   "/calendar": () => [
-    {
-      queryKey: queryKeys.calendar.events(),
-      queryFn: () => webFetcher(CALENDAR_ENDPOINTS.EVENTS),
-    },
-    {
-      queryKey: queryKeys.customEvents.list(),
-      queryFn: () => webFetcher(CALENDAR_ENDPOINTS.CUSTOM_EVENTS.LIST),
-    },
     {
       queryKey: queryKeys.dashboard.upcoming(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),

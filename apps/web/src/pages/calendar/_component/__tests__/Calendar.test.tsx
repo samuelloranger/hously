@@ -10,42 +10,21 @@ vi.mock("@tanstack/react-router", () => ({
   useParams: vi.fn().mockReturnValue({}),
 }));
 
-// Mock shared hooks
-vi.mock("@hously/shared", async (importOriginal) => {
-  const actual = await importOriginal<any>();
-  return {
-    ...actual,
-    useCalendarEvents: vi.fn(),
-    useDeleteCustomEvent: vi.fn().mockReturnValue({ mutate: vi.fn() }),
-    useDashboardUpcoming: vi.fn().mockReturnValue({
-      data: { items: [], enabled: true },
-      isLoading: false,
-    }),
-  };
-});
-
-vi.mock("@/pages/calendar/useCalendar", () => ({
-  useCalendarEvents: vi.fn(),
-  useCreateCustomEvent: vi.fn().mockReturnValue({ mutate: vi.fn() }),
-  useUpdateCustomEvent: vi.fn().mockReturnValue({ mutate: vi.fn() }),
-  useDeleteCustomEvent: vi.fn().mockReturnValue({ mutate: vi.fn() }),
-  useICalToken: vi.fn().mockReturnValue({ data: null }),
-  useGenerateICalToken: vi.fn().mockReturnValue({ mutate: vi.fn() }),
-  useRevokeICalToken: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+vi.mock("@/pages/_component/useDashboardUpcoming", () => ({
+  useDashboardUpcoming: vi.fn(),
 }));
 
-import { useCalendarEvents } from "@/pages/calendar/useCalendar";
+import { useDashboardUpcoming } from "@/pages/_component/useDashboardUpcoming";
 
 describe("Calendar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders calendar", async () => {
-    (useCalendarEvents as any).mockReturnValue({
-      data: [],
+  it("renders the release calendar", async () => {
+    (useDashboardUpcoming as any).mockReturnValue({
+      data: { items: [], enabled: true },
       isLoading: false,
-      refetch: vi.fn(),
     });
 
     renderWithProviders(<Calendar />);
@@ -55,29 +34,36 @@ describe("Calendar", () => {
     });
   });
 
-  it("shows event dots when events are present", async () => {
-    const mockEvent = {
-      id: "1",
-      date: new Date().toISOString().split("T")[0],
-      type: "custom_event",
-      title: "Test Event",
-      metadata: { color: "#ff0000", custom_event_id: 1 },
-    };
-
-    (useCalendarEvents as any).mockReturnValue({
-      data: [mockEvent],
+  it("shows release posters when releases are present", async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    (useDashboardUpcoming as any).mockReturnValue({
+      data: {
+        enabled: true,
+        items: [
+          {
+            id: "movie-1",
+            title: "Test Release",
+            media_type: "movie",
+            release_date: today,
+            poster_url: "https://example.com/p.jpg",
+            backdrop_url: null,
+            overview: null,
+            tmdb_url: null,
+            providers: [],
+            library_id: null,
+            season_number: null,
+            episode_number: null,
+          },
+        ],
+      },
       isLoading: false,
-      refetch: vi.fn(),
     });
 
     renderWithProviders(<Calendar />);
 
     await waitFor(() => {
-      // The day button should have a dot
-      const dots = document.querySelectorAll(
-        ".rounded-full.transition-transform",
-      );
-      expect(dots.length).toBeGreaterThan(0);
+      const posters = document.querySelectorAll('img[src="https://example.com/p.jpg"]');
+      expect(posters.length).toBeGreaterThan(0);
     });
   });
 });

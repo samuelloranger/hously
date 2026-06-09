@@ -51,8 +51,7 @@ describe("Dashboard API", () => {
     expect(response.status).toBe(200);
     const json = (await response.json()) as any;
     expect(json.stats).toBeDefined();
-    expect(typeof json.stats.events_today).toBe("number");
-    expect(typeof json.stats.chores_count).toBe("number");
+    expect(typeof json.stats.habits_streak).toBe("number");
     expect(Array.isArray(json.activities)).toBe(true);
   });
 

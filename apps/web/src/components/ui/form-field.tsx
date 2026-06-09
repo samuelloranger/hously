@@ -64,7 +64,7 @@ interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaEle
   required?: boolean;
 }
 
-export const FormTextarea = React.forwardRef<
+const FormTextarea = React.forwardRef<
   HTMLTextAreaElement,
   FormTextareaProps
 >(({ label, error, required, className, ...props }, ref) => {

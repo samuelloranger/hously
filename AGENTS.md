@@ -69,7 +69,7 @@ Imports use the `@hously/api/*` path alias (see **Imports** below). Routes are c
 
 | Directory         | Purpose                                                                               |
 | ----------------- | ------------------------------------------------------------------------------------- |
-| `features/`       | Feature modules (auth, chores, medias, torrents, …)                                   |
+| `features/`       | Feature modules (auth, medias, downloadsImport, …)                                    |
 | `components/`     | Shared components; `ui/` for Radix/CVA primitives                                     |
 | `routes/`         | File-based routing (TanStack Router)                                                  |
 | `hooks/<domain>/` | Cross-cutting hooks; features often colocate `use*.ts` beside `pages/` or `features/` |
@@ -160,7 +160,7 @@ Use error helpers from `src/utils/errors.ts`, compose in `src/index.ts`.
   2. **Consumed across unrelated areas, or a domain-level utility owned by no single page** (e.g. a scroll helper, a country list shared by Settings + Calendar) → `apps/web/src/hooks/<domain>/`.
   3. **Otherwise the hook belongs to one page/route** (data _or_ UI-state) → colocate under that page: `apps/web/src/pages/<area>/`, a `_hooks/` subfolder when there are many (board's pattern), or `_component/` for page-local UI state.
 
-  Don't replicate the medias `features/` + `pages/` split for small domains — `board`, `chores`, and `habits` keep everything under `pages/<area>/`.
+  Don't replicate the medias `features/` + `pages/` split for small domains — `board` keeps everything under `pages/<area>/`.
 
 ```typescript
 import { queryKeys } from "@/lib/queryKeys";
@@ -190,8 +190,7 @@ Singleton `AppSettings` table (row id=1):
 
 | Field                         | Type    | Default  | Purpose                                                 |
 | ----------------------------- | ------- | -------- | ------------------------------------------------------- |
-| `country_code`                | VARCHAR | US       | Calendar holidays and TMDB release dates                |
-| `calendar_subdivision_code`   | VARCHAR | NULL     | State/province for holiday calendars                    |
+| `country_code`                | VARCHAR | US       | TMDB release-date region                                |
 | `upcoming_window_months`      | INT     | 12       | Upcoming movies/TV horizon (3/6/12/24)                  |
 | `upcoming_languages`          | STRING  | en,fr    | Comma-separated TMDB language codes                     |
 | `dashboard_widget_visibility` | JSON    | all true | Toggles: Weather, HomeAssistant, System, Downloads, RSS |

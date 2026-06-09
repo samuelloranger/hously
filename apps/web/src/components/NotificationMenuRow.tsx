@@ -1,15 +1,5 @@
 import type { ReactNode } from "react";
-import {
-  Clock,
-  Radio,
-  Sparkles,
-  Monitor,
-  CheckCircle,
-  Calendar,
-  Settings,
-  Target,
-  Leaf,
-} from "lucide-react";
+import { Clock, Radio, Sparkles, Monitor, Settings, Leaf } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NotificationType } from "@hously/shared/types";
 
@@ -30,21 +20,9 @@ const typeConfig: Record<NotificationType, { icon: ReactNode; bg: string }> = {
     icon: <Monitor size={16} />,
     bg: "bg-primary-900/30",
   },
-  chore: {
-    icon: <CheckCircle size={16} />,
-    bg: "bg-emerald-900/30",
-  },
-  event: {
-    icon: <Calendar size={16} />,
-    bg: "bg-rose-900/30",
-  },
   system: {
     icon: <Settings size={16} />,
     bg: "bg-neutral-700/60",
-  },
-  habit: {
-    icon: <Target size={16} />,
-    bg: "bg-orange-900/30",
   },
 };
 
@@ -147,9 +125,7 @@ export function NotificationMenuRow({
           <p
             className={cn(
               "text-xs mt-0.5 line-clamp-2 leading-relaxed",
-              isUnread
-                ? "text-neutral-300"
-                : "text-neutral-400",
+              isUnread ? "text-neutral-300" : "text-neutral-400",
             )}
           >
             {body}
@@ -159,9 +135,7 @@ export function NotificationMenuRow({
           <p
             className={cn(
               "text-[11px] mt-1",
-              isUnread
-                ? "text-neutral-400"
-                : "text-neutral-500",
+              isUnread ? "text-neutral-400" : "text-neutral-500",
             )}
           >
             {relativeTime}

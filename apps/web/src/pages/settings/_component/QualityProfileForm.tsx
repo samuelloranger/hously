@@ -18,7 +18,7 @@ import { CustomFormatAssignmentEditor } from "./CustomFormatAssignmentEditor";
 
 // ─── Option definitions ───────────────────────────────────────────────────────
 
-export const SOURCE_OPTIONS = [
+const SOURCE_OPTIONS = [
   { value: "REMUX", label: "REMUX" },
   { value: "BluRay", label: "Blu-ray" },
   { value: "WEB-DL", label: "WEB-DL" },
@@ -26,7 +26,7 @@ export const SOURCE_OPTIONS = [
   { value: "HDTV", label: "HDTV" },
 ];
 
-export const CODEC_OPTIONS = [
+const CODEC_OPTIONS = [
   { value: "HEVC", label: "HEVC / x265" },
   { value: "AVC", label: "AVC / x264" },
   { value: "AV1", label: "AV1" },

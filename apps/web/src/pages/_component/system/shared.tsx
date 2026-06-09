@@ -16,14 +16,6 @@ export function gb(mib: number | null | undefined) {
   return `${(mib / 1024).toFixed(1)} GB`;
 }
 
-export function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="font-display text-sm font-semibold text-neutral-100">
-      {children}
-    </h3>
-  );
-}
-
 export function StatusDot({ status }: { status: "ok" | "warn" | "err" }) {
   return (
     <span

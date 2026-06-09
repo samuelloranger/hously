@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 
-export type DownloadsListResponse = {
+type DownloadsListResponse = {
   items: DownloadListRow[];
   file_operation: "hardlink" | "move";
 };

@@ -38,7 +38,7 @@ export interface TemplateResponse {
   template: NotificationTemplate;
 }
 
-export interface ExternalNotificationServiceLog {
+interface ExternalNotificationServiceLog {
   id: number;
   service_id: number;
   service_name: string | null;

@@ -3,10 +3,6 @@ import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { serverError } from "@hously/api/errors";
-import {
-  PRISMA_TO_API_STATUS,
-  PRISMA_TO_API_PRIORITY,
-} from "@hously/api/routes/board-tasks/mappers";
 
 export const searchRoutes = new Elysia({ prefix: "/api/search" })
   .use(auth)
@@ -20,69 +16,29 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
 
         const empty = {
           medias: [],
-          chores: [],
           users: [],
-          board_tasks: [],
         };
 
         if (!q || q.length < 2) {
           return empty;
         }
 
-        // Parallel DB queries
-        const [chores, users, boardTasks] = await Promise.all([
-          prisma.chore.findMany({
-            where: {
-              completed: false,
-              choreName: { contains: q, mode: "insensitive" },
-            },
-            take: limit,
-            select: {
-              id: true,
-              choreName: true,
-              description: true,
-              completed: true,
-              assignedToUser: {
-                select: { firstName: true, email: true },
-              },
-            },
-          }),
-          prisma.user.findMany({
-            where: {
-              OR: [
-                { firstName: { contains: q, mode: "insensitive" } },
-                { lastName: { contains: q, mode: "insensitive" } },
-                { email: { contains: q, mode: "insensitive" } },
-              ],
-            },
-            take: limit,
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-            },
-          }),
-          prisma.boardTask.findMany({
-            where: {
-              OR: [
-                { title: { contains: q, mode: "insensitive" } },
-                { description: { contains: q, mode: "insensitive" } },
-              ],
-            },
-            take: limit,
-            select: {
-              id: true,
-              title: true,
-              description: true,
-              status: true,
-              priority: true,
-              assignee: {
-                select: { firstName: true, email: true },
-              },
-            },
-          }),
-        ]);
+        const users = await prisma.user.findMany({
+          where: {
+            OR: [
+              { firstName: { contains: q, mode: "insensitive" } },
+              { lastName: { contains: q, mode: "insensitive" } },
+              { email: { contains: q, mode: "insensitive" } },
+            ],
+          },
+          take: limit,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        });
 
         // Medias from library
         let medias: {
@@ -110,31 +66,12 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
 
         return {
           medias,
-          chores: chores.map((c) => ({
-            id: c.id,
-            chore_name: c.choreName,
-            description: c.description ?? undefined,
-            assigned_to_username:
-              c.assignedToUser?.firstName ||
-              c.assignedToUser?.email ||
-              undefined,
-            completed: c.completed ?? false,
-          })),
           users: users.map((u) => ({
             id: u.id,
             name: u.firstName
               ? `${u.firstName}${u.lastName ? ` ${u.lastName}` : ""}`
               : u.email,
             email: u.email,
-          })),
-          board_tasks: boardTasks.map((bt) => ({
-            id: bt.id,
-            title: bt.title,
-            description: bt.description ?? undefined,
-            status: PRISMA_TO_API_STATUS[bt.status],
-            priority: PRISMA_TO_API_PRIORITY[bt.priority],
-            assignee_name:
-              bt.assignee?.firstName || bt.assignee?.email || undefined,
           })),
         };
       } catch (error) {

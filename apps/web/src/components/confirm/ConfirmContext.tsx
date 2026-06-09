@@ -12,9 +12,9 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export type ConfirmVariant = "default" | "destructive";
+type ConfirmVariant = "default" | "destructive";
 
-export type ConfirmOptions = {
+type ConfirmOptions = {
   variant?: ConfirmVariant;
   title?: string;
   description?: ReactNode;

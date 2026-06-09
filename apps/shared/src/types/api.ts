@@ -1,9 +1,9 @@
-export interface ApiResponse<T> {
+interface ApiResponse<T> {
   success: true;
   data: T;
 }
 
-export interface ApiError {
+interface ApiError {
   success: false;
   error: string;
 }

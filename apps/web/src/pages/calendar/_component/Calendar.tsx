@@ -2,24 +2,16 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
-import { Button } from "@/components/ui/button";
-import { useCalendarEvents } from "@/pages/calendar/useCalendar";
 import { useDashboardUpcoming } from "@/pages/_component/useDashboardUpcoming";
 import type {
-  CalendarEvent,
-  CalendarEventCustomEventMetadata,
   DashboardUpcomingItem,
   TmdbMediaSearchItem,
 } from "@hously/shared/types";
-import { parseDate, sameDay } from "@hously/shared/utils";
-import { CreateCustomEventForm } from "@/pages/calendar/_component/CreateCustomEventForm";
-import { sortBy } from "lodash-es";
-import { splitMultiDayEvent } from "@/pages/calendar/_component/utils";
+import { sameDay } from "@hously/shared/utils";
 import { startOfDay } from "date-fns";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { CalendarIcon, PlusIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
-import { useModalSearchParams } from "@/lib/routing/useModalSearchParams";
 import {
   parseCalendarSearchDate,
   localDateKey,
@@ -30,8 +22,6 @@ import { CalendarDayPanel } from "@/pages/calendar/_component/CalendarDayPanel";
 
 export type CalendarSearchParams = {
   date?: string;
-  eventId?: number;
-  modal?: "create" | "edit";
 };
 
 export function Calendar() {
@@ -53,10 +43,6 @@ function CalendarBody({
 }) {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
-  const { setParams, resetParams } = useModalSearchParams(
-    "/calendar",
-    searchParams,
-  );
 
   const today = startOfDay(new Date());
   const initialNotificationDate = useMemo(
@@ -69,14 +55,8 @@ function CalendarBody({
   const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
 
-  const {
-    data: events = [],
-    isLoading,
-    refetch,
-  } = useCalendarEvents(currentYear, currentMonth);
   const { data: upcomingData, isLoading: upcomingLoading } =
     useDashboardUpcoming();
-  const targetedEventId = searchParams.eventId;
   const [releaseDialogItem, setReleaseDialogItem] =
     useState<TmdbMediaSearchItem | null>(null);
 
@@ -102,39 +82,6 @@ function CalendarBody({
     }
     return map;
   }, [upcomingData?.items]);
-
-  const eventToEdit = useMemo(() => {
-    if (searchParams.modal !== "edit" || !targetedEventId) return undefined;
-    return events.find(
-      (e) =>
-        e.type === "custom_event" &&
-        e.metadata?.custom_event_id === targetedEventId,
-    );
-  }, [events, searchParams.modal, targetedEventId]);
-
-  const isCreateEventOpen = searchParams.modal === "create";
-
-  // Split multi-day events and group by date
-  const eventsByDate = useMemo(() => {
-    const grouped: Record<string, CalendarEvent[]> = {};
-
-    // Split multi-day events first
-    const splitEvents: CalendarEvent[] = [];
-    events.forEach((event) => {
-      const split = splitMultiDayEvent(event);
-      splitEvents.push(...split);
-    });
-
-    // Group by date
-    splitEvents.forEach((event) => {
-      if (!grouped[event.date]) {
-        grouped[event.date] = [];
-      }
-      grouped[event.date].push(event);
-    });
-
-    return grouped;
-  }, [events]);
 
   // Get calendar grid
   const calendarGrid = useMemo(() => {
@@ -219,43 +166,10 @@ function CalendarBody({
     setSelectedDate(date);
   };
 
-  const getDayEvents = (date: Date): CalendarEvent[] => {
-    const dateStr = localDateKey(date);
-    return eventsByDate[dateStr] || [];
-  };
-
   const getDayReleases = (date: Date): DashboardUpcomingItem[] => {
     const k = localDateKey(date);
     return releasesByDate.get(k) ?? [];
   };
-
-  const getEventDotColor = (event: CalendarEvent) => {
-    if (event.type === "custom_event" && event.metadata?.color) {
-      return event.metadata.color;
-    }
-    if (event.type === "chore") return "#3b82f6";
-    if (event.type === "public_holiday") return "#f59e0b";
-    return "#6b7280";
-  };
-
-  const selectedDayEvents = selectedDate
-    ? sortBy(getDayEvents(selectedDate), (event) => {
-        if (
-          targetedEventId &&
-          event.type === "custom_event" &&
-          event.metadata?.custom_event_id === targetedEventId
-        ) {
-          return -1;
-        }
-        if (event.type === "public_holiday") return -1;
-        if (event.type === "custom_event") {
-          const start = parseDate(event.metadata.start_datetime);
-          if (!start) return 24;
-          return start.getHours();
-        }
-        return 24;
-      })
-    : [];
 
   const selectedDayReleases = selectedDate ? getDayReleases(selectedDate) : [];
 
@@ -273,13 +187,6 @@ function CalendarBody({
           title={t("calendar.title")}
           subtitle={t("calendar.subtitle")}
         />
-        <Button
-          onClick={() => setParams({ modal: "create" })}
-          className="rounded-xl"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          {t("calendar.addEvent")}
-        </Button>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5">
@@ -290,9 +197,7 @@ function CalendarBody({
           selectedDate={selectedDate}
           calendarGrid={calendarGrid}
           isViewingCurrentMonth={isViewingCurrentMonth}
-          getDayEvents={getDayEvents}
           getDayReleases={getDayReleases}
-          getEventDotColor={getEventDotColor}
           onDayClick={handleDayClick}
           onPreviousMonth={handlePreviousMonth}
           onNextMonth={handleNextMonth}
@@ -301,51 +206,12 @@ function CalendarBody({
 
         <CalendarDayPanel
           selectedDate={selectedDate}
-          selectedDayEvents={selectedDayEvents}
           selectedDayReleases={selectedDayReleases}
-          isLoading={isLoading}
           upcomingLoading={upcomingLoading}
-          targetedEventId={targetedEventId}
           onClearSelectedDate={() => setSelectedDate(null)}
-          onCreateEvent={() => setParams({ modal: "create" })}
-          onEditEvent={(eventId) => setParams({ modal: "edit", eventId })}
           onReleaseClick={handleReleaseClick}
         />
       </div>
-
-      {/* Create Custom Event Dialog */}
-      <CreateCustomEventForm
-        key="calendar-create-event"
-        isOpen={isCreateEventOpen}
-        onClose={() => {
-          resetParams(["modal"]);
-          refetch();
-        }}
-      />
-
-      {/* Edit Custom Event Dialog */}
-      {eventToEdit && (
-        <CreateCustomEventForm
-          key={
-            eventToEdit.type === "custom_event" &&
-            eventToEdit.metadata &&
-            "custom_event_id" in eventToEdit.metadata
-              ? String(
-                  (eventToEdit.metadata as { custom_event_id: number })
-                    .custom_event_id,
-                )
-              : "edit"
-          }
-          isOpen={searchParams.modal === "edit"}
-          onClose={() => {
-            resetParams(["modal", "eventId"]);
-            refetch();
-          }}
-          eventToEdit={
-            eventToEdit as CalendarEvent & CalendarEventCustomEventMetadata
-          }
-        />
-      )}
 
       {releaseDialogItem && (
         <ExploreCardDetailDialog

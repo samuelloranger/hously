@@ -1,9 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Film } from "lucide-react";
-import type {
-  CalendarEvent,
-  DashboardUpcomingItem,
-} from "@hously/shared/types";
+import type { DashboardUpcomingItem } from "@hously/shared/types";
 import { sameDay, sameMonth } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";
 import { getDayName, getMonthName } from "@/pages/calendar/_component/utils";
@@ -15,9 +12,7 @@ interface CalendarGridProps {
   selectedDate: Date | null;
   calendarGrid: Date[][];
   isViewingCurrentMonth: boolean;
-  getDayEvents: (date: Date) => CalendarEvent[];
   getDayReleases: (date: Date) => DashboardUpcomingItem[];
-  getEventDotColor: (event: CalendarEvent) => string;
   onDayClick: (date: Date) => void;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
@@ -31,9 +26,7 @@ export function CalendarGrid({
   selectedDate,
   calendarGrid,
   isViewingCurrentMonth,
-  getDayEvents,
   getDayReleases,
-  getEventDotColor,
   onDayClick,
   onPreviousMonth,
   onNextMonth,
@@ -96,16 +89,10 @@ export function CalendarGrid({
         {/* Calendar Days */}
         <div className="grid grid-cols-7">
           {calendarGrid.flat().map((date, index) => {
-            const dayEvents = getDayEvents(date);
             const dayReleases = getDayReleases(date);
             const isCurrentMonthDay = isCurrentMonth(date);
             const isTodayDay = sameDay(date, today);
             const isSelectedDate = sameDay(date, selectedDate);
-            const maxDots = 4;
-            const eventDots = dayEvents.slice(0, maxDots);
-            const overflow =
-              dayEvents.length > maxDots ? dayEvents.length - maxDots : 0;
-            const hasEventDots = dayEvents.length > 0;
 
             return (
               <button
@@ -114,8 +101,7 @@ export function CalendarGrid({
                 className={cn(
                   "relative aspect-square min-h-0 p-1 sm:p-1.5 flex flex-col items-stretch transition-all duration-150 border-b border-r border-neutral-700/60",
                   !isCurrentMonthDay && "opacity-30",
-                  isCurrentMonthDay &&
-                    "hover:bg-primary-900/10",
+                  isCurrentMonthDay && "hover:bg-primary-900/10",
                   isSelectedDate && "bg-primary-900/20",
                 )}
               >
@@ -133,32 +119,11 @@ export function CalendarGrid({
                         !isSelectedDate &&
                         isCurrentMonthDay &&
                         "text-neutral-300",
-                      !isCurrentMonthDay &&
-                        "text-neutral-600",
+                      !isCurrentMonthDay && "text-neutral-600",
                     )}
                   >
                     {date?.getDate()}
                   </span>
-
-                  {/* Event dots — directly under the date */}
-                  {hasEventDots && (
-                    <div className="flex items-center justify-center gap-0.5 pt-0.5 flex-wrap shrink-0">
-                      {eventDots.map((event) => (
-                        <div
-                          key={event.id}
-                          className="w-1.5 h-1.5 rounded-full transition-transform duration-200 shrink-0"
-                          style={{
-                            backgroundColor: getEventDotColor(event),
-                          }}
-                        />
-                      ))}
-                      {overflow > 0 && (
-                        <span className="text-[9px] font-medium text-neutral-400 ml-0.5 tabular-nums">
-                          +{overflow}
-                        </span>
-                      )}
-                    </div>
-                  )}
 
                   {/* Spacer so release posters sit at the bottom of the cell */}
                   <div
@@ -200,18 +165,6 @@ export function CalendarGrid({
               </button>
             );
           })}
-        </div>
-
-        {/* Legend */}
-        <div className="px-5 py-3 border-t border-neutral-700/60 flex flex-wrap gap-4 text-xs text-neutral-400">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-primary-500" />
-            <span>{t("calendar.chores")}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>{t("calendar.publicHoliday")}</span>
-          </div>
         </div>
       </div>
     </div>

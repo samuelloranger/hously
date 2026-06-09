@@ -40,7 +40,7 @@ export interface TmdbMediaSearchResponse {
   items: TmdbMediaSearchItem[];
 }
 
-export interface TmdbWatchProvider {
+interface TmdbWatchProvider {
   id: number;
   name: string;
   logo_url: string;
@@ -55,7 +55,7 @@ export interface TmdbWatchProvidersResponse {
   link: string | null;
 }
 
-export interface ScoreComponentDto {
+interface ScoreComponentDto {
   code: string;
   value: number;
   params?: Record<string, string | number>;
@@ -68,7 +68,7 @@ export interface ScoreBreakdownDto {
   matched_formats: string[];
 }
 
-export interface ParsedQualityFields {
+interface ParsedQualityFields {
   resolution: number | null;
   source: string | null;
   codec: string | null;
@@ -131,19 +131,6 @@ export interface MediaInteractiveSearchResponse {
   indexer_warnings?: IndexerWarning[];
 }
 
-export interface ExploreMediasResponse {
-  trending: TmdbMediaSearchItem[];
-  popular_movies: TmdbMediaSearchItem[];
-  popular_shows: TmdbMediaSearchItem[];
-  upcoming_movies: TmdbMediaSearchItem[];
-  now_playing: TmdbMediaSearchItem[];
-  airing_today: TmdbMediaSearchItem[];
-  on_the_air: TmdbMediaSearchItem[];
-  top_rated_movies: TmdbMediaSearchItem[];
-  top_rated_shows: TmdbMediaSearchItem[];
-  recommended: TmdbMediaSearchItem[];
-}
-
 export interface SimilarMediasResponse {
   items: TmdbMediaSearchItem[];
 }
@@ -155,7 +142,7 @@ export interface MediaInteractiveDownloadResponse {
   magnet_url?: string | null;
 }
 
-export interface TmdbStreamingProvider {
+interface TmdbStreamingProvider {
   id: number;
   name: string;
   logo_url: string;
@@ -204,7 +191,7 @@ export interface MediaRatingsResponse {
   metacritic: string | null;
 }
 
-export interface TmdbCastMember {
+interface TmdbCastMember {
   id: number;
   name: string;
   character: string | null;
@@ -365,7 +352,7 @@ export interface WatchlistResponse {
 }
 
 /** Episode row for TV modal when the series is in the native library. */
-export interface MediaLibraryEpisodeRef {
+interface MediaLibraryEpisodeRef {
   season_number: number;
   episode_number: number;
 }

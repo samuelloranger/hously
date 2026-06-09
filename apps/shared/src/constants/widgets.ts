@@ -13,18 +13,17 @@ export const WIDGETS = [
     defaultVisible: true,
     adminOnly: false,
   },
-  { id: "chores", column: 1, order: 2, defaultVisible: true, adminOnly: false },
   {
     id: "jellyfin_shelf",
     column: 1,
-    order: 3,
+    order: 2,
     defaultVisible: true,
     adminOnly: false,
   },
   {
     id: "library_alerts",
     column: 1,
-    order: 4,
+    order: 3,
     defaultVisible: true,
     adminOnly: true,
   },
@@ -35,25 +34,24 @@ export const WIDGETS = [
     defaultVisible: true,
     adminOnly: false,
   },
-  { id: "habits", column: 2, order: 1, defaultVisible: true, adminOnly: false },
   {
     id: "upcoming",
     column: 2,
-    order: 2,
+    order: 1,
     defaultVisible: true,
     adminOnly: false,
   },
   {
     id: "trackers",
     column: 2,
-    order: 3,
+    order: 2,
     defaultVisible: true,
     adminOnly: false,
   },
   {
     id: "jellyfin_random",
     column: 2,
-    order: 4,
+    order: 3,
     defaultVisible: true,
     adminOnly: false,
   },
@@ -85,7 +83,6 @@ export const WIDGETS = [
 
 export type WidgetId = (typeof WIDGETS)[number]["id"];
 export type WidgetVisibility = Record<WidgetId, boolean>;
-export type WidgetMeta = (typeof WIDGETS)[number];
 
 export type WidgetLayout = [WidgetId[], WidgetId[], WidgetId[]];
 

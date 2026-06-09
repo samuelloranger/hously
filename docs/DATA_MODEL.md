@@ -10,7 +10,7 @@ PostgreSQL 15 via Prisma. Roughly 40 models grouped into a few concerns:
 
 - **Identity / auth** — `User`, Better Auth tables (`BaSession`, `BaAccount`, `BaVerification`, `BaPasskey`), `Invitation`, `OidcProvider`
 - **Media library (replaces \*arr)** — `LibraryMedia`, `LibraryEpisode`, `QualityProfile`, `MediaFile`, `DownloadHistory`, `GrabBlocklist`, `LibraryAttentionAlert`, `LibraryHealthLog`, `MediaSettings`
-- **Life management** — `Chore`, `Reminder`, `CustomEvent`, `Habit` / `HabitSchedule` / `HabitCompletion`, `WatchlistItem`, `BoardTask` / `BoardTag` / `BoardTaskDependency` / `BoardTimeLog` / `BoardTaskActivity`
+- **Life management** — `WatchlistItem`, `BoardTask` / `BoardTag` / `BoardTaskDependency` / `BoardTimeLog` / `BoardTaskActivity`
 - **Notifications / activity** — `Notification`, `NotificationChannel`, `NotificationTemplate`, `ExternalNotificationService` (+ `Log`), `UserSubscription`, `ActivityLog`, `TaskCompletion`
 - **Integrations / ops** — `Integration`, `QbittorrentRequestLog`, `MinecraftServer`, `AppSettings`
 
@@ -45,15 +45,9 @@ LibraryMedia ──┬── episodes:   LibraryEpisode[]          (TV only)
 - **`LibraryAttentionAlert`** — open alerts created hourly by `syncLibraryAttentionAlerts.ts` when grab/download conditions need user action. One open row per `(media, scope, kind)` to dedupe.
 - **`QualityProfile`** — user-defined quality tier (resolution + source preferences). `MediaSettings.defaultQualityProfileId` points to the default; `LibraryMedia.qualityProfileId` is the per-item override.
 
-## Chores / Reminders / Calendar
+## Calendar
 
-- **`Chore`** has `addedBy`, `assignedTo`, `completedBy` — all FKs to `User`. Recurrence fields (`recurrenceType`, `recurrenceIntervalDays`, `recurrenceWeekday`, `recurrenceParentId`) drive scheduled re-creation when a chore is completed.
-- **`Reminder`** belongs to a `Chore` and a `User`. The `check-reminders` cron (every 15 min) scans active reminders and emits push notifications.
-- **`CustomEvent`** is a calendar event with its own recurrence (`recurrenceType`, `recurrenceIntervalDays`). The `check-all-day-events` cron (daily 20:00) sends day-of notifications.
-
-## Habits
-
-`Habit` + `HabitSchedule` + `HabitCompletion` — daily habit tracker. `HabitCompletion.status` is enum `HabitCompletionStatus`. The `refresh-habits-streaks` cron (every 15 min) recomputes streaks; `check-habit-reminders` (every minute) fires per-habit reminders.
+There is no calendar-specific model. The calendar page is a read-only view of upcoming library releases (`LibraryMedia` / `LibraryEpisode` release dates), served by `GET /api/dashboard/upcoming`. Chores, custom events, holidays, and the iCal feed were removed.
 
 ## Notifications
 
@@ -64,7 +58,7 @@ LibraryMedia ──┬── episodes:   LibraryEpisode[]          (TV only)
 
 ## Auth (Better Auth)
 
-`User` + `BaSession` + `BaAccount` + `BaVerification` + `BaPasskey`. Better Auth owns these tables but Hously adds fields to `User`: `firstName`, `lastName`, `isAdmin`, `locale`, `avatarUrl`, `dashboardConfig`, `calendarToken`. `Invitation` covers the admin-issued invite flow (see `apps/api/src/auth.ts`).
+`User` + `BaSession` + `BaAccount` + `BaVerification` + `BaPasskey`. Better Auth owns these tables but Hously adds fields to `User`: `firstName`, `lastName`, `isAdmin`, `locale`, `avatarUrl`, `dashboardConfig`. `Invitation` covers the admin-issued invite flow (see `apps/api/src/auth.ts`).
 
 `OidcProvider` rows configure generic OIDC providers loaded into Better Auth at startup (`apps/api/src/lib/auth.ts:loadOidcProviders`). Client secrets are encrypted at rest.
 
@@ -76,7 +70,7 @@ LibraryMedia ──┬── episodes:   LibraryEpisode[]          (TV only)
 
 ## Activity / Logs
 
-- **`ActivityLog`** — append-only structured log of user-driven actions (e.g. `library:grab`, `chore:complete`). Powers the dashboard activity feed. See `apps/api/src/utils/activityLogs.ts:logActivity`.
+- **`ActivityLog`** — append-only structured log of user-driven actions (e.g. `library:grab`, `media_grab`). Powers the dashboard activity feed. See `apps/api/src/utils/activityLogs.ts:logActivity`.
 - **`TaskCompletion`** — per-user completion record across task types; powers stats widgets.
 - **`QbittorrentRequestLog`** — captured qBittorrent HTTP requests/responses for debugging integration issues.
 - **`LibraryHealthLog`** — periodic health snapshots from the library integrity checker (weekly cron Sunday 03:00).

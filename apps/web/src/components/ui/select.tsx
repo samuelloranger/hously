@@ -5,8 +5,6 @@ import { cn } from "@/lib/utils";
 
 const Select = RadixSelect.Root;
 const SelectValue = RadixSelect.Value;
-const SelectGroup = RadixSelect.Group;
-const SelectLabel = RadixSelect.Label;
 
 const SelectTrigger = React.forwardRef<
   React.ComponentRef<typeof RadixSelect.Trigger>,
@@ -110,7 +108,7 @@ export {
   SelectContent,
   SelectItem,
   SelectValue,
-  SelectGroup,
-  SelectLabel,
-  SelectSeparator,
+  
+  
+  
 };

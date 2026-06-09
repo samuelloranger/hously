@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ProfileTab } from "@/pages/settings/_component/ProfileTab";
 import { NotificationsTab } from "@/pages/settings/_component/NotificationsTab";
-import { CalendarTab } from "@/pages/settings/_component/CalendarTab";
 import { ExternalNotificationsTab } from "@/pages/settings/_component/ExternalNotificationsTab";
 import { IntegrationsTab } from "@/pages/settings/_component/IntegrationsTab";
 import { DataExportTab } from "@/pages/settings/_component/DataExportTab";
@@ -19,7 +18,6 @@ import { cn } from "@/lib/utils";
 import {
   User,
   Bell,
-  Calendar,
   Puzzle,
   Link2,
   Users,
@@ -38,7 +36,6 @@ export type Tab =
   | "activity"
   | "notifications"
   | "profile"
-  | "calendar"
   | "external-notifications"
   | "integrations"
   | "general"
@@ -76,7 +73,6 @@ export function Settings() {
       label: t("settings.notifications.title"),
       icon: Bell,
     },
-    { id: "calendar", label: t("settings.calendar.title"), icon: Calendar },
   ];
 
   const adminTabs: TabItem[] = currentUser?.is_admin
@@ -208,7 +204,6 @@ export function Settings() {
           {activeTab === "profile" && <ProfileTab />}
           {activeTab === "activity" && <RecentActivityTab />}
           {activeTab === "notifications" && <NotificationsTab />}
-          {activeTab === "calendar" && <CalendarTab />}
           {activeTab === "external-notifications" && currentUser?.is_admin && (
             <ExternalNotificationsTab />
           )}

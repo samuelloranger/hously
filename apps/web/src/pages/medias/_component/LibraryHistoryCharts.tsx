@@ -28,7 +28,7 @@ function formatDateShort(iso: string): string {
 
 // ─── Shared chart tooltip ─────────────────────────────────────────────────────
 
-export function ChartTooltip({
+function ChartTooltip({
   active,
   payload,
 }: TooltipContentProps<

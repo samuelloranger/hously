@@ -4,20 +4,21 @@ import fr from "i18n-iso-countries/langs/fr.json";
 
 let registered = false;
 
-export function ensureIsoCountriesRegistered(): void {
+function ensureIsoCountriesRegistered(): void {
   if (registered) return;
   countries.registerLocale(en);
   countries.registerLocale(fr);
   registered = true;
 }
 
-/** Uses ISO 3166-1 names in the active UI language (en/fr registered); falls back to API default_name. */
-export function localizedCountryName(
-  code: string,
+/** All ISO 3166-1 alpha-2 country options, localized and sorted by label. */
+export function getCountryOptions(
   i18nLanguage: string,
-  defaultName: string,
-): string {
+): { code: string; label: string }[] {
   ensureIsoCountriesRegistered();
   const lang = i18nLanguage.split("-")[0]?.toLowerCase() || "en";
-  return countries.getName(code, lang, { select: "official" }) || defaultName;
+  const names = countries.getNames(lang, { select: "official" });
+  return Object.entries(names)
+    .map(([code, label]) => ({ code, label }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }

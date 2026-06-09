@@ -149,26 +149,10 @@ export const adminMiscRoutes = new Elysia()
       const idToEmail = new Map<string, string>();
       for (const u of allUsers) idToEmail.set(u.id, u.email);
 
-      const allChores = await prisma.chore.findMany();
-      const allReminders = await prisma.reminder.findMany();
       const allTaskCompletions = await prisma.taskCompletion.findMany();
 
       return {
         exported_at: formatIso(new Date()),
-        chores: allChores.map((chore) => ({
-          ...chore,
-          assigned_to_email: chore.assignedTo
-            ? idToEmail.get(chore.assignedTo)
-            : null,
-          added_by_email: chore.addedBy ? idToEmail.get(chore.addedBy) : null,
-          completed_by_email: chore.completedBy
-            ? idToEmail.get(chore.completedBy)
-            : null,
-        })),
-        reminders: allReminders.map((reminder) => ({
-          ...reminder,
-          user_email: reminder.userId ? idToEmail.get(reminder.userId) : null,
-        })),
         task_completions: allTaskCompletions.map((completion) => ({
           ...completion,
           user_email: completion.userId
@@ -190,8 +174,6 @@ export const adminMiscRoutes = new Elysia()
     },
     {
       body: t.Object({
-        chores: t.Optional(t.Array(t.Any())),
-        reminders: t.Optional(t.Array(t.Any())),
         task_completions: t.Optional(t.Array(t.Any())),
       }),
     },

@@ -27,9 +27,7 @@ Hously includes a **native media library that replaces Radarr and Sonarr** — m
 **Life Management**
 
 - **Board** — Kanban-style task management with dependencies, time logging, and tags
-- **Calendar** — Shared calendar with reminders and iCal export
-- **Chores** — Assignment, tracking, and recurring schedules
-- **Habits** — Habit tracking with completion history
+- **Calendar** — Upcoming movie / TV / episode release schedule
 
 **Platform**
 
@@ -124,13 +122,12 @@ See `.env.example` for the full reference.
 
 Admins can configure global app behavior via **Settings → General**:
 
-| Setting                      | Default            | Options                                        | Purpose                                       |
-| ---------------------------- | ------------------ | ---------------------------------------------- | --------------------------------------------- |
-| **Country/Region**           | US                 | Any supported country                          | Sets calendar holidays and TMDB release dates |
-| **Calendar Subdivision**     | National           | State/province (if applicable)                 | Refines holiday calendars                     |
-| **Upcoming releases window** | 1 year (12 months) | 3, 6, 12, or 24 months                         | How far ahead to show upcoming movies/TV      |
-| **Languages**                | English, French    | Multi-select (8 languages)                     | Filter TMDB discovery results by language     |
-| **Dashboard widgets**        | All enabled        | Weather, HomeAssistant, System, Downloads, RSS | Show/hide dashboard panels                    |
+| Setting                      | Default            | Options                                        | Purpose                                   |
+| ---------------------------- | ------------------ | ---------------------------------------------- | ----------------------------------------- |
+| **Country/Region**           | US                 | Any supported country                          | Sets the TMDB release-date region         |
+| **Upcoming releases window** | 1 year (12 months) | 3, 6, 12, or 24 months                         | How far ahead to show upcoming movies/TV  |
+| **Languages**                | English, French    | Multi-select (8 languages)                     | Filter TMDB discovery results by language |
+| **Dashboard widgets**        | All enabled        | Weather, HomeAssistant, System, Downloads, RSS | Show/hide dashboard panels                |
 
 ## Common Commands
 

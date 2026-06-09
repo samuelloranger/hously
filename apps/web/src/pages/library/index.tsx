@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prefetchRouteData } from "@/lib/routing/prefetch";
 import { LibraryPage } from "@/pages/medias/_component/LibraryPage";
 
-export type LibrarySearchParams = {
+type LibrarySearchParams = {
   page?: number;
   pageSize?: number;
   search?: string;

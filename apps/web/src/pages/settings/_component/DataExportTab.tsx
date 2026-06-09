@@ -48,8 +48,6 @@ export function DataExportTab() {
       if (response.success) {
         const counts = response.imported;
         const summary = t("settings.dataExport.importSummary", {
-          chores: counts.chores,
-          reminders: counts.reminders,
           taskCompletions: counts.task_completions,
         });
 

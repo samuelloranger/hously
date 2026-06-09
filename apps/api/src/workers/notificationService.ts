@@ -10,9 +10,6 @@ import type { NotificationJobData } from "@hously/api/services/jobs/notification
 import { normalizeNotificationUrl } from "@hously/shared/utils";
 
 interface NotificationMetadata {
-  chore_id?: number;
-  reminder_id?: number;
-  custom_event_id?: number;
   [key: string]: unknown;
 }
 

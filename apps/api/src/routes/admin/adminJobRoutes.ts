@@ -70,17 +70,13 @@ const fetchRepeatableJobsList = async () => {
 };
 
 const actionMap: Record<string, string> = {
-  check_reminders: SCHEDULED_JOB_NAMES.CHECK_REMINDERS,
-  check_all_day_events: SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS,
   cleanup_notifications: SCHEDULED_JOB_NAMES.CLEANUP_NOTIFICATIONS,
   refresh_upcoming: SCHEDULED_JOB_NAMES.REFRESH_UPCOMING,
-  refresh_habits_streaks: SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS,
   fetch_tracker_stats: SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS,
   fetch_c411_stats: SCHEDULED_JOB_NAMES.FETCH_C411_STATS,
   fetch_torr9_stats: SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS,
   fetch_la_cale_stats: SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS,
   fetch_ygg_reborn_stats: SCHEDULED_JOB_NAMES.FETCH_YGG_REBORN_STATS,
-  check_habit_reminders: SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS,
   check_movie_release_reminders:
     SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS,
   check_library_movie_releases:

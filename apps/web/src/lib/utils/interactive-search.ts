@@ -29,7 +29,7 @@ export interface LabeledTitleOption extends TitleOption {
  * Languages shown in the search-title picker (beyond the platform language,
  * English, French, and the original language) when TMDB has a title for them.
  */
-export const COMMON_TITLE_LANGUAGES = [
+const COMMON_TITLE_LANGUAGES = [
   "es",
   "de",
   "it",

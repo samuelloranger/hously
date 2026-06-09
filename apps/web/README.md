@@ -35,7 +35,7 @@ The dev server runs on `http://localhost:5173` and proxies API requests to the E
 ```
 apps/web/
 ├── src/
-│   ├── features/      # Feature-based modules (dashboard, medias, chores, etc.)
+│   ├── features/      # Feature-based modules (dashboard, medias, etc.)
 │   ├── components/    # Reusable React components
 │   ├── routes/        # Route components (pages)
 │   ├── lib/           # API client and utilities

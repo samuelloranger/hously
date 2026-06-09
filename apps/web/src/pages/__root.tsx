@@ -16,7 +16,7 @@ import { LibraryNavigationProvider } from "@/features/medias/context/LibraryNavi
 import { ConfirmProvider } from "@/components/confirm";
 import { useNavPosition } from "@/pages/settings/useNavPosition";
 
-export interface RouterContext {
+interface RouterContext {
   queryClient: QueryClient;
 }
 

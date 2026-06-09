@@ -1,7 +1,7 @@
 import type { LibraryMediaStatus } from "@hously/shared/types";
 import type { MediaPosterCardStatus } from "@/components/MediaPosterCard";
 
-export type LibraryStatusTone =
+type LibraryStatusTone =
   | "ok"
   | "progress"
   | "attention"

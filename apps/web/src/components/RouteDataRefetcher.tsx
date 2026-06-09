@@ -35,12 +35,6 @@ export function RouteDataRefetcher() {
             queryKey: queryKeys.dashboard.all,
           });
           break;
-        case "/chores":
-          // Chores list
-          await queryClient.refetchQueries({
-            queryKey: queryKeys.chores.all,
-          });
-          break;
         case "/notifications":
           // Notifications
           await queryClient.refetchQueries({

@@ -6,10 +6,10 @@ Last verified: 2026-05-25
 
 ## Locations
 
-| Layer | Path                                                       |
-| ----- | ---------------------------------------------------------- |
+| Layer | Path                                                                |
+| ----- | ------------------------------------------------------------------- |
 | Web   | `apps/web/src/pages/index.tsx` + `apps/web/src/features/` (widgets) |
-| API   | `apps/api/src/routes/dashboard/`                           |
+| API   | `apps/api/src/routes/dashboard/`                                    |
 
 ## API Surface
 
@@ -29,7 +29,7 @@ Each is a thin orchestrator that reads from `Integration` config + cached servic
 
 ## Activity Feed
 
-Backed by `ActivityLog`. Filterable by `service` and `type`. Each `Chore` complete, library grab, integration test, etc. writes one row via `logActivity()` (`apps/api/src/utils/activityLogs.ts`).
+Backed by `ActivityLog`. Filterable by `service` and `type`. Each library grab, integration test, cron run, etc. writes one row via `logActivity()` (`apps/api/src/utils/activityLogs.ts`).
 
 ## Upcoming Media Widget
 
@@ -41,4 +41,4 @@ Recently refactored (see commit `d9b8e086 refactor(dashboard): split SystemPanel
 
 ## Web Query Keys
 
-All dashboard widgets use `queryKeys.dashboard.*` from `apps/web/src/lib/queryKeys.ts`. Mutations elsewhere (e.g. completing a chore, grabbing media) should invalidate the dashboard slice they affect — at minimum `queryKeys.dashboard.activities` and `queryKeys.dashboard.activityFeed`.
+All dashboard widgets use `queryKeys.dashboard.*` from `apps/web/src/lib/queryKeys.ts`. Mutations elsewhere (e.g. grabbing media) should invalidate the dashboard slice they affect — at minimum `queryKeys.dashboard.activities` and `queryKeys.dashboard.activityFeed`.

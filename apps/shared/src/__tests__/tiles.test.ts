@@ -27,9 +27,9 @@ describe("tile catalog", () => {
   });
 
   it("effective layout drops unknown ids and appends missing catalog ids", () => {
-    const stored = ["chores_today", "bogus_tile"] as unknown as TileLayout;
+    const stored = ["next_event", "bogus_tile"] as unknown as TileLayout;
     const eff = getEffectiveTileLayout(stored);
-    expect(eff).toContain("chores_today");
+    expect(eff).toContain("next_event");
     expect(eff).not.toContain("bogus_tile");
     expect(new Set(eff).size).toBe(eff.length);
     TILES.forEach((t) => expect(eff).toContain(t.id));
@@ -56,9 +56,9 @@ describe("tile catalog", () => {
   });
 
   it("deduplicates repeated valid ids in stored layout", () => {
-    const stored = ["chores_today", "chores_today"] as unknown as TileLayout;
+    const stored = ["next_event", "next_event"] as unknown as TileLayout;
     const eff = getEffectiveTileLayout(stored);
     expect(new Set(eff).size).toBe(eff.length);
-    expect(eff.filter((id) => id === "chores_today")).toHaveLength(1);
+    expect(eff.filter((id) => id === "next_event")).toHaveLength(1);
   });
 });

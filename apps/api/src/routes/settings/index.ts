@@ -7,10 +7,6 @@ import {
   DEFAULT_TMDB_REGION,
   normalizeTmdbRegion,
 } from "@hously/api/utils/medias/tmdbRegion";
-import {
-  normalizeCalendarSubdivision,
-  normalizeUserCountryCode,
-} from "@hously/api/services/holidayCalendar";
 import { WIDGETS } from "@hously/shared/constants";
 import type {
   WidgetId,
@@ -27,7 +23,6 @@ const DEFAULT_WIDGET_VISIBILITY = Object.fromEntries(
 function mapSettings(row: AppSettings) {
   return {
     country_code: normalizeTmdbRegion(row.countryCode),
-    calendar_subdivision_code: row.calendarSubdivisionCode,
     upcoming_window_months: row.upcomingWindowMonths,
     upcoming_languages: row.upcomingLanguages,
     dashboard_widget_visibility: {
@@ -60,32 +55,14 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
     "/",
     async ({ body, set }) => {
       try {
-        const countryCode = normalizeUserCountryCode(body.country_code);
-        if (body.country_code && !countryCode) {
-          return badRequest(
-            set,
-            "country_code must be a supported 2-letter ISO code",
-          );
+        const trimmedCountry = body.country_code?.trim().toUpperCase();
+        if (body.country_code && !/^[A-Z]{2}$/.test(trimmedCountry ?? "")) {
+          return badRequest(set, "country_code must be a 2-letter ISO code");
         }
-
-        const calendarSubdivisionCode =
-          body.calendar_subdivision_code == null ||
-          body.calendar_subdivision_code === ""
-            ? null
-            : normalizeCalendarSubdivision(
-                countryCode,
-                body.calendar_subdivision_code,
-              );
-        if (body.calendar_subdivision_code && !calendarSubdivisionCode) {
-          return badRequest(
-            set,
-            "Invalid province or state for selected country",
-          );
-        }
+        const countryCode = trimmedCountry || null;
 
         const updateData: {
           countryCode?: string;
-          calendarSubdivisionCode?: string | null;
           upcomingWindowMonths?: number;
           upcomingLanguages?: string;
           dashboardWidgetVisibility?: Record<string, boolean>;
@@ -95,9 +72,6 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
 
         if (body.country_code && countryCode)
           updateData.countryCode = countryCode;
-        if (body.calendar_subdivision_code !== undefined) {
-          updateData.calendarSubdivisionCode = calendarSubdivisionCode;
-        }
         if (body.upcoming_window_months !== undefined) {
           const months = body.upcoming_window_months;
           if (![3, 6, 12, 24].includes(months)) {
@@ -129,7 +103,6 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
           create: {
             id: 1,
             countryCode: countryCode ?? DEFAULT_TMDB_REGION,
-            calendarSubdivisionCode,
           },
           update: updateData,
         });
@@ -141,7 +114,6 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
     {
       body: t.Object({
         country_code: t.Optional(t.String({ minLength: 2, maxLength: 2 })),
-        calendar_subdivision_code: t.Optional(t.Union([t.String(), t.Null()])),
         upcoming_window_months: t.Optional(t.Integer()),
         upcoming_languages: t.Optional(t.String()),
         dashboard_widget_visibility: t.Optional(

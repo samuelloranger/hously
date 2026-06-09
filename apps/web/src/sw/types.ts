@@ -2,7 +2,6 @@
 
 export interface NotificationData {
   url?: string;
-  chore_id?: number | null;
   notification_type?: string | null;
   action?: string;
   silent?: boolean;

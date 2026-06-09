@@ -38,9 +38,9 @@ export class HttpError extends Error {
   }
 }
 
-export type AuthMode = "cookie" | "bearer";
+type AuthMode = "cookie" | "bearer";
 
-export type TokenProvider = () => Promise<string | null> | string | null;
+type TokenProvider = () => Promise<string | null> | string | null;
 
 export type HttpClientOptions = {
   baseUrl?: string;
@@ -55,7 +55,7 @@ export type HttpClientOptions = {
   };
 };
 
-export type HttpRequestOptions = {
+type HttpRequestOptions = {
   method?: FetcherOptions["method"];
   headers?: Record<string, string> | Headers | [string, string][];
   body?: unknown;

@@ -32,7 +32,7 @@ function formatBytes(bytes: number): string {
 export const ROW_GRID_TEMPLATE =
   "grid grid-cols-[2rem_minmax(0,1fr)_4.5rem_4rem_6rem_9rem_auto] md:grid-cols-[2rem_minmax(0,1fr)_5rem_5rem_7rem_10rem_minmax(0,16rem)]";
 
-export type DownloadRowProps = {
+type DownloadRowProps = {
   row: DownloadListRow;
   expanded: boolean;
   staged: StagedPick | undefined;

@@ -46,14 +46,6 @@ export function Badge({
   );
 }
 
-export function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-neutral-500 mb-2">
-      {children}
-    </p>
-  );
-}
-
 export function SectionTitle({
   icon: Icon,
   label,
