@@ -46,10 +46,7 @@ export function InteractiveSearchStatusStrip({
           role="alert"
           className="mb-3 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm border-amber-700/40 bg-amber-950/20"
         >
-          <TriangleAlert
-            size={15}
-            className="mt-0.5 shrink-0 text-amber-400"
-          />
+          <TriangleAlert size={15} className="mt-0.5 shrink-0 text-amber-400" />
           <div className="min-w-0 flex-1">
             <span className="font-medium text-amber-200">
               {indexerWarnings.length === 1

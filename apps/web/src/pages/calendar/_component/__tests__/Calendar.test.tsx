@@ -62,7 +62,9 @@ describe("Calendar", () => {
     renderWithProviders(<Calendar />);
 
     await waitFor(() => {
-      const posters = document.querySelectorAll('img[src="https://example.com/p.jpg"]');
+      const posters = document.querySelectorAll(
+        'img[src="https://example.com/p.jpg"]',
+      );
       expect(posters.length).toBeGreaterThan(0);
     });
   });

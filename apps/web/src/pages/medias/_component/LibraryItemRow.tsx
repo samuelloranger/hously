@@ -204,9 +204,7 @@ export function LibraryItemRow({
             <span className="text-[11px] font-medium text-neutral-300 bg-neutral-700/50 rounded-md px-2 py-0.5 tabular-nums">
               {resolutionLabel}
               {item.hdr_format && (
-                <span className="ml-1 text-amber-400">
-                  {item.hdr_format}
-                </span>
+                <span className="ml-1 text-amber-400">{item.hdr_format}</span>
               )}
             </span>
           )}

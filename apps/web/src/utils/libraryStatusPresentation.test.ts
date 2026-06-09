@@ -3,8 +3,14 @@ import { libraryStatusPresentation } from "./libraryStatusPresentation";
 import type { LibraryMediaStatus } from "@hously/shared/types";
 
 const ALL: LibraryMediaStatus[] = [
-  "wanted", "downloading", "downloaded", "skipped",
-  "returning", "in_production", "planned", "upgrading",
+  "wanted",
+  "downloading",
+  "downloaded",
+  "skipped",
+  "returning",
+  "in_production",
+  "planned",
+  "upgrading",
 ];
 
 describe("libraryStatusPresentation", () => {

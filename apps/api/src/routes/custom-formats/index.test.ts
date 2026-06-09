@@ -20,7 +20,13 @@ const EPOCH = new Date(0);
 let nextId = 1;
 let formatRows: Map<
   number,
-  { id: number; name: string; conditions: unknown[]; createdAt: Date; updatedAt: Date }
+  {
+    id: number;
+    name: string;
+    conditions: unknown[];
+    createdAt: Date;
+    updatedAt: Date;
+  }
 > = new Map();
 let simulateDuplicate = false;
 
@@ -98,8 +104,7 @@ const prismaCfStub = {
     ),
     delete: mock(async (args: { where: { id: number } }) => {
       const row = formatRows.get(args.where.id);
-      if (!row)
-        throw Object.assign(new Error("Not found"), { code: "P2025" });
+      if (!row) throw Object.assign(new Error("Not found"), { code: "P2025" });
       formatRows.delete(args.where.id);
       return row;
     }),

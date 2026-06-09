@@ -34,10 +34,7 @@ export function TmdbSearchModal({
       )}
       aria-hidden={!isOpen}
     >
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div
         className={cn(
           "absolute inset-0 flex flex-col bg-neutral-950 transition-transform duration-200",

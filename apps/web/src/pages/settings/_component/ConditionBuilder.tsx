@@ -1,6 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { Check, Plus, Trash2 } from "lucide-react";
-import type { CustomFormatCondition, ConditionType, ConditionOperator } from "@hously/shared/types";
+import type {
+  CustomFormatCondition,
+  ConditionType,
+  ConditionOperator,
+} from "@hously/shared/types";
 import {
   CONDITION_TYPE_KEYS,
   OPERATOR_KEYS,
@@ -11,31 +15,35 @@ import { cn } from "@/lib/utils";
 // ─── Operator map (mirrors backend allowedOperators) ──────────────────────────
 
 const ALLOWED_OPERATORS: Record<ConditionType, ConditionOperator[]> = {
-  title_regex:   ["matches"],
+  title_regex: ["matches"],
   release_group: ["matches"],
-  source:        ["equals"],
-  codec:         ["equals"],
-  indexer:       ["equals"],
-  language:      ["equals"],
-  hdr_flag:      ["is_true"],
+  source: ["equals"],
+  codec: ["equals"],
+  indexer: ["equals"],
+  language: ["equals"],
+  hdr_flag: ["is_true"],
   proper_repack: ["is_true"],
-  freeleech:     ["is_true"],
-  resolution:    ["gte", "lte", "lt", "gt", "equals", "between"],
-  seeders:       ["gte", "lte", "lt", "gt", "equals", "between"],
-  size_range:    ["gte", "lte", "lt", "gt", "equals", "between"],
+  freeleech: ["is_true"],
+  resolution: ["gte", "lte", "lt", "gt", "equals", "between"],
+  seeders: ["gte", "lte", "lt", "gt", "equals", "between"],
+  size_range: ["gte", "lte", "lt", "gt", "equals", "between"],
 };
 
 const ALL_CONDITION_TYPES = Object.keys(CONDITION_TYPE_KEYS) as ConditionType[];
 
 // ─── Default values when switching type/operator ─────────────────────────────
 
-function defaultValueForOperator(op: ConditionOperator): CustomFormatCondition["value"] {
+function defaultValueForOperator(
+  op: ConditionOperator,
+): CustomFormatCondition["value"] {
   if (op === "is_true") return undefined;
   if (op === "between") return [0, 0];
   return "";
 }
 
-function defaultValueForType(type: ConditionType): CustomFormatCondition["value"] {
+function defaultValueForType(
+  type: ConditionType,
+): CustomFormatCondition["value"] {
   const op = ALLOWED_OPERATORS[type][0];
   return defaultValueForOperator(op);
 }
@@ -133,7 +141,9 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
   };
 
   const handleBetweenChange = (idx: 0 | 1, raw: string) => {
-    const pair = Array.isArray(value) ? ([...value] as [number, number]) : [0, 0];
+    const pair = Array.isArray(value)
+      ? ([...value] as [number, number])
+      : [0, 0];
     pair[idx] = raw === "" ? 0 : Number(raw);
     onChange({ ...condition, value: pair as [number, number] });
   };
@@ -195,8 +205,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
           onChange={(e) => handleSingleValueChange(e.target.value)}
           className={cn(
             inputClass,
-            showRegexError &&
-              "border-red-500 focus:ring-red-500/30",
+            showRegexError && "border-red-500 focus:ring-red-500/30",
           )}
           spellCheck={false}
         />
@@ -237,7 +246,9 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
         <div className="flex-[0_0_auto] w-28">
           <select
             value={operator}
-            onChange={(e) => handleOperatorChange(e.target.value as ConditionOperator)}
+            onChange={(e) =>
+              handleOperatorChange(e.target.value as ConditionOperator)
+            }
             className={selectClass}
             disabled={allowedOps.length === 1}
             aria-label="condition operator"
@@ -306,7 +317,10 @@ export interface ConditionBuilderProps {
   onChange: (next: CustomFormatCondition[]) => void;
 }
 
-export function ConditionBuilder({ conditions, onChange }: ConditionBuilderProps) {
+export function ConditionBuilder({
+  conditions,
+  onChange,
+}: ConditionBuilderProps) {
   const { t } = useTranslation("common");
 
   const handleConditionChange = (idx: number, next: CustomFormatCondition) => {

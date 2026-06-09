@@ -82,9 +82,7 @@ export function AiPickBanner({
             <div className="flex min-w-0 items-start gap-2">
               <Sparkles className="mt-px h-3.5 w-3.5 shrink-0 text-violet-500" />
               <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-xs font-semibold text-violet-300">
-                  AI Pick
-                </p>
+                <p className="text-xs font-semibold text-violet-300">AI Pick</p>
                 <p className="break-words text-xs leading-snug text-neutral-300">
                   {release.title}
                 </p>

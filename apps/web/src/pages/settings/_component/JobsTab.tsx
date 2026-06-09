@@ -75,9 +75,7 @@ export function JobsTab() {
         {isLoading ? (
           <LoadingState />
         ) : error ? (
-          <div className="text-red-400">
-            {t("settings.jobs.loadError")}
-          </div>
+          <div className="text-red-400">{t("settings.jobs.loadError")}</div>
         ) : (
           <div className="space-y-6">
             <LibraryHealthCard

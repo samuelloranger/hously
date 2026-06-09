@@ -61,9 +61,7 @@ export function PageHeader({
           <h1 className="font-display text-3xl font-semibold leading-none tracking-tight text-neutral-50">
             {title}
           </h1>
-          {subtitle && (
-            <p className="text-sm text-neutral-400">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-sm text-neutral-400">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
           {actions}

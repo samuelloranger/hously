@@ -67,9 +67,7 @@ export function ServiceCredentials({
             {copied === "token" ? (
               <>
                 <Check className="w-3.5 h-3.5 text-green-400" />
-                <span className="text-green-400">
-                  {t("common.copied")}
-                </span>
+                <span className="text-green-400">{t("common.copied")}</span>
               </>
             ) : (
               <>
@@ -108,9 +106,7 @@ export function ServiceCredentials({
               {copied === "url" ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-green-400" />
-                  <span className="text-green-400">
-                    {t("common.copied")}
-                  </span>
+                  <span className="text-green-400">{t("common.copied")}</span>
                 </>
               ) : (
                 <>

@@ -87,7 +87,11 @@ function CollectionCard({
                 {movie.already_exists ? (
                   <div className="absolute inset-0 flex items-end justify-end p-0.5">
                     <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-1 ring-black/20">
-                      <Check size={8} strokeWidth={3} className="text-neutral-950" />
+                      <Check
+                        size={8}
+                        strokeWidth={3}
+                        className="text-neutral-950"
+                      />
                     </div>
                   </div>
                 ) : movie.release_date && movie.release_date > todayYmd ? (

@@ -1,12 +1,7 @@
 import type { LibraryMediaStatus } from "@hously/shared/types";
 import type { MediaPosterCardStatus } from "@/components/MediaPosterCard";
 
-type LibraryStatusTone =
-  | "ok"
-  | "progress"
-  | "attention"
-  | "meta"
-  | "neutral";
+type LibraryStatusTone = "ok" | "progress" | "attention" | "meta" | "neutral";
 
 export interface LibraryStatusPresentation {
   cardStatus: MediaPosterCardStatus;
@@ -18,12 +13,30 @@ export interface LibraryStatusPresentation {
   quickAction: "search" | null;
 }
 
-const ATTENTION = { liseretClass: "bg-rose-400", badgeClass: "bg-rose-500/20 text-rose-300" } as const;
-const PROGRESS = { liseretClass: "bg-sky-400", badgeClass: "bg-sky-500/20 text-sky-300" } as const;
-const OK = { liseretClass: "bg-emerald-400", badgeClass: "bg-emerald-500/20 text-emerald-300" } as const;
-const RETURNING = { liseretClass: "bg-primary-400", badgeClass: "bg-primary-500/20 text-primary-300" } as const;
-const IN_PROD = { liseretClass: "bg-amber-400", badgeClass: "bg-amber-500/20 text-amber-300" } as const;
-const NEUTRAL = { liseretClass: "bg-neutral-400", badgeClass: "bg-neutral-700 text-neutral-300" } as const;
+const ATTENTION = {
+  liseretClass: "bg-rose-400",
+  badgeClass: "bg-rose-500/20 text-rose-300",
+} as const;
+const PROGRESS = {
+  liseretClass: "bg-sky-400",
+  badgeClass: "bg-sky-500/20 text-sky-300",
+} as const;
+const OK = {
+  liseretClass: "bg-emerald-400",
+  badgeClass: "bg-emerald-500/20 text-emerald-300",
+} as const;
+const RETURNING = {
+  liseretClass: "bg-primary-400",
+  badgeClass: "bg-primary-500/20 text-primary-300",
+} as const;
+const IN_PROD = {
+  liseretClass: "bg-amber-400",
+  badgeClass: "bg-amber-500/20 text-amber-300",
+} as const;
+const NEUTRAL = {
+  liseretClass: "bg-neutral-400",
+  badgeClass: "bg-neutral-700 text-neutral-300",
+} as const;
 
 export function libraryStatusPresentation(
   status: LibraryMediaStatus,
@@ -31,20 +44,76 @@ export function libraryStatusPresentation(
   const label = (s: string) => `medias.library.itemStatus.${s}`;
   switch (status) {
     case "downloaded":
-      return { cardStatus: "downloaded", tone: "ok", ...OK, showBadge: false, labelKey: label("downloaded"), quickAction: null };
+      return {
+        cardStatus: "downloaded",
+        tone: "ok",
+        ...OK,
+        showBadge: false,
+        labelKey: label("downloaded"),
+        quickAction: null,
+      };
     case "downloading":
-      return { cardStatus: "downloading", tone: "progress", ...PROGRESS, showBadge: true, labelKey: label("downloading"), quickAction: null };
+      return {
+        cardStatus: "downloading",
+        tone: "progress",
+        ...PROGRESS,
+        showBadge: true,
+        labelKey: label("downloading"),
+        quickAction: null,
+      };
     case "upgrading":
-      return { cardStatus: "downloading", tone: "progress", ...PROGRESS, showBadge: true, labelKey: label("upgrading"), quickAction: null };
+      return {
+        cardStatus: "downloading",
+        tone: "progress",
+        ...PROGRESS,
+        showBadge: true,
+        labelKey: label("upgrading"),
+        quickAction: null,
+      };
     case "wanted":
-      return { cardStatus: "missing", tone: "attention", ...ATTENTION, showBadge: true, labelKey: label("wanted"), quickAction: "search" };
+      return {
+        cardStatus: "missing",
+        tone: "attention",
+        ...ATTENTION,
+        showBadge: true,
+        labelKey: label("wanted"),
+        quickAction: "search",
+      };
     case "skipped":
-      return { cardStatus: "missing", tone: "neutral", ...NEUTRAL, showBadge: false, labelKey: label("skipped"), quickAction: "search" };
+      return {
+        cardStatus: "missing",
+        tone: "neutral",
+        ...NEUTRAL,
+        showBadge: false,
+        labelKey: label("skipped"),
+        quickAction: "search",
+      };
     case "returning":
-      return { cardStatus: "returning", tone: "meta", ...RETURNING, showBadge: false, labelKey: label("returning"), quickAction: null };
+      return {
+        cardStatus: "returning",
+        tone: "meta",
+        ...RETURNING,
+        showBadge: false,
+        labelKey: label("returning"),
+        quickAction: null,
+      };
     case "in_production":
-      return { cardStatus: "in_production", tone: "meta", ...IN_PROD, showBadge: false, labelKey: label("in_production"), quickAction: null };
+      return {
+        cardStatus: "in_production",
+        tone: "meta",
+        ...IN_PROD,
+        showBadge: false,
+        labelKey: label("in_production"),
+        quickAction: null,
+      };
     case "planned":
-      return { cardStatus: "planned", tone: "neutral", ...NEUTRAL, showBadge: false, labelKey: label("planned"), quickAction: null };
+      return {
+        cardStatus: "planned",
+        tone: "neutral",
+        ...NEUTRAL,
+        showBadge: false,
+        labelKey: label("planned"),
+        quickAction: null,
+      };
   }
 }

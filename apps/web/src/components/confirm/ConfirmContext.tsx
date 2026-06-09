@@ -117,9 +117,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               </AlertDialog.Description>
             ) : (
               <AlertDialog.Description asChild>
-                <div className="text-sm text-neutral-400">
-                  {description}
-                </div>
+                <div className="text-sm text-neutral-400">{description}</div>
               </AlertDialog.Description>
             )}
             <div className="flex flex-row justify-end gap-2 pt-2">

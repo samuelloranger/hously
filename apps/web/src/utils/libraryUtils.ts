@@ -1,4 +1,4 @@
-import type { LibraryMedia, } from "@hously/shared/types";
+import type { LibraryMedia } from "@hously/shared/types";
 
 export type SortKey =
   | "title"

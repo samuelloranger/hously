@@ -126,7 +126,12 @@ describe("moveWidgetInLayout", () => {
       ["trackers"],
       ["system"],
     ];
-    const result = moveWidgetInLayout(layout, "jellyfin_shelf", "up", allVisible);
+    const result = moveWidgetInLayout(
+      layout,
+      "jellyfin_shelf",
+      "up",
+      allVisible,
+    );
     expect(result[0]).toEqual(["jellyfin_shelf", "weather"]);
   });
 
@@ -157,7 +162,12 @@ describe("moveWidgetInLayout", () => {
       ["trackers"],
       ["system"],
     ];
-    const result = moveWidgetInLayout(layout, "jellyfin_shelf", "down", allVisible);
+    const result = moveWidgetInLayout(
+      layout,
+      "jellyfin_shelf",
+      "down",
+      allVisible,
+    );
     expect(result[0]).toEqual(["weather"]);
     expect(result[1]).toEqual(["trackers", "jellyfin_shelf"]);
   });
@@ -189,7 +199,12 @@ describe("moveWidgetInLayout", () => {
       ["system"],
     ];
     const isVisible = (id: WidgetId) => id !== "quick_links";
-    const result = moveWidgetInLayout(layout, "jellyfin_shelf", "up", isVisible);
+    const result = moveWidgetInLayout(
+      layout,
+      "jellyfin_shelf",
+      "up",
+      isVisible,
+    );
     expect(result[0]).toEqual(["jellyfin_shelf", "quick_links", "weather"]);
   });
 

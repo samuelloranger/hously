@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { Clapperboard } from "lucide-react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
@@ -170,8 +176,7 @@ function VirtualGrid({
   // label allowance and the row gap. The virtualizer re-measures actual heights
   // via measureElement once each row mounts.
   const estimateSize = useCallback(() => {
-    const colWidth =
-      width > 0 ? (width - gap * (columns - 1)) / columns : 160;
+    const colWidth = width > 0 ? (width - gap * (columns - 1)) / columns : 160;
     const posterHeight = colWidth * (3 / 2);
     return posterHeight + CARD_LABEL_HEIGHT + gap;
   }, [width, gap, columns]);

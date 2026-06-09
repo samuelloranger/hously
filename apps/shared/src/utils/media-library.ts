@@ -1,5 +1,3 @@
-
-
 /** A grab row the user may drop from history: torrent marked failed, or post-processing reported an error after completion. */
 export function isRemovableDownloadHistoryEntry(entry: {
   failed: boolean;

@@ -52,9 +52,7 @@ export const LANGUAGE_OPTIONS = [
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="text-sm font-medium text-neutral-300">
-      {children}
-    </label>
+    <label className="text-sm font-medium text-neutral-300">{children}</label>
   );
 }
 

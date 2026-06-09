@@ -1,13 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { CustomFormatAssignmentEditor, type Assignment } from "./CustomFormatAssignmentEditor";
+import {
+  CustomFormatAssignmentEditor,
+  type Assignment,
+} from "./CustomFormatAssignmentEditor";
 
 // react-i18next is globally mocked in src/test/setup.ts → t(key) returns key
 
 // ─── Mock useCustomFormatsList ────────────────────────────────────────────────
 
-const FORMAT_A = { id: 1, name: "Dolby Vision", conditions: [], created_at: "", updated_at: "" };
-const FORMAT_B = { id: 2, name: "Remux Bonus", conditions: [], created_at: "", updated_at: "" };
+const FORMAT_A = {
+  id: 1,
+  name: "Dolby Vision",
+  conditions: [],
+  created_at: "",
+  updated_at: "",
+};
+const FORMAT_B = {
+  id: 2,
+  name: "Remux Bonus",
+  conditions: [],
+  created_at: "",
+  updated_at: "",
+};
 
 vi.mock("@/pages/settings/useCustomFormats", () => ({
   useCustomFormatsList: () => ({
@@ -36,7 +51,9 @@ describe("CustomFormatAssignmentEditor", () => {
     const onChange = vi.fn();
     renderEditor([], onChange);
 
-    const addSelect = screen.getByRole("combobox", { name: /add custom format/i });
+    const addSelect = screen.getByRole("combobox", {
+      name: /add custom format/i,
+    });
     fireEvent.change(addSelect, { target: { value: "1" } });
 
     expect(onChange).toHaveBeenCalledOnce();
@@ -158,7 +175,9 @@ describe("CustomFormatAssignmentEditor", () => {
     ];
     renderEditor(initial);
 
-    const addSelect = screen.getByRole("combobox", { name: /add custom format/i });
+    const addSelect = screen.getByRole("combobox", {
+      name: /add custom format/i,
+    });
     const options = Array.from(addSelect.querySelectorAll("option")).map(
       (o) => o.value,
     );

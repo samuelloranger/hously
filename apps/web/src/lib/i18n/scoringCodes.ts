@@ -7,7 +7,8 @@ export const REJECTION_CODE_KEYS: Record<string, string> = {
   is_sample: "scoring.reject.isSample",
   seeders_below_min: "scoring.reject.seedersBelowMin",
   custom_format_required_absent: "scoring.reject.customFormatRequiredAbsent",
-  custom_format_forbidden_present: "scoring.reject.customFormatForbiddenPresent",
+  custom_format_forbidden_present:
+    "scoring.reject.customFormatForbiddenPresent",
 };
 
 export const COMPONENT_CODE_KEYS: Record<string, string> = {

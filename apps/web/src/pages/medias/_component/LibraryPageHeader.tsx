@@ -31,9 +31,13 @@ export function LibraryPageHeader({
           {t("medias.library.pageTitle")}
         </h1>
         <p className="text-sm text-neutral-400">
-          <span>{t("medias.library.moviesWithCount", { count: movieCount })}</span>
+          <span>
+            {t("medias.library.moviesWithCount", { count: movieCount })}
+          </span>
           <span className="mx-1.5 select-none text-neutral-600">·</span>
-          <span>{t("medias.library.showsWithCount", { count: showCount })}</span>
+          <span>
+            {t("medias.library.showsWithCount", { count: showCount })}
+          </span>
         </p>
       </div>
 

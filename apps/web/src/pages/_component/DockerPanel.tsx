@@ -322,16 +322,15 @@ export function DockerPanel() {
   if (isPending) return <DockerPanelSkeleton />;
 
   const summary = data?.summary;
-  const visibleContainers =
-    [...(data?.containers ?? [])]
-      .sort((a, b) => {
-        const priority = containerPriority(a) - containerPriority(b);
-        if (priority !== 0) return priority;
-        return (a.compose_service || a.name).localeCompare(
-          b.compose_service || b.name,
-        );
-      })
-      .slice(0, 5);
+  const visibleContainers = [...(data?.containers ?? [])]
+    .sort((a, b) => {
+      const priority = containerPriority(a) - containerPriority(b);
+      if (priority !== 0) return priority;
+      return (a.compose_service || a.name).localeCompare(
+        b.compose_service || b.name,
+      );
+    })
+    .slice(0, 5);
   const issueCount =
     (summary?.stopped ?? 0) +
     (summary?.paused ?? 0) +
@@ -348,95 +347,95 @@ export function DockerPanel() {
         updatedAt={data?.updated_at ?? null}
       />
       <WidgetShell>
-      <WidgetHeader
-        icon={Boxes}
-        title={t("dashboard.home.docker.title")}
-        right={
-          data?.enabled ? (
-            <span
-              className={cn(
-                "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
-                issueCount > 0
-                  ? "bg-red-500/15 text-red-200"
-                  : "bg-emerald-500/15 text-emerald-200",
-              )}
-            >
-              {issueCount > 0
-                ? t("dashboard.home.docker.needsAttention")
-                : t("dashboard.home.docker.healthy")}
-            </span>
-          ) : null
-        }
-      />
+        <WidgetHeader
+          icon={Boxes}
+          title={t("dashboard.home.docker.title")}
+          right={
+            data?.enabled ? (
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
+                  issueCount > 0
+                    ? "bg-red-500/15 text-red-200"
+                    : "bg-emerald-500/15 text-emerald-200",
+                )}
+              >
+                {issueCount > 0
+                  ? t("dashboard.home.docker.needsAttention")
+                  : t("dashboard.home.docker.healthy")}
+              </span>
+            ) : null
+          }
+        />
 
-      {!data?.enabled ? (
-        <div className="p-4 text-sm text-neutral-400">
-          {t("dashboard.home.docker.disabled")}
-        </div>
-      ) : error || data.error || !data.connected ? (
-        <div className="p-4 text-sm text-red-300">
-          {data?.error ?? t("dashboard.home.docker.loadError")}
-        </div>
-      ) : (
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-3 gap-2">
-            <StatCell
-              label={t("dashboard.home.docker.running")}
-              value={summary?.running ?? 0}
-              tone="good"
-            />
-            <StatCell
-              label={t("dashboard.home.docker.down")}
-              value={issueCount}
-              tone={issueCount > 0 ? "bad" : "neutral"}
-            />
-            <StatCell
-              label={t("dashboard.home.docker.total")}
-              value={summary?.total ?? 0}
-              tone="neutral"
-            />
+        {!data?.enabled ? (
+          <div className="p-4 text-sm text-neutral-400">
+            {t("dashboard.home.docker.disabled")}
           </div>
-
-          {data.compose_project && (
-            <div className="rounded-lg bg-neutral-950/40 px-3 py-2 text-xs text-neutral-400 ring-1 ring-neutral-800">
-              {t("dashboard.home.docker.composeProject", {
-                project: data.compose_project,
-              })}
+        ) : error || data.error || !data.connected ? (
+          <div className="p-4 text-sm text-red-300">
+            {data?.error ?? t("dashboard.home.docker.loadError")}
+          </div>
+        ) : (
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              <StatCell
+                label={t("dashboard.home.docker.running")}
+                value={summary?.running ?? 0}
+                tone="good"
+              />
+              <StatCell
+                label={t("dashboard.home.docker.down")}
+                value={issueCount}
+                tone={issueCount > 0 ? "bad" : "neutral"}
+              />
+              <StatCell
+                label={t("dashboard.home.docker.total")}
+                value={summary?.total ?? 0}
+                tone="neutral"
+              />
             </div>
-          )}
 
-          {visibleContainers.length === 0 ? (
-            <p className="text-sm text-neutral-400">
-              {t("dashboard.home.docker.empty")}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500">
-                {t("dashboard.home.docker.containers")}
+            {data.compose_project && (
+              <div className="rounded-lg bg-neutral-950/40 px-3 py-2 text-xs text-neutral-400 ring-1 ring-neutral-800">
+                {t("dashboard.home.docker.composeProject", {
+                  project: data.compose_project,
+                })}
               </div>
-              {visibleContainers.map((container) => (
-                <DockerContainerRow
-                  key={container.id}
-                  container={container}
-                  icon={
-                    containerPriority(container) === 4 ? "container" : "state"
-                  }
-                  compact
-                />
-              ))}
-            </div>
-          )}
+            )}
 
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-100 transition-colors font-medium"
-          >
-            <ChevronRight size={12} />
-            {t("dashboard.home.docker.viewAll")}
-          </button>
-        </div>
-      )}
+            {visibleContainers.length === 0 ? (
+              <p className="text-sm text-neutral-400">
+                {t("dashboard.home.docker.empty")}
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500">
+                  {t("dashboard.home.docker.containers")}
+                </div>
+                {visibleContainers.map((container) => (
+                  <DockerContainerRow
+                    key={container.id}
+                    container={container}
+                    icon={
+                      containerPriority(container) === 4 ? "container" : "state"
+                    }
+                    compact
+                  />
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-100 transition-colors font-medium"
+            >
+              <ChevronRight size={12} />
+              {t("dashboard.home.docker.viewAll")}
+            </button>
+          </div>
+        )}
       </WidgetShell>
     </>
   );

@@ -4,8 +4,6 @@ import { prefetchRouteData } from "@/lib/routing/prefetch";
 import { Calendar } from "@/pages/calendar/_component/Calendar";
 import type { CalendarSearchParams } from "@/pages/calendar/_component/Calendar";
 
-;
-
 export const Route = createFileRoute("/calendar/")({
   validateSearch: (search: Record<string, unknown>): CalendarSearchParams => ({
     date:

@@ -24,6 +24,4 @@ export {
 
 export { sanitizeInput, sanitizeRichText, isValidColor } from "./sanitize";
 export { buildUserMap, getUserDisplayName, type UserLookup } from "./mappers";
-export {
-  type ImageValidationError,
-} from "@hously/shared/utils";
+export { type ImageValidationError } from "@hously/shared/utils";

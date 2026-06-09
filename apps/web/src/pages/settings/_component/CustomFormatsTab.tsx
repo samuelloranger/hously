@@ -21,7 +21,11 @@ import {
 } from "./CustomFormatEditorModal";
 import { useConfirm } from "@/components/confirm";
 
-function ConditionSummary({ conditions }: { conditions: CustomFormatCondition[] }) {
+function ConditionSummary({
+  conditions,
+}: {
+  conditions: CustomFormatCondition[];
+}) {
   const { t } = useTranslation("common");
 
   if (conditions.length === 0) return null;
@@ -29,12 +33,11 @@ function ConditionSummary({ conditions }: { conditions: CustomFormatCondition[] 
   const parts = conditions.slice(0, 3).map((c) => {
     const typeLabel = t(codeKey(CONDITION_TYPE_KEYS, c.type));
     const opLabel = t(codeKey(OPERATOR_KEYS, c.operator));
-    const valueStr =
-      Array.isArray(c.value)
-        ? `${c.value[0]}–${c.value[1]}`
-        : c.value !== undefined
-          ? String(c.value)
-          : "";
+    const valueStr = Array.isArray(c.value)
+      ? `${c.value[0]}–${c.value[1]}`
+      : c.value !== undefined
+        ? String(c.value)
+        : "";
     const negated = c.negate ? "!" : "";
     const parts = [negated + typeLabel];
     if (c.operator !== "is_true") parts.push(opLabel);
@@ -46,9 +49,7 @@ function ConditionSummary({ conditions }: { conditions: CustomFormatCondition[] 
     <p className="text-xs text-neutral-400 truncate">
       {parts.join(" · ")}
       {conditions.length > 3 && (
-        <span className="ml-1 text-neutral-500">
-          +{conditions.length - 3}
-        </span>
+        <span className="ml-1 text-neutral-500">+{conditions.length - 3}</span>
       )}
     </p>
   );
@@ -146,8 +147,7 @@ export function CustomFormatsTab() {
                         {cf.name}
                       </p>
                       <span className="rounded-md bg-neutral-700 px-1.5 py-0.5 text-xs font-semibold tracking-wide text-neutral-300">
-                        {cf.conditions.length}{" "}
-                        {t("customFormats.conditions")}
+                        {cf.conditions.length} {t("customFormats.conditions")}
                       </span>
                     </div>
                     <ConditionSummary conditions={cf.conditions} />

@@ -87,12 +87,7 @@ function DownloadRowImpl({
   );
 
   return (
-    <div
-      className={cn(
-        "border-t border-white/[0.06]",
-        isGrey && "opacity-55",
-      )}
-    >
+    <div className={cn("border-t border-white/[0.06]", isGrey && "opacity-55")}>
       <div
         className={cn(
           ROW_GRID_TEMPLATE,
@@ -113,9 +108,7 @@ function DownloadRowImpl({
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
         </div>
-        <div className="font-medium text-white truncate">
-          {row.file_name}
-        </div>
+        <div className="font-medium text-white truncate">{row.file_name}</div>
         <div className="text-neutral-300 whitespace-nowrap text-xs sm:text-sm">
           {formatBytes(row.size_bytes)}
         </div>

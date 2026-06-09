@@ -16,8 +16,7 @@ import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHead
 
 const INPUT_CLASS =
   "w-full px-4 py-2 border border-neutral-600 rounded-lg bg-neutral-900 text-white font-mono text-sm";
-const LABEL_CLASS =
-  "block text-sm font-medium text-neutral-300 mb-2";
+const LABEL_CLASS = "block text-sm font-medium text-neutral-300 mb-2";
 
 interface FormState {
   name: string;
@@ -249,9 +248,7 @@ function ProviderRow({
           <p className="text-sm font-medium text-white truncate">
             {provider.name}
           </p>
-          <p className="text-xs text-neutral-400 font-mono">
-            {provider.slug}
-          </p>
+          <p className="text-xs text-neutral-400 font-mono">{provider.slug}</p>
         </div>
         <span
           className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${

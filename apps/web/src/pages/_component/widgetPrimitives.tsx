@@ -74,7 +74,11 @@ export function WidgetHeader({
         ) : (
           iconNode
         )}
-        {typeof title === "string" ? <SectionTitle>{title}</SectionTitle> : title}
+        {typeof title === "string" ? (
+          <SectionTitle>{title}</SectionTitle>
+        ) : (
+          title
+        )}
       </div>
       {right}
     </div>

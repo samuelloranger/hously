@@ -102,13 +102,4 @@ const SelectSeparator = React.forwardRef<
 ));
 SelectSeparator.displayName = RadixSelect.Separator.displayName;
 
-export {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-  
-  
-  
-};
+export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue };
