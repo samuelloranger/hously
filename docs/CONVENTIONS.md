@@ -2,7 +2,7 @@
 
 Cross-references the canonical rule files in `.claude/rules/` (also mirrored as `.cursor/rules/*.mdc`). This file only adds practical notes not already captured there.
 
-Last verified: 2026-05-25
+Last verified: 2026-06-11
 
 ## Canonical Rule Files
 
@@ -22,14 +22,14 @@ Read these first — do not duplicate them here:
 
 ```typescript
 const response = {
-  id: chore.id,
-  chore_name: chore.choreName,
-  added_by: chore.addedBy,
-  created_at: chore.createdAt?.toISOString() ?? null,
+  id: media.id,
+  tmdb_id: media.tmdbId,
+  poster_url: media.posterUrl,
+  added_at: media.addedAt.toISOString(),
 };
 ```
 
-Mapper helpers live next to the route module they serve — see `apps/api/src/routes/chores/choreMappers.ts` for `mapChore()`, or `apps/api/src/utils/mappers.ts` for shared mappers like `mapUser()`. Larger feature areas (library, dashboard) keep their own mappers under `src/utils/medias/`, `src/services/library/`, etc.
+Mapper helpers live next to the route module they serve or in a domain utility. Shared user mapping lives in `apps/api/src/utils/mappers.ts`; larger areas such as library and dashboard keep mapping logic under `src/utils/medias/`, `src/services/library/`, or their route folder.
 
 Why: snake_case keeps response keys aligned with the URL convention (`/api/added-by` style) and gives any non-JS client a clean, language-agnostic shape. camelCase Prisma is just an ORM artifact.
 
@@ -39,14 +39,14 @@ Why: snake_case keeps response keys aligned with the URL convention (`/api/added
 
 ```typescript
 import { queryKeys } from "@/lib/queryKeys";
-queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
+queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
 ```
 
 Why kept web-only: TanStack Query has no consumer in `apps/api`. Promoting hooks to shared would force the API to ship React as a transitive dep for no gain.
 
 ## Endpoint Constants Are Web-Local
 
-`CHORES_ENDPOINTS`, `LIBRARY_ENDPOINTS`, etc. live under `apps/web/src/lib/endpoints/`. They are not shared, because the API doesn't reverse-construct its own URLs.
+`LIBRARY_ENDPOINTS`, `NOTIFICATIONS_ENDPOINTS`, etc. live under `apps/web/src/lib/endpoints/`. They are not shared, because the API doesn't reverse-construct its own URLs.
 
 ## Error Helpers, Not Thrown Exceptions
 
@@ -66,8 +66,9 @@ Why: Elysia's `onError` only catches uncaught throws; explicit returns keep the 
 
 ## URL Conventions
 
-Route paths are kebab-case (`/api/clear-completed`, `/api/library/downloads`). Verbs come from HTTP methods, not from URL segments. Avoid `/api/getChores` — use `GET /api/chores`.
+Route paths are kebab-case (`/api/quality-profiles`, `/api/library/downloads`). Verbs come from HTTP methods, not from URL segments. Avoid `/api/getLibrary` — use `GET /api/library`.
 
 ## Changelog
 
 - 2026-05-25 — Initial bootstrap pass.
+- 2026-06-11 — Replaced examples tied to removed chores and board features.

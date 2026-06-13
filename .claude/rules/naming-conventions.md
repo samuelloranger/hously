@@ -7,25 +7,25 @@ globs: ["apps/**/*.ts", "apps/**/*.tsx", "apps/api/prisma/**"]
 
 ## Files
 
-| Context             | Convention                  | Example                                    |
-| ------------------- | --------------------------- | ------------------------------------------ |
-| React components    | PascalCase                  | `ChoreRow.tsx`, `CreateChoreModal.tsx`     |
-| Hooks               | camelCase with `use` prefix | `useChores.ts`, `useAuth.ts`               |
-| Utilities           | camelCase                   | `formatDate.ts`, `sanitize.ts`             |
-| Route modules (API) | camelCase + `Routes`        | `choresRoutes` in `routes/chores/index.ts` |
-| Type files          | camelCase                   | `chores.ts`, `calendar.ts`                 |
+| Context             | Convention                  | Example                                                  |
+| ------------------- | --------------------------- | -------------------------------------------------------- |
+| React components    | PascalCase                  | `LibraryItemRow.tsx`, `AddToLibraryModal.tsx`            |
+| Hooks               | camelCase with `use` prefix | `useLibrary.ts`, `useAuth.ts`                            |
+| Utilities           | camelCase                   | `formatDate.ts`, `sanitize.ts`                           |
+| Route modules (API) | camelCase + `Routes`        | `notificationsRoutes` in `routes/notifications/index.ts` |
+| Type files          | camelCase                   | `library.ts`, `notification.ts`                          |
 
 ## Code
 
-| Context                   | Convention           | Example                                  |
-| ------------------------- | -------------------- | ---------------------------------------- |
-| Types / Interfaces        | PascalCase           | `Chore`, `CreateChoreRequest`            |
-| Hooks                     | `use` + PascalCase   | `useChores()`, `useDeleteChore()`        |
-| Endpoint constants        | UPPER_SNAKE_CASE     | `CHORES_ENDPOINTS`, `CALENDAR_ENDPOINTS` |
-| Route plugins             | camelCase + `Routes` | `choresRoutes`, `calendarRoutes`         |
-| Database columns (Prisma) | camelCase            | `choreName`, `addedBy`                   |
-| API response fields       | snake_case           | `chore_name`, `added_by`, `created_at`   |
-| URL paths                 | kebab-case           | `/api/chores`, `/api/clear-completed`    |
+| Context                   | Convention           | Example                                           |
+| ------------------------- | -------------------- | ------------------------------------------------- |
+| Types / Interfaces        | PascalCase           | `LibraryMedia`, `LibraryListResponse`             |
+| Hooks                     | `use` + PascalCase   | `useLibrary()`, `useLibraryItem()`                |
+| Endpoint constants        | UPPER_SNAKE_CASE     | `LIBRARY_ENDPOINTS`, `NOTIFICATIONS_ENDPOINTS`    |
+| Route plugins             | camelCase + `Routes` | `libraryRoutes`, `notificationsRoutes`            |
+| Database columns (Prisma) | camelCase            | `posterUrl`, `addedAt`                            |
+| API response fields       | snake_case           | `poster_url`, `added_at`, `created_at`            |
+| URL paths                 | kebab-case           | `/api/quality-profiles`, `/api/library/downloads` |
 
 ## API response mapping
 

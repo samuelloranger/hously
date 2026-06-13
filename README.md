@@ -1,6 +1,6 @@
 # Hously
 
-A self-hosted command center for homelab enthusiasts. Hously provides a unified dashboard for managing media pipelines, monitoring infrastructure, tracking torrents, and organizing daily life — all from a single web app.
+A self-hosted command center for homelab enthusiasts. Hously provides a unified dashboard for managing media pipelines, monitoring infrastructure, and tracking downloads — all from a single web app.
 
 Hously includes a **native media library that replaces Radarr and Sonarr** — movies and TV in one app, with TMDB discovery, release search, quality profiles, and download workflows built in. Already running \*arr? **Settings → Library import** migrates your existing Radarr and/or Sonarr library into Hously so you can switch without starting over.
 
@@ -24,9 +24,8 @@ Hously includes a **native media library that replaces Radarr and Sonarr** — m
 - **Plugins** — Configurable integrations with external services
 - **External Notifications** — Inbound webhooks from Jellyfin, Plex, Prowlarr, Kopia, UptimeKuma, Beszel, and more
 
-**Life Management**
+**Media Planning**
 
-- **Board** — Kanban-style task management with dependencies, time logging, and tags
 - **Calendar** — Upcoming movie / TV / episode release schedule
 
 **Platform**

@@ -6,9 +6,9 @@ Last verified: 2026-06-08
 
 ## Locations
 
-| Layer | Path                                                         |
-| ----- | ------------------------------------------------------------ |
-| Web   | `apps/web/src/pages/calendar/`                               |
+| Layer | Path                                                          |
+| ----- | ------------------------------------------------------------- |
+| Web   | `apps/web/src/pages/calendar/`                                |
 | Data  | Dashboard "upcoming" releases (`GET /api/dashboard/upcoming`) |
 
 ## Data Source
@@ -28,3 +28,7 @@ user-created events, holidays, or iCal feed — those features were removed.
 `apps/web/src/pages/calendar/_component/` holds the page (`Calendar.tsx`), the
 month grid (`CalendarGrid.tsx`), and the selected-day panel
 (`CalendarDayPanel.tsx`). All are presentational over the upcoming-releases data.
+
+## Changelog
+
+- 2026-06-11 — Reconfirmed that the calendar is media-only after the life-management removal.

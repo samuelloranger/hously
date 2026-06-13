@@ -2,7 +2,7 @@
 
 How the Elysia API is structured: route composition, the Better Auth model, error helpers, and rate limiting.
 
-Last verified: 2026-05-25
+Last verified: 2026-06-11
 
 ## Composition
 
@@ -11,7 +11,7 @@ Last verified: 2026-05-25
 - `dashboardRoutes`, `usersRoutes`, `notificationsRoutes`, `webhooksRoutes`, `externalNotificationsRoutes`
 - `releasesRoutes`, `settingsRoutes`, `adminRoutes`, `analyticsRoutes`, `integrationsRoutes`, `homeAssistantRoutes`
 - Library family: `libraryMediaAdminRoutes`, `libraryDownloadsRoutes`, `libraryRoutes`, `qualityProfilesRoutes`, `mediasRoutes`
-- `boardTasksRoutes`, `boardTagsRoutes`, `searchRoutes`, `systemRoutes`
+- `searchRoutes`, `systemRoutes`
 - Better Auth: `publicAuthRoutes`, `ssoProvidersRoute`, `protectedAuthRoutes`, plus a catch-all `app.get/all("/api/auth/*", …)` that delegates to `betterAuthInstance.handler(request)`.
 
 Two health endpoints exist: `GET /health` and `GET /api/health` (both return `{ status: "ok" }`).
@@ -66,7 +66,7 @@ Why bypass for authed users: legitimate dashboards poll frequently (SSE fallback
 ## URL Conventions
 
 - All routes prefixed with `/api/` (so `SERVE_STATIC=true` can hand the rest to the SPA catch-all).
-- Path segments are kebab-case: `/api/clear-completed`, `/api/quality-profiles`, `/api/library/downloads`.
+- Path segments are kebab-case: `/api/quality-profiles`, `/api/external-notifications`, `/api/library/downloads`.
 - Verbs come from HTTP methods, not URL words.
 - Sub-resources nest under the parent: `/api/library/:id/grab`, `/api/library/:id/files`.
 
@@ -77,3 +77,7 @@ In non-production (`NODE_ENV !== "production"`) the API mounts `@elysiajs/swagge
 ## CORS
 
 `@elysiajs/cors` allows `CORS_ORIGIN` (defaults to `http://localhost:5173` for dev) with `credentials: true`. In production with `SERVE_STATIC=true`, web and API share an origin, so CORS is effectively a no-op.
+
+## Changelog
+
+- 2026-06-11 — Removed task-board routes from the current API composition.

@@ -16,7 +16,7 @@ This is **Hously**, a self-hosted command center for homelab enthusiasts. It is 
 
 - **`apps/api`** — Elysia (Bun runtime) + Prisma ORM + PostgreSQL + Redis. Routes live under `src/routes/`, business logic under `src/services/`, cron jobs under `src/jobs/`, schema in `prisma/schema.prisma`. Internal imports use `@hously/api/...`. Auth is Better Auth (`src/auth.ts` / `lib/auth.ts`).
 - **`apps/web`** — React 19 + Vite + TanStack Router + TanStack Query + Tailwind CSS 4 + Radix/CVA + i18next (EN/FR) + PWA service worker. Feature folders under `src/features/<name>/`, shared primitives under `src/components/ui/`, query keys centralized in `apps/web/src/lib/queryKeys.ts`. Path alias `@/` for app code.
-- **`apps/shared`** — Types, endpoint constants, TanStack Query hooks, utilities, query key factory, API client factories. Consumed via `@hously/shared`; never reach into `apps/shared/src/**` internals from sibling packages.
+- **`apps/shared`** — Types, pure utilities, and cross-app constants. Consumed via `@hously/shared`; never reach into `apps/shared/src/**` internals from sibling packages. Endpoint constants, TanStack Query hooks, query keys, and API clients stay in `apps/web`.
 
 Key integrations: qBittorrent (SSE), TMDB, Radarr/Sonarr (legacy webhook + one-time importer — Hously now replaces them with a built-in library), Jellyfin, Plex, Kopia, UptimeKuma, Web Push (VAPID). The production image builds the web app into `apps/api/public/` and serves it via `@elysiajs/static` when `SERVE_STATIC=true`. The default branch is **main**. Package manager and runtime: **Bun**. Common workflows go through the root **Makefile** (`make dev-api`, `make dev-web`, `make migrate-dev`, `make test`, `make lint`, `make typecheck`).
 
@@ -57,7 +57,7 @@ docs/
 ├── DECISIONS.md             # Architecture Decision Records (ADRs) — e.g. replacing Radarr/Sonarr
 ├── INTEGRATIONS.md          # qBittorrent, TMDB, Jellyfin, Plex, webhooks, push (VAPID)
 └── modules/
-    └── <feature-name>.md    # Per-feature deep dives (chores, calendar, dashboard, medias, torrents, trackers, library)
+    └── <feature-name>.md    # Per-feature deep dives (calendar, dashboard, library, torrents, trackers)
 ```
 
 Only create files that have real content to add. Never create empty placeholder files.
@@ -74,8 +74,8 @@ Only create files that have real content to add. Never create empty placeholder 
 
 **Be concrete, not abstract:**
 
-- Always include file paths: `apps/api/src/routes/chores/index.ts`, not "the chores route"
-- Always include function/class/hook names: `useChores()`, `choresRoutes`, not "the chores helper"
+- Always include file paths: `apps/api/src/routes/notifications/index.ts`, not "the notifications route"
+- Always include function/class/hook names: `useLibrary()`, `notificationsRoutes`, not "the library helper"
 - Include short code snippets for patterns (5-15 lines, not full files)
 - Show commands to run: `make migrate-dev`, `cd apps/web && bun run test`, not "run the tests"
 - Reference exact env vars (`SERVE_STATIC`, `ALLOWED_EMAILS`, `IMAGE_STORAGE_DIR`, `DATABASE_URL`) rather than describing them vaguely
@@ -90,7 +90,7 @@ Only create files that have real content to add. Never create empty placeholder 
 
 - Link between docs: "See [PATTERNS.md#tanstack-query-hooks](./PATTERNS.md#tanstack-query-hooks)"
 - Reference source files with line numbers when helpful (e.g. `apps/api/src/index.ts:42`)
-- Note dependencies: "Depends on: `apps/web/src/lib/queryKeys.ts`, `apps/web/src/lib/endpoints/chores.ts`"
+- Note dependencies: "Depends on: `apps/web/src/lib/queryKeys.ts`, `apps/web/src/lib/endpoints/library.ts`"
 - Link out to `.claude/rules/*.md` for canonical conventions rather than restating them
 
 **Keep it current:**
