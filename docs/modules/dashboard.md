@@ -1,8 +1,8 @@
 # Dashboard
 
-The homepage. Composes widgets from many feature areas: system health, downloads, trackers, weather, upcoming media, activity feed, Jellyfin latest, AdGuard stats, Scrutiny, Home Assistant, Minecraft, quick links.
+The homepage. Composes smart tiles and widgets for system health, downloads, trackers, weather, upcoming media, activity, Jellyfin, Home Assistant, Minecraft, Docker, RSS, and quick links.
 
-Last verified: 2026-05-25
+Last verified: 2026-06-11
 
 ## Locations
 
@@ -15,13 +15,15 @@ Last verified: 2026-05-25
 
 `apps/api/src/routes/dashboard/index.ts` composes per-widget sub-plugins under prefix `/api/dashboard`:
 
-- `stats`, `activities`, `weather`, `upcoming`, `jellyfin`, `trackers`, `scrutiny`, `system`, `adguard`, `downloads`, `minecraft`, `quick-links`, `favicon`.
+- `activities`, `weather`, `upcoming`, `jellyfin`, `trackers`, `scrutiny`, `system`, `adguard`, `docker`, `downloads`, `minecraft`, `quick-links`, `favicon`.
 
 Each is a thin orchestrator that reads from `Integration` config + cached service responses. Most widgets return on a 30s–5min cache; SSE is used only for `downloads` (torrent speed needs sub-second refresh).
 
 ## Widget Visibility
 
-`AppSettings.dashboardWidgetVisibility` is a JSON map (`{ weather, homeassistant, system, downloads, rss }`) that admins toggle from Settings → General. The UI hides widgets based on these flags before issuing API calls. Layout (position/size) is stored in `AppSettings.dashboardWidgetLayout`.
+`AppSettings.dashboardWidgetVisibility` stores per-widget visibility, while `dashboardWidgetLayout` stores the three-column order. The canonical widget catalog is `apps/shared/src/constants/widgets.ts`; removed IDs are discarded when stored layouts are reconciled.
+
+Smart tiles use the separate catalog in `apps/shared/src/constants/tiles.ts` and persist order in `AppSettings.dashboardTileLayout`. The current tile set is latest media, active downloads, library alerts, weather, and system. The next-event tile and Ready-to-watch widget were removed in v4.0.1.
 
 ## Quick Links
 
@@ -42,3 +44,7 @@ Recently refactored (see commit `d9b8e086 refactor(dashboard): split SystemPanel
 ## Web Query Keys
 
 All dashboard widgets use `queryKeys.dashboard.*` from `apps/web/src/lib/queryKeys.ts`. Mutations elsewhere (e.g. grabbing media) should invalidate the dashboard slice they affect — at minimum `queryKeys.dashboard.activities` and `queryKeys.dashboard.activityFeed`.
+
+## Changelog
+
+- 2026-06-11 — Updated route, widget, and tile catalogs after the v4 removals.

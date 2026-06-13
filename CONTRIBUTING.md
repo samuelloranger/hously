@@ -51,14 +51,14 @@ CI runs typecheck, lint, format check, and tests on every push and PR.
 
 ### Naming
 
-| Context             | Convention                  | Example             |
-| ------------------- | --------------------------- | ------------------- |
-| React components    | PascalCase                  | `ChoreRow.tsx`      |
-| Hooks               | camelCase with `use` prefix | `useChores.ts`      |
-| API route plugins   | camelCase + `Routes`        | `choresRoutes`      |
-| API response fields | snake_case                  | `created_at`        |
-| URL paths           | kebab-case                  | `/api/chores`       |
-| Endpoint constants  | UPPER_SNAKE_CASE            | Inline or colocated |
+| Context             | Convention                  | Example                 |
+| ------------------- | --------------------------- | ----------------------- |
+| React components    | PascalCase                  | `LibraryItemRow.tsx`    |
+| Hooks               | camelCase with `use` prefix | `useLibrary.ts`         |
+| API route plugins   | camelCase + `Routes`        | `notificationsRoutes`   |
+| API response fields | snake_case                  | `created_at`            |
+| URL paths           | kebab-case                  | `/api/quality-profiles` |
+| Endpoint constants  | UPPER_SNAKE_CASE            | `LIBRARY_ENDPOINTS`     |
 
 ### Imports
 

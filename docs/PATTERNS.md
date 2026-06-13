@@ -2,23 +2,28 @@
 
 Concrete recurring code patterns in Hously with short snippets. Use these as templates when adding new features.
 
-Last verified: 2026-05-25
+Last verified: 2026-06-11
 
 ## Elysia Route Plugin Shape
 
 Every feature area exports an Elysia plugin from `apps/api/src/routes/<area>/index.ts` and is composed in `apps/api/src/index.ts` via `.use()`. Plugins set their `prefix` so route paths stay localized.
 
 ```typescript
-// apps/api/src/routes/chores/index.ts
+// apps/api/src/routes/releases/index.ts
 import { Elysia } from "elysia";
-import { auth } from "@hously/api/auth";
-import { requireUser } from "@hously/api/middleware/auth";
-import { choreCrudRoutes } from "./choreCrudRoutes";
+import { requireAdmin } from "@hously/api/middleware/auth";
+import { serverError } from "@hously/api/errors";
+import { getCachedGitHubReleases } from "@hously/api/services/githubReleases";
 
-export const choresRoutes = new Elysia({ prefix: "/api/chores" })
-  .use(auth)         // resolves { user } into context (may be null)
-  .use(requireUser)  // returns 401 if no user
-  .use(choreCrudRoutes);
+export const releasesRoutes = new Elysia({ prefix: "/api/releases" })
+  .use(requireAdmin)
+  .get("/", async ({ set }) => {
+    try {
+      return await getCachedGitHubReleases();
+    } catch {
+      return serverError(set, "Failed to load GitHub releases");
+    }
+  });
 ```
 
 Sub-plugins for large feature areas keep `index.ts` thin and let each domain own its own file (see `apps/api/src/routes/library/index.ts` — list, meta, grab, files, jobs).
@@ -32,56 +37,59 @@ Handlers query Prisma directly, catch errors, map camelCase → snake_case befor
 ```typescript
 .get("/", async ({ user, set }) => {
   try {
-    const items = await prisma.chore.findMany({ orderBy: { createdAt: "desc" } });
+    const items = await prisma.libraryMedia.findMany({
+      orderBy: { addedAt: "desc" },
+    });
     return {
-      items: items.map((c) => ({
-        id: c.id,
-        chore_name: c.choreName,
-        added_by: c.addedBy,
-        created_at: c.createdAt?.toISOString() ?? null,
+      items: items.map((item) => ({
+        id: item.id,
+        tmdb_id: item.tmdbId,
+        poster_url: item.posterUrl,
+        added_at: item.addedAt.toISOString(),
       })),
     };
   } catch {
-    return serverError(set, "Failed to fetch chores");
+    return serverError(set, "Failed to fetch library");
   }
 });
 ```
 
-Mapper functions for non-trivial entities live alongside the route (`choreMappers.ts`) or in `apps/api/src/utils/mappers.ts` when reused.
+Mapper functions for non-trivial entities live alongside the route or in a domain utility such as `apps/api/src/utils/medias/mappers.ts`.
 
 ## TanStack Query Hook (Read)
 
 Web hooks live next to their feature (`apps/web/src/pages/<area>/use*.ts` or `apps/web/src/features/<area>/`). They always pull the query key from the factory and the URL from the local endpoints map.
 
 ```typescript
-// apps/web/src/pages/chores/useChores.ts
-import { useQuery } from "@tanstack/react-query";
+// apps/web/src/features/medias/hooks/useLibrary.ts
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { CHORES_ENDPOINTS } from "@/lib/endpoints";
-import type { ChoresResponse } from "@hously/shared/types";
+import { LIBRARY_ENDPOINTS } from "@/lib/endpoints";
+import type { LibraryListResponse } from "@hously/shared/types";
 
-export function useChores() {
+export function useLibrary(filters?: { type?: string; status?: string }) {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: queryKeys.chores.list(),
-    queryFn: () => fetcher<ChoresResponse>(CHORES_ENDPOINTS.LIST),
+    queryKey: queryKeys.library.list(filters),
+    queryFn: () => fetcher<LibraryListResponse>(LIBRARY_ENDPOINTS.LIST),
+    placeholderData: keepPreviousData,
   });
 }
 ```
 
-For mutations, invalidate the matching list key after success: `queryClient.invalidateQueries({ queryKey: queryKeys.chores.all })`. If a mutation affects a dashboard widget, invalidate `queryKeys.dashboard.*` too.
+For mutations, invalidate the matching root after success: `queryClient.invalidateQueries({ queryKey: queryKeys.library.all })`. If a mutation affects a dashboard widget, invalidate the relevant `queryKeys.dashboard.*` key too.
 
 ## Feature Folder Layout (Web)
 
-Two valid placements depending on age:
+Two valid placements depending on domain size:
 
-- New self-contained features: `apps/web/src/features/<name>/index.tsx` + `components/` (matches `.claude/rules/feature-structure.md`).
-- Legacy pages still under: `apps/web/src/pages/<name>/index.tsx` with `_component/`, `_hooks/`, and colocated `use*.ts` files at the same level.
+- Large domains with a separate data layer: `apps/web/src/features/<name>/hooks/` plus page UI under `apps/web/src/pages/<name>/`.
+- Route-owned domains: `apps/web/src/pages/<name>/index.tsx` with `_component/`, optional `_hooks/`, and colocated `use*.ts` files.
 
-Both patterns coexist; prefer `features/` for new work.
+Do not create a `features/` split for a small page unless it removes real complexity.
 
-Modal pattern: search params drive modal state (e.g. `?modal=create` or `?modal=edit&choreId=42`). The route's `validateSearch` narrows the params and the page component renders the corresponding modal lazily.
+Modal pattern: search params drive modal state (for example a media detail ID). The route's `validateSearch` narrows the params and the page component renders the corresponding modal.
 
 ## SSE Stream (Server)
 
@@ -97,7 +105,7 @@ return createJsonSseResponse({
 });
 ```
 
-Defined in `apps/api/src/utils/sse.ts`. Consumed in the web app via `apps/web/src/lib/realtime/useEventSource.ts`.
+Defined in `apps/api/src/utils/sse.ts`. Stateful web consumers can use `apps/web/src/lib/realtime/useEventSourceState.ts`; notification and library streams have domain-specific hooks.
 
 ## Background Job (Cron)
 
@@ -115,3 +123,7 @@ To add a new cron job:
 Inbound webhooks for a new third-party service go in `apps/api/src/services/webhookHandlers/<name>.ts` and register in `registry.ts`. The dispatch lives at `POST /api/webhooks/:serviceName` (`apps/api/src/routes/webhooks/index.ts`).
 
 qBittorrent uses dedicated endpoints under `/api/webhooks/qbittorrent/*` because they're auto-configured into qBittorrent's "Run external program on torrent finished" hook with a shared bearer secret.
+
+## Changelog
+
+- 2026-06-11 — Replaced removed chores/board examples with current library and release patterns.

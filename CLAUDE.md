@@ -20,7 +20,7 @@ Detailed coding conventions live in `.claude/rules/` (Claude Code) and are mirro
 
 ## Project Overview
 
-Hously is a self-hosted command center for homelab enthusiasts.
+Hously is a self-hosted command center for homelab infrastructure and media pipelines.
 
 - **API** (`apps/api`): Elysia + Prisma
 - **Web** (`apps/web`): React 19 + TanStack Router/Query
@@ -73,7 +73,7 @@ Internal imports use `@hously/api/...`.
 
 ## Global Settings (AppSettings)
 
-Singleton row (id=1): `country_code` (TMDB release-date region), `upcoming_window_months`, `upcoming_languages`, `dashboard_widget_visibility`. API: `/api/settings`. Worker/dashboard/UI integration — see AGENTS.md.
+Singleton row (id=1): `country_code` (TMDB release-date region), `upcoming_window_months`, `upcoming_languages`, dashboard widget/tile layout, visibility, and quick links. API: `/api/settings`. Worker/dashboard/UI integration — see AGENTS.md.
 
 ---
 
@@ -96,14 +96,11 @@ docker compose down
 
 ## Key Features
 
-### Homelab
+### Homelab And Media
 
-- Dashboard, qBittorrent/SSE, TMDB, trackers, Jellyfin/Plex, webhooks.
+- Dashboard, Docker/system monitoring, qBittorrent/SSE, TMDB, trackers, Jellyfin/Plex, webhooks.
 - **Hously replaces Radarr/Sonarr** — movies and TV in one built-in library, not a sidecar integration. Media search, quality profiles, and grab workflows live in Hously. **Settings → Library import** provides a one-time Radarr/Sonarr importer for users switching from an existing \*arr stack.
-
-### Life
-
-- Calendar (movie/TV/episode release schedule).
+- Calendar is a read-only movie/TV/episode release view backed by the media library.
 
 ## Important Notes
 

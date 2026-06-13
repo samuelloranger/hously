@@ -13,7 +13,7 @@ Always use the `@/` alias for local imports. Never use relative paths like `../.
 // Correct
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/auth/useAuth";
-import { CompleteCheckbox } from "@/components/CompleteCheckbox";
+import { EmptyState } from "@/components/EmptyState";
 
 // Wrong
 import { cn } from "../../lib/utils";
@@ -40,6 +40,6 @@ import { badRequest } from "../../utils/errors";
 Always import shared types/utilities via the package namespace (or explicit subpath exports such as `@hously/shared/types`). Never reach into `apps/shared/src/...`.
 
 ```typescript
-import type { Chore } from "@hously/shared/types";
+import type { LibraryMedia } from "@hously/shared/types";
 import { sanitizeInput } from "@hously/shared/utils";
 ```

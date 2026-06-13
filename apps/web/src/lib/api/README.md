@@ -36,9 +36,9 @@ Two — and only two — situations bypass `httpClient`:
    surfacing `httpClient`'s network-error toast.
 
 Real-time streams use **`EventSource`**, which `httpClient` does not wrap.
-Prefer the helpers in `lib/realtime/` (`useEventSource`, `useEventSourceState`)
-— they already set `withCredentials: true`. Hand-rolled `EventSource` is the
-same bypass class as raw `fetch` and carries the same risk.
+Prefer `lib/realtime/useEventSourceState.ts` or an existing domain hook; they
+already set `withCredentials: true`. Hand-rolled `EventSource` is the same
+bypass class as raw `fetch` and carries the same risk.
 
 ## The two non-negotiable rules for any bypass
 
@@ -55,10 +55,9 @@ Keep this list current — these are the only sanctioned bypasses.
 
 ### Service Worker (`src/sw/`) — cannot import `httpClient`
 
-| File                               | Call                                             | Cookie rule                 |
-| ---------------------------------- | ------------------------------------------------ | --------------------------- |
-| `sw/badge.ts`                      | `GET /api/notifications/unread-count`            | `credentials: "include"` ✅ |
-| `sw/notification-click-handler.ts` | `POST /api/chores/toggle/:id` (mark-done action) | `credentials: "include"` ✅ |
+| File          | Call                                  | Cookie rule                 |
+| ------------- | ------------------------------------- | --------------------------- |
+| `sw/badge.ts` | `GET /api/notifications/unread-count` | `credentials: "include"` ✅ |
 
 ### App code — intentional bypass
 
@@ -70,7 +69,6 @@ Keep this list current — these are the only sanctioned bypasses.
 
 | File                                         | Stream                             | `withCredentials` |
 | -------------------------------------------- | ---------------------------------- | ----------------- |
-| `lib/realtime/useEventSource.ts`             | generic JSON SSE helper            | ✅                |
 | `lib/realtime/useEventSourceState.ts`        | generic SSE state helper           | ✅                |
 | `lib/notifications/useNotificationStream.ts` | `/api/notifications/stream`        | ✅                |
 | `features/medias/hooks/useMigrateStatus.ts`  | `LIBRARY_ENDPOINTS.MIGRATE_STATUS` | ✅                |

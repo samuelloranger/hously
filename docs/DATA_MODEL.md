@@ -2,7 +2,7 @@
 
 Survey of the Prisma schema at `apps/api/prisma/schema.prisma`. Focuses on the key entities and how they connect; per-field detail is in the schema itself.
 
-Last verified: 2026-05-25
+Last verified: 2026-06-11
 
 ## Overview
 
@@ -10,8 +10,8 @@ PostgreSQL 15 via Prisma. Roughly 40 models grouped into a few concerns:
 
 - **Identity / auth** — `User`, Better Auth tables (`BaSession`, `BaAccount`, `BaVerification`, `BaPasskey`), `Invitation`, `OidcProvider`
 - **Media library (replaces \*arr)** — `LibraryMedia`, `LibraryEpisode`, `QualityProfile`, `MediaFile`, `DownloadHistory`, `GrabBlocklist`, `LibraryAttentionAlert`, `LibraryHealthLog`, `MediaSettings`
-- **Life management** — `WatchlistItem`, `BoardTask` / `BoardTag` / `BoardTaskDependency` / `BoardTimeLog` / `BoardTaskActivity`
-- **Notifications / activity** — `Notification`, `NotificationChannel`, `NotificationTemplate`, `ExternalNotificationService` (+ `Log`), `UserSubscription`, `ActivityLog`, `TaskCompletion`
+- **Media planning / analytics** — `WatchlistItem`, `TaskCompletion`
+- **Notifications / activity** — `Notification`, `NotificationChannel`, `NotificationTemplate`, `ExternalNotificationService` (+ `Log`), `UserSubscription`, `ActivityLog`
 - **Integrations / ops** — `Integration`, `QbittorrentRequestLog`, `MinecraftServer`, `AppSettings`
 
 Prisma columns are camelCase, mapped to snake_case DB column names with `@map`. All API responses re-map back to snake_case (see [CONVENTIONS.md](./CONVENTIONS.md#api-response-mapping-snake_case)).
@@ -20,7 +20,7 @@ Prisma columns are camelCase, mapped to snake_case DB column names with `@map`. 
 
 Two singleton rows (id = 1) hold global config:
 
-- **`AppSettings`** — app-wide UX defaults. Fields: `countryCode`, `calendarSubdivisionCode`, `upcomingWindowMonths` (3/6/12/24), `upcomingLanguages` (comma-separated TMDB codes), `dashboardWidgetVisibility` (JSON toggles), `dashboardWidgetLayout` (JSON grid), `quickLinks` (JSON array). Read via `GET /api/settings`, write via admin-only `PATCH /api/settings`. UI: Settings → General.
+- **`AppSettings`** — app-wide UX defaults. Fields: `countryCode`, `upcomingWindowMonths` (3/6/12/24), `upcomingLanguages` (comma-separated TMDB codes), `dashboardWidgetVisibility`, `dashboardWidgetLayout`, `dashboardTileLayout`, and `quickLinks`. Read via `GET /api/settings`, write via admin-only `PATCH /api/settings`. UI: Settings → General.
 - **`MediaSettings`** — library / post-processing config. Fields: `moviesLibraryPath`, `showsLibraryPath`, `fileOperation` (hardlink/move/copy), `movieTemplate`, `episodeTemplate`, `minSeedRatio`, `postProcessingEnabled`, `defaultQualityProfileId`, `activeIndexerManager` (`prowlarr` or `jackett`).
 
 Why singletons: there's exactly one Hously instance per deployment; modeling as a table (with a fixed id) lets Prisma migrations evolve the shape and gives admins atomic `PATCH` semantics.
@@ -71,6 +71,10 @@ There is no calendar-specific model. The calendar page is a read-only view of up
 ## Activity / Logs
 
 - **`ActivityLog`** — append-only structured log of user-driven actions (e.g. `library:grab`, `media_grab`). Powers the dashboard activity feed. See `apps/api/src/utils/activityLogs.ts:logActivity`.
-- **`TaskCompletion`** — per-user completion record across task types; powers stats widgets.
+- **`TaskCompletion`** — retained historical per-user completion data used by analytics, activity feeds, and data export. The task-producing features have been removed.
 - **`QbittorrentRequestLog`** — captured qBittorrent HTTP requests/responses for debugging integration issues.
 - **`LibraryHealthLog`** — periodic health snapshots from the library integrity checker (weekly cron Sunday 03:00).
+
+## Changelog
+
+- 2026-06-11 — Removed deleted board models and stale calendar settings from the schema overview.

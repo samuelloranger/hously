@@ -9,8 +9,8 @@ Use `@tanstack/react-query` plus `import { queryKeys } from "@/lib/queryKeys"`. 
 
 1. **Server-state hook in a domain that owns a `features/<name>/` module** → `apps/web/src/features/<name>/hooks/` (today: `medias`, `downloadsImport` — medias is the reference shape).
 2. **Consumed across unrelated areas, or a domain-level utility owned by no single page** → `apps/web/src/hooks/<domain>/`.
-3. **Otherwise it belongs to one page** → colocate under `apps/web/src/pages/<area>/` (a `_hooks/` subfolder when there are many, like board; `_component/` for page-local UI state).
+3. **Otherwise it belongs to one page** → colocate under `apps/web/src/pages/<area>/` (a `_hooks/` subfolder when there are many; `_component/` for page-local UI state).
 
-Don't replicate the medias `features/` + `pages/` split for small domains — `board`, `chores`, `habits` keep everything under `pages/<area>/`. Never export hooks from `@hously/shared`.
+Don't replicate the medias `features/` + `pages/` split for small domains. Never export hooks from `@hously/shared`.
 
 Never hardcode tuple roots like `["dashboard"]` — extend `apps/web/src/lib/queryKeys.ts` and reuse factory entries everywhere (including invalidations against `queryKeys.dashboard` when dashboards care about your mutation).

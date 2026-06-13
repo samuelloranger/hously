@@ -6,7 +6,7 @@ Agent instructions for the **Hously** monorepo. Read this before writing any cod
 
 ## Project Overview
 
-Hously is a self-hosted command center for homelab enthusiasts — unified dashboard for infrastructure monitoring, media pipelines, and life management.
+Hously is a self-hosted command center for homelab enthusiasts — a unified dashboard for infrastructure monitoring and media pipelines.
 
 **Monorepo layout:**
 
@@ -100,29 +100,29 @@ Anything used by **both** apps belongs here — TanStack hooks, web-only URLs, a
 ```typescript
 // Web ✓
 import { cn } from "@/lib/utils";
-import { useChores } from "@/pages/chores/useChores";
+import { useLibrary } from "@/features/medias/hooks/useLibrary";
 
 // API ✓
 import { prisma } from "@hously/api/db";
-import { badRequest } from "@hously/api/utils/errors";
+import { badRequest } from "@hously/api/errors";
 
 // Wrong anywhere
-import { Chore } from "@hously/shared/src/types/chores";
+import { LibraryMedia } from "@hously/shared/src/types/library";
 ```
 
 ### Naming
 
 | Context                     | Convention           | Example                                                    |
 | --------------------------- | -------------------- | ---------------------------------------------------------- |
-| React components            | PascalCase           | `ChoreRow.tsx`, `CreateChoreModal.tsx`                     |
-| Hooks                       | `use` + PascalCase   | `useChores.ts`, `useDeleteChore.ts`                        |
+| React components            | PascalCase           | `LibraryItemRow.tsx`, `AddToLibraryModal.tsx`              |
+| Hooks                       | `use` + PascalCase   | `useLibrary.ts`, `useLibraryItem.ts`                       |
 | Utilities                   | camelCase            | `formatDate.ts`                                            |
-| API route plugins           | camelCase + `Routes` | `choresRoutes`, `calendarRoutes`                           |
-| TypeScript types/interfaces | PascalCase           | `Chore`, `CreateChoreRequest`                              |
+| API route plugins           | camelCase + `Routes` | `libraryRoutes`, `notificationsRoutes`                     |
+| TypeScript types/interfaces | PascalCase           | `LibraryMedia`, `LibraryListResponse`                      |
 | Endpoint constants          | UPPER_SNAKE_CASE     | Colocate with web hooks / `lib/` unless shared across apps |
-| Database columns (Prisma)   | camelCase            | `choreName`, `addedBy`                                     |
-| API response fields         | snake_case           | `chore_name`, `added_by`, `created_at`                     |
-| URL paths                   | kebab-case           | `/api/chores`, `/api/clear-completed`                      |
+| Database columns (Prisma)   | camelCase            | `releaseDate`, `createdAt`                                 |
+| API response fields         | snake_case           | `release_date`, `created_at`                               |
+| URL paths                   | kebab-case           | `/api/quality-profiles`, `/api/library/downloads`          |
 
 ### Feature Structure
 
@@ -137,19 +137,18 @@ features/<name>/
 API routes expose an Elysia plugin per area:
 
 ```typescript
-export const choresRoutes = new Elysia({ prefix: "/api/chores" })
-  .use(auth)
-  .use(requireUser)
-  .get("/", async ({ user, set }) => {
+export const releasesRoutes = new Elysia({ prefix: "/api/releases" })
+  .use(requireAdmin)
+  .get("/", async ({ set }) => {
     try {
-      /* prisma query + snake_case mapping */
+      return await getCachedGitHubReleases();
     } catch {
-      return serverError(set, "Failed to fetch items");
+      return serverError(set, "Failed to load GitHub releases");
     }
   });
 ```
 
-Use error helpers from `src/utils/errors.ts`, compose in `src/index.ts`.
+Use error helpers from `src/errors.ts`, compose routes in `src/index.ts`.
 
 ### TanStack Query
 
@@ -157,14 +156,14 @@ Use error helpers from `src/utils/errors.ts`, compose in `src/index.ts`.
 - **API access** — go through `httpClient` (`useFetcher` / `webFetcher` / `fetchApi`), never raw `fetch`. The only sanctioned bypasses (Service Worker code, which can't import the `@/` alias, plus a couple of fire-and-forget calls and SSE streams) must replicate the cookie + root-relative-URL rules — see `apps/web/src/lib/api/README.md` for the full list and the rationale (avoids prod-only auth bugs).
 - **Hook placement** — decide by _who consumes the hook_, top-down (first match wins). Never put hooks in `@hously/shared`.
   1. **Server-state hook (TanStack `useQuery`/`useMutation`) in a domain that owns a `features/<name>/` module** → `apps/web/src/features/<name>/hooks/`. Today only `medias` and `downloadsImport` have this data layer, kept separate from their (large) `pages/` UI. **Medias is the reference shape.**
-  2. **Consumed across unrelated areas, or a domain-level utility owned by no single page** (e.g. a scroll helper, a country list shared by Settings + Calendar) → `apps/web/src/hooks/<domain>/`.
-  3. **Otherwise the hook belongs to one page/route** (data _or_ UI-state) → colocate under that page: `apps/web/src/pages/<area>/`, a `_hooks/` subfolder when there are many (board's pattern), or `_component/` for page-local UI state.
+  2. **Consumed across unrelated areas, or a domain-level utility owned by no single page** (e.g. auth or navigation state) → `apps/web/src/hooks/<domain>/`.
+  3. **Otherwise the hook belongs to one page/route** (data _or_ UI-state) → colocate under that page: `apps/web/src/pages/<area>/`, a `_hooks/` subfolder when there are many, or `_component/` for page-local UI state.
 
-  Don't replicate the medias `features/` + `pages/` split for small domains — `board` keeps everything under `pages/<area>/`.
+  Don't replicate the medias `features/` + `pages/` split for small domains.
 
 ```typescript
 import { queryKeys } from "@/lib/queryKeys";
-queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
+queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
 ```
 
 ### DRY / Shared Code
@@ -188,12 +187,15 @@ Promote **types**, **pure utilities**, and **cross-app constants** to `apps/shar
 
 Singleton `AppSettings` table (row id=1):
 
-| Field                         | Type    | Default  | Purpose                                                 |
-| ----------------------------- | ------- | -------- | ------------------------------------------------------- |
-| `country_code`                | VARCHAR | US       | TMDB release-date region                                |
-| `upcoming_window_months`      | INT     | 12       | Upcoming movies/TV horizon (3/6/12/24)                  |
-| `upcoming_languages`          | STRING  | en,fr    | Comma-separated TMDB language codes                     |
-| `dashboard_widget_visibility` | JSON    | all true | Toggles: Weather, HomeAssistant, System, Downloads, RSS |
+| Field                         | Type    | Default  | Purpose                                |
+| ----------------------------- | ------- | -------- | -------------------------------------- |
+| `country_code`                | VARCHAR | US       | TMDB release-date region               |
+| `upcoming_window_months`      | INT     | 12       | Upcoming movies/TV horizon (3/6/12/24) |
+| `upcoming_languages`          | STRING  | en,fr    | Comma-separated TMDB language codes    |
+| `dashboard_widget_visibility` | JSON    | defaults | Per-widget visibility                  |
+| `dashboard_widget_layout`     | JSON    | NULL     | Three-column widget order              |
+| `dashboard_tile_layout`       | JSON    | NULL     | Smart-tile visibility and order        |
+| `quick_links`                 | JSON    | []       | User-defined dashboard shortcuts       |
 
 **API:** `PATCH /api/settings` (admin), `GET /api/settings`. **Worker:** `src/workers/refreshUpcoming.ts`. **Route:** `src/routes/dashboard/upcoming/`. **UI:** Settings → General.
 
